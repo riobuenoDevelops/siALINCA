@@ -1,15 +1,41 @@
 {
-  "name": "sialinca",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "next": "10.0.9",
-    "react": "17.0.2",
-    "react-dom": "17.0.2"
-  }
+	"name": "sialinca",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start"
+	},
+	"dependencies": {
+		"@hapi/boom": "^9.1.2",
+		"@zeit/next-less": "^1.0.1",
+		"ajv": "^7.2.4",
+		"bcrypt": "^5.0.1",
+		"dotenv": "^8.2.0",
+		"framer-motion": "^4.0.3",
+		"i18next": "^20.1.0",
+		"jsonwebtoken": "^8.5.1",
+		"less": "^4.1.1",
+		"mongodb": "^3.6.5",
+		"next": "10.0.9",
+		"pdfmake": "^0.1.70",
+		"react": "17.0.2",
+		"react-color": "^2.19.3",
+		"react-country-region-selector": "^3.0.2",
+		"react-dom": "17.0.2",
+		"react-hook-form": "^6.15.5",
+		"react-i18next": "^11.8.11",
+		"react-icons": "^4.2.0",
+		"rsuite": "^4.9.3",
+		"webpack": "^4.44.2"
+	},
+	"devDependencies": {
+		"css-loader": "^5.2.0",
+		"file-loader": "^6.2.0",
+		"less-loader": "^6.2.0",
+		"next-images": "^1.7.0",
+		"style-loader": "^2.0.0",
+		"url-loader": "^4.1.1"
+	}
 }
