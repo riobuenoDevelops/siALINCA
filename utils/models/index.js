@@ -25,6 +25,7 @@ const {
 const { sedeSchema, updatedSedeSchema } = require("./Sede");
 const { stationarySchema, updatedStationarySchema } = require("./Stationary");
 const { storeSchema, updatedStoreSchema } = require("./Store");
+const { itemSchema, updatedItemSchema } = require("./Item");
 
 //load schemas
 ajv.addSchema(modelIdSchema);
@@ -52,5 +53,9 @@ ajv.addSchema(stationarySchema);
 ajv.addSchema(updatedStationarySchema);
 ajv.addSchema(storeSchema);
 ajv.addSchema(updatedStoreSchema);
+ajv.addSchema(electroDeviceSchema);
+ajv.addSchema(updatedElectorDeviceSchema);
+ajv.addSchema(itemSchema);
+ajv.addSchema(updatedItemSchema);
 
 module.exports = ajv;
