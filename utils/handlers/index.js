@@ -1,4 +1,4 @@
-const { config } = require("../../../config/index");
+const { config } = require("../../config/index");
 const boom = require("@hapi/boom");
 
 function withStack(error, stack) {
@@ -31,4 +31,4 @@ function errorHandler(err, req, res) {
 	}
 }
 
-module.exports = errorHandler;
+module.exports = { errorHandler };
