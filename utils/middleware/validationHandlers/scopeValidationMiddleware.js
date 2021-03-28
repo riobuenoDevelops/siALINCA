@@ -1,5 +1,5 @@
 const boom = require("@hapi/boom");
-const errorHandler = require("../../handlers/errorHandlers/index");
+const { errorHandler } = require("../../handlers/index");
 const jwt = require("jsonwebtoken");
 
 function scopeValidationMiddleware(allowedScopes, req, res, fn) {
@@ -24,3 +24,5 @@ function scopeValidationMiddleware(allowedScopes, req, res, fn) {
 		);
 	}
 }
+
+module.exports = scopeValidationMiddleware;

@@ -6,7 +6,7 @@ const roleSchema = {
 		name: { type: "string" },
 		permissions: { type: "array" },
 	},
-	required: ["_id", "name", "permissions"],
+	required: ["name", "permissions"],
 	additionalProperties: false,
 };
 

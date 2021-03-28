@@ -1,5 +1,5 @@
 const boom = require("@hapi/boom");
-const errorHandler = require("../../handlers/errorHandlers/index");
+const { errorHandler } = require("../../handlers/index");
 const schemaValidator = require("../../models/index");
 
 function schemaValidationMiddleware(schemaName, check = "body", req, res, fn) {
@@ -11,3 +11,5 @@ function schemaValidationMiddleware(schemaName, check = "body", req, res, fn) {
 		errorHandler(boom.badRequest(validator.errors.toString()), req, res);
 	}
 }
+
+module.exports = schemaValidationMiddleware;
