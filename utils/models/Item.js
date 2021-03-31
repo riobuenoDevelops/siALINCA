@@ -9,7 +9,7 @@ const itemSchema = {
 		observations: { type: "string" },
 		userId: { $ref: "user#/properties/_id" },
 	},
-	required: ["type", "quantity", "unitQuantity", "userId", "type"],
+	required: ["type", "quantity", "unitQuantity", "userId"],
 	additionalProperties: false,
 };
 
