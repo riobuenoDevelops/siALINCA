@@ -9,6 +9,7 @@ const storeSchema = {
 		addressState: { type: "string" },
 		addressCountry: { type: "string" },
 		addressZipcode: { type: "string" },
+		disabled: { type: "boolean" },
 		items: {
 			type: "array",
 			items: {
@@ -41,6 +42,7 @@ const updatedStoreSchema = {
 		addressState: { type: "string" },
 		addressCountry: { type: "string" },
 		addressZipcode: { type: "string" },
+		disabled: { type: "boolean" },
 		items: {
 			type: "array",
 			items: {

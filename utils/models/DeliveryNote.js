@@ -8,6 +8,7 @@ const deliveryNoteSchema = {
 		noteType: { type: "string" },
 		applicantType: { type: "string" },
 		applicantId: { $ref: "modelId#" },
+		disabled: { type: "boolean" },
 		items: {
 			minItems: 1,
 			type: "array",
@@ -42,6 +43,7 @@ const updatedDeliveryNoteSchema = {
 		noteType: { type: "string" },
 		applicantType: { type: "string" },
 		applicantId: { $ref: "modelId#" },
+		disabled: { type: "boolean" },
 		items: {
 			type: "array",
 			items: {

@@ -6,6 +6,7 @@ const purchaseOrderSchema = {
 		date: { $ref: "string" },
 		currency: { type: "string" },
 		totalPrice: { type: "number" },
+		disabled: { type: "boolean" },
 		bills: {
 			type: "array",
 			minItems: 1,
@@ -38,6 +39,7 @@ const updatedPurchaseOrderSchema = {
 		date: { $ref: "string" },
 		currency: { type: "string" },
 		totalPrice: { type: "number" },
+		disabled: { type: "boolean" },
 		bills: {
 			type: "array",
 			minItems: 1,
