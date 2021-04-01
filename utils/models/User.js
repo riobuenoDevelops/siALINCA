@@ -14,6 +14,7 @@ const userSchema = {
 				nivelInventario: { type: "integer" },
 			},
 		},
+		disabled: { type: "boolean" },
 	},
 	required: ["names", "lastNames", "email", "password", "roleId"],
 	additionalProperties: false,
@@ -35,6 +36,7 @@ const updatedUserSchema = {
 				nivelInventario: { type: "integer" },
 			},
 		},
+		disabled: { type: "boolean" },
 	},
 	additionalProperties: false,
 };

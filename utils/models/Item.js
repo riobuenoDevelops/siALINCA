@@ -8,6 +8,7 @@ const itemSchema = {
 		unitQuantity: { type: "integer" },
 		observations: { type: "string" },
 		userId: { $ref: "user#/properties/_id" },
+		disabled: { type: "boolean" }
 	},
 	required: ["type", "quantity", "unitQuantity", "userId"],
 	additionalProperties: false,
@@ -23,6 +24,7 @@ const updatedItemSchema = {
 		unitQuantity: { type: "integer" },
 		observations: { type: "string" },
 		userId: { $ref: "user#/properties/_id" },
+		disabled: { type: "boolean" }
 	},
 	additionalProperties: false,
 };

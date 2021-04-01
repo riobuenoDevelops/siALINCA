@@ -9,6 +9,7 @@ const sedeSchema = {
 		addressState: { type: "string" },
 		addressCountry: { type: "string" },
 		addressZipcode: { type: "string" },
+		disabled: { type: "boolean" },
 		deparments: {
 			type: "array",
 			minItems: 1,
@@ -37,6 +38,7 @@ const updatedSedeSchema = {
 		addressState: { type: "string" },
 		addressCountry: { type: "string" },
 		addressZipcode: { type: "string" },
+		disabled: { type: "boolean" },
 		deparments: {
 			type: "array",
 			items: { type: "string" },

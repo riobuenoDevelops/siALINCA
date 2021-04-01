@@ -7,6 +7,7 @@ const applicantSchema = {
 		names: { type: "string" },
 		lastNames: { type: "string" },
 		phone: { type: "string" },
+		disabled: { type: "boolean" },
 	},
 	required: ["cedula", "names", "lastNames"],
 	additionalProperties: false,
@@ -21,6 +22,7 @@ const updatedApplicantSchema = {
 		names: { type: "string" },
 		lastNames: { type: "string" },
 		phone: { type: "string" },
+		disabled: { type: "boolean" },
 	},
 	additionalProperties: false,
 };
