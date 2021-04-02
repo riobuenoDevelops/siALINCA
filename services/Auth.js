@@ -45,9 +45,11 @@ class AuthService {
         permissions: role.permissions || null,
       };
 
-      return jwt.sign(claims, config.authJwtSecret, {
+      const token = jwt.sign(claims, config.authJwtSecret, {
         expiresIn: "20h",
       });
+
+      return { token, user: { email, names, lastNames, roleId, userConfig } };
     } else {
       throw new Error("Email or password invalid");
     }
