@@ -1,0 +1,27 @@
+@import "./custom-theme.less";
+
+.sidenavbar-item {
+	a {
+		color: white !important;
+		border-left-width: 3px !important;
+		border-left-style: solid !important;
+		border-left-color: transparent !important;
+		font-size: 15px !important;
+	}
+
+	a i {
+		color: white !important;
+	}
+}
+
+.sidenavbar-item-active {
+	a {
+		border-left-width: 3px !important;
+		border-left-style: solid !important;
+		border-left-color: @base-dark-color !important;
+		background-color: @base-hover-color !important;
+	}
+	a i {
+		left: 17px !important;
+	}
+}

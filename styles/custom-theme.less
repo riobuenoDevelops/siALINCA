@@ -1,0 +1,171 @@
+@font-family-base: "Epilogue", san-serif;
+@base-color: #00b3eb;
+@warning-color: #ff8727;
+@warning-light-color: #ffb785;
+@base-dark-color: #055f99;
+@base-light-color: #00a1dd;
+@warning-color: #ff8727;
+@warning-dark-color: #ff7502;
+@background-gray-color: #f8f7f6;
+@gray-font-color: #a8a8a8;
+@dropdown-item-font-color: #545454;
+@base-hover-color: #00a1dd;
+
+html,
+body {
+	font-family: @font-family-base !important;
+	background-color: @background-gray-color !important;
+	width: 100vw;
+	height: 100vh;
+}
+
+input {
+	border: 0 !important;
+	padding: 1em 0.7em !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	color: black;
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(255, 255, 255, 0);
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(68, 63, 63, 0.4);
+	border-radius: 4px;
+	box-shadow: 0 0 1px rgb(0 0 0 / 50%);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(68, 63, 63, 0.6);
+}
+
+.full-height {
+	height: 100%;
+}
+
+.full-width {
+	width: 100%;
+}
+
+.float-left {
+	float: left;
+}
+
+.float-right {
+	float: right;
+}
+
+.text-right {
+	text-align: right;
+}
+
+.text-center {
+	text-align: center;
+}
+
+.text-left {
+	text-align: left;
+}
+
+.logo {
+	height: 5em;
+	width: auto;
+}
+
+.text-color-primary {
+	color: @base-color;
+}
+
+.bg-color-primary {
+	background-color: @base-color;
+}
+.text-color-dark-primary {
+	color: @base-dark-color;
+}
+
+.bg-color-dark-primary {
+	background-color: @base-dark-color;
+}
+
+.text-color-secundary {
+	color: @warning-color;
+}
+
+.bg-color-secundary {
+	background-color: @warning-color !important;
+}
+
+.bg-color-secundary:hover {
+	background-color: @warning-dark-color !important;
+}
+
+.text-color-dark-secundary {
+	color: @warning-dark-color;
+}
+
+.bg-color-dark-secundary {
+	background-color: @warning-dark-color;
+}
+
+.text-color-dark-gray {
+	color: @gray-font-color !important;
+}
+
+.bg-color-dark-gray {
+	background-color: @gray-font-color !important;
+}
+
+.text-bolder {
+	font-weight: 900;
+}
+
+.text-semibolder {
+	font-weight: 800;
+}
+
+.text-bold {
+	font-weight: 700;
+}
+
+.text-semibold {
+	font-weight: 600;
+}
+
+.text-medium {
+	font-weight: 500;
+}
+
+.text-black {
+	color: black;
+}
+
+.text-white {
+	color: white;
+}
+
+.with-addon-p {
+	padding-left: 2.7em !important;
+}
+
+.addon {
+	height: 100%;
+	padding: 8px 12px !important;
+}
+
+div {
+	&.rs-table-cell-header &.rs-table-cell-content {
+		background-color: @warning-light-color;
+	}
+}

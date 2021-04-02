@@ -1,0 +1,44 @@
+@import "./custom-theme.less";
+
+.about-modal {
+	.flex-row {
+		display: flex;
+	}
+
+	.image-col {
+		padding: 0 2em;
+		display: flex;
+		align-items: center;
+
+		img {
+			height: 60%;
+		}
+	}
+
+	.content-text {
+		font-size: 13px;
+
+		.version {
+			font-size: 16px;
+		}
+	}
+
+	.footer {
+		background-color: @background-gray-color;
+		text-align: start;
+		margin: auto -1.4em -1.4em -1.4em;
+		padding: 1em 2em;
+		border-radius: 0 0 6px 6px;
+
+		p {
+			display: flex;
+			align-items: center;
+			height: 100%;
+		}
+
+		img {
+			height: 50px;
+			width: 50px;
+		}
+	}
+}
