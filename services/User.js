@@ -36,6 +36,7 @@ class UserService {
       },
       roleId: userRole[0]._id,
       password: hashedPassword,
+      disabled: false,
     };
 
     delete user["roleName"];

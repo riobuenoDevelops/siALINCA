@@ -9,11 +9,15 @@ class RoleService {
   }
 
   static async getRoleByName({ name }) {
-    return await this.MongoDB.getAll(this.collection, { name })[0];
+    return await this.MongoDB.getAll(this.collection, { name });
   }
 
   static async getRole({ id }) {
-    return await this.MongoDB.get(this.collection, id);
+    const role = await this.MongoDB.get(this.collection, id);
+    if (!role) {
+      throw new Error(`Role ${id} not found`);
+    }
+    return role;
   }
 
   static async createRole({ role }) {

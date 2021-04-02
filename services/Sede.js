@@ -10,6 +10,7 @@ class SedeService {
     addressZipcode,
     addressState,
     addressCountry,
+    disabled,
   }) {
     const query = {
       name,
@@ -17,6 +18,7 @@ class SedeService {
       addressZipcode,
       addressState,
       addressCountry,
+      disabled,
     };
 
     Object.keys(query).map((key) => {
@@ -30,6 +32,19 @@ class SedeService {
 
   static async getSede({ id }) {
     return await this.MongoDB.get(this.collection, id);
+  }
+
+  static async addDeparments({ id, deparments }) {
+    const existentSede = await this.getSede({ id });
+
+    if (!existentSede) {
+      throw new Error(`Sede ${id} not found`);
+    }
+
+    return this.updateSede({
+      id,
+      sede: { deparments: [...existentSede.deparments, ...deparments] },
+    });
   }
 
   static async createSede({ sede }) {

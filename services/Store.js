@@ -44,7 +44,7 @@ class StoreService {
     return items;
   }
 
-  static async addItem({ id, itemId, quantity }) {
+  static async addItem({ id, items }) {
     const store = await this.getStore({ id });
     if (!store) {
       throw new Error(`Store ${id} is not found`);
@@ -52,7 +52,7 @@ class StoreService {
 
     return this.updateStore({
       id,
-      store: { items: [...store.items, { itemId, quantity }] },
+      store: { items: [...store.items, ...items] },
     });
   }
 
