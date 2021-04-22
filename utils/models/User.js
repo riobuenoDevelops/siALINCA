@@ -38,7 +38,7 @@ const updatedUserSchema = {
     },
     disabled: { type: "boolean" },
   },
-  additionalProperties: false,
+  additionalProperties: true,
 };
 
 module.exports = {
