@@ -5,9 +5,10 @@ pdfMake.vfs = pdfFonts.pdfMake.vfs;
 var datetime = new Date();
 
 function crearNotaPDF(){
-  var info = {Lugar: 'lugar', Solicitante: 'nombre', Cedula: 'cedula'}
-  //var info = arguments[0];
-  //var data = arguments[1];
+
+  var info = arguments[0];
+  var data = arguments[1];
+  
   var notaDocument={
     info:{
       title: 'Nota de Entrega '+datetime.getDate()+'/'+(datetime.getMonth() + 1)+'/'+datetime.getFullYear(),
@@ -124,8 +125,8 @@ function crearNotaPDF(){
   //La funcion puede recibir como parametro una lista con el orden indicado
   //info = {Lugar: 'lugar', Solicitante: 'nombre', Cedula: 'cedula'}
   //data = [[Tipo, Descripcion(Nombre), Retirado.Unidad, Retirado.Cantidad, '', '']]
-  var data = [['MDC','cosa','1','2','1','2'],['MDC','cosasdasd','1','2','1','2'],['MDC','cosasdasd','1','32','24','124']];
   ////////////////////////////////////////////////////////////////////////////////////////
+  
   var number = [1];
   data.forEach(insertar);
   function insertar(value){
@@ -138,7 +139,7 @@ function crearNotaPDF(){
 }
 
 function crearInventarioPDF(){
-  //var data = arguments[0];
+  var data = arguments[0];
 
   var inventarioDocument = {
     info:{
@@ -186,7 +187,7 @@ function crearInventarioPDF(){
       }
     ]
   }
-  var data = [['MDC','cosa','1','Algun dia'],['MDC','cosasdasd','1','2'],['MDC','cosasdasd','1','32']];
+  //var data = [['MDC','cosa','1','Algun dia'],['MDC','cosasdasd','1','2'],['MDC','cosasdasd','1','32']];
 
   data.forEach(insertar);
   function insertar(value){
@@ -197,14 +198,14 @@ function crearInventarioPDF(){
 }
 
 function crearOrdenCompraPDF(){
-  //var data = arguments[0];
-  var data = {
+  var data = arguments[0];
+  /*var data = {
     id: '5545161',
     divisa: 'dolar',
     facturas: [['numero factura','nombre comercio'], ['factura 2','comercio 2']],
     articulos: [['nombre item',5,90]],
     costoTotal: 1500
-  };//Borrar esta variable 'data' al habilitar el de data = arguments[0]
+  };*/
   
   var ordenCompraDocument={
     info:{
@@ -337,28 +338,12 @@ function crearOrdenCompraPDF(){
     ordenCompraDocument.content[this].table.body.push(value);
   }
 
-  //Agregar facturas en la tabla, usar data.facturas.forEach(insertar, 6)
-  //ordenCompraDocument.content[this].table.body.push(facturas);
-
-  //Agregar los articulos en la tabla con, usar data.articulos.forEach(insertar, 7)
-  //ordenCompraDocument.content[this].table.body.push(articulos);
-  //Luego agregar el Costo Total afuera del forEach
-  //ordenCompraDocument.content[7].table.body.push(['','',{text:'Costo Total',alignment:'center,bold:true,fillColor: '#cccccc'},data.totalPrice]);
-
-  /*ordenCompra = {
-    id: purchaseOrderId,
-    divisa: currency,
-    facturas: [['numero factura','nombre comercio'], ['factura 2','comercio 2']],
-    articulos: [['nombre item','quantity','price'],[otro articulo con ese formato]],
-    costoTotal: totalPrice
-  }*/
-
   pdfMake.createPdf(ordenCompraDocument).open();
 }
 
 function crearReportePDF(){
-  //var data = arguments[0];
-  var data = {
+  var data = arguments[0];
+  /*var data = {
     reporteRango: {
       desde: 'fechaDesde',
       hasta: 'fechaHasta',
@@ -370,7 +355,7 @@ function crearReportePDF(){
     almacenes: [['alm','almacen1','cartera',4,'05/07/2030']],
     notaNoRetorno: [['ENT1','luis fernando','despachador',16,'09/09/9999']],
     notaConRetorno: [['ENT4','luis fernando','despachador',50,'09/09/9999','08/08/8888']]
-  };//Borrar esta variable 'data' al habilitar el de data = arguments[0]
+  };*/
 
   var reporteDocument = {
 
