@@ -2,7 +2,13 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { parseCookies } from "../../lib/parseCookies";
 
-const NotesPage = ({ isLogged, handleLogged, handleUser, user, isError }) => {
+const PurchaseOrdersPage = ({
+  isLogged,
+  handleLogged,
+  handleUser,
+  user,
+  isError,
+}) => {
   const history = useRouter();
 
   useEffect(() => {
@@ -15,7 +21,7 @@ const NotesPage = ({ isLogged, handleLogged, handleUser, user, isError }) => {
     }
   }, []);
 
-  return <h1>NotesPage</h1>;
+  return <h1>Ordenes de Compra</h1>;
 };
 
 export async function getServerSideProps({ req, res }) {
@@ -46,4 +52,4 @@ export async function getServerSideProps({ req, res }) {
   }
 }
 
-export default NotesPage;
+export default PurchaseOrdersPage;

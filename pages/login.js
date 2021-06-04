@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Grid, Row, Col, FlexboxGrid, Message, Button } from "rsuite";
+import AxiosService from "../services/Axios";
+import cookieCutter from "cookie-cutter";
+import routes from "../config/routes";
 import logo from "../public/img/logo.png";
 import inventoryImage from "../public/img/inventoryLogo.jpg";
 
@@ -9,23 +12,53 @@ import LoginForm from "../components/forms/LoginForm";
 const LoginPage = ({ handleLogged }) => {
   const history = useRouter();
   const [errorMessage, handleErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (
-      localStorage.getItem("logged") !== null &&
-      localStorage.getItem("logged") === false
-    ) {
+    const userCookie = cookieCutter.get("sialincaUser");
+    if (userCookie) {
       handleLogged(true);
       history.push("/items");
     }
   });
 
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      handleLogged(true);
-      if (data.rememberme) {
-        localStorage.setItem("logged", true);
-      }
+      const userData = await AxiosService.instance.post(routes.login, {
+        email: data.email,
+        password: data.password,
+      });
+
+      const nextDay = 0.33;
+      const auxDate = new Date();
+
+      AxiosService.setAuthorizationToken(userData?.data?.token);
+      cookieCutter.set("sialincaUser", JSON.stringify(userData.data), {
+        expires: new Date(auxDate.getTime() + nextDay * 24 * 60 * 60 * 1000),
+      });
+
+      setLoading(false);
+      history.push("/items");
+    } catch (err) {
+      console.log(err.t0);
+      handleErrorMessage(err.response?.data?.message || err.message);
+    }
+    setLoading(false);
+  };
+
+  const onSubmitAsGuest = async () => {
+    try {
+      const userData = await AxiosService.instance.post(routes.login, {
+        email: process.env.guestUserEmail,
+        password: process.env.guestUserPassword,
+      });
+
+      AxiosService.setAuthorizationToken(userData?.data?.token);
+      cookieCutter.set("sialincaUser", JSON.stringify(userData.data), {
+        maxAge: 7.2e7,
+      });
+
       history.push("/items");
     } catch (err) {
       handleErrorMessage(err.message);
@@ -66,7 +99,12 @@ const LoginPage = ({ handleLogged }) => {
         <Col className="full-height" xs={12} style={{ padding: "2em" }}>
           <Row className="text-right full-height">
             <img className="logo" src={logo} alt="logo" />
-            <LoginForm onSubmit={onSubmit} errorMessage={errorMessage} />
+            <LoginForm
+              onSubmit={onSubmit}
+              onSubmitAsGuest={onSubmitAsGuest}
+              errorMessage={errorMessage}
+              loading={loading}
+            />
           </Row>
         </Col>
       </Row>

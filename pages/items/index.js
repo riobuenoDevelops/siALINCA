@@ -1,45 +1,79 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { FlexboxGrid } from "rsuite";
 import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
-import CustomTable from "../../components/customComponents/CustomTable";
 import SearchInput from "../../components/Search/SearchInput";
+import { parseCookies } from "../../lib/parseCookies";
+import { useTranslation } from "react-i18next";
+import ItemsTable from "../../components/tables/ItemsTable";
 
-const ItemsPage = ({ isLogged, handleLogged }) => {
+import items from "../../public/staticData/medicineData.json";
+
+const ItemsPage = ({ isLogged, handleLogged, handleUser, user, isError }) => {
   const history = useRouter();
-
-  const items = [];
+  const { i18n } = useTranslation();
+  const [searchInputValue, handleSearchInputValue] = useState("");
 
   useEffect(() => {
-    if (
-      localStorage.getItem("logged") !== null &&
-      localStorage.getItem("logged") === "false" &&
-      !isLogged
-    ) {
-      handleLogged(false);
-      history.push("/login");
+    if (isError) {
+      history.push("/500");
     }
+    handleLogged(true);
+    handleUser(user);
   }, []);
 
   return (
     <FlexboxGrid>
       <FlexboxGridItem colspan={16} style={{ paddingBottom: "2em" }}>
-        <h2 className="text-black text-bolder">Inventario (Admin)</h2>
+        <h2 className="text-black text-bolder">
+          Inventario ({i18n.t(`roles.${user?.user?.roleName}`)})
+        </h2>
       </FlexboxGridItem>
       <FlexboxGridItem colspan={8}>
-        <SearchInput placehoderLabel="insumo" />
+        <SearchInput
+          placehoderLabel="insumo"
+          data={[]}
+          handleValue={handleSearchInputValue}
+          value={searchInputValue}
+        />
       </FlexboxGridItem>
       <FlexboxGridItem colspan={24}>
-        <CustomTable
-          items={items}
-          columns={["id", "name", "category", "price", "quantity"]}
-          colAlign={["center", "start", "start", "start", "start"]}
-          columnType={["string", "string", "string", "symbol", "string"]}
-          colFlexGrow={[0, 2, 1, 1, 1]}
-        />
+        <ItemsTable items={items} searchInputValue={searchInputValue} />
       </FlexboxGridItem>
     </FlexboxGrid>
   );
 };
+
+export async function getServerSideProps({ req, res }) {
+  let user = {};
+  const cookies = parseCookies(req);
+
+  if (cookies && cookies.sialincaUser) {
+    try {
+      user = JSON.parse(cookies.sialincaUser);
+
+      return {
+        props: {
+          user,
+          isError: false,
+        },
+      };
+    } catch (err) {
+      return {
+        props: {
+          user,
+          isError: true,
+        },
+      };
+    }
+  }
+  return {
+    redirect: {
+      permanent: false,
+      destination: "/login",
+    },
+    props: {},
+  };
+}
 
 export default ItemsPage;
