@@ -11,6 +11,7 @@ import {
   Row,
 } from "rsuite";
 import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
+import cookieCutter from "cookie-cutter";
 
 import ItemsMenu from "../Header/ItemsMenu";
 import NotesMenu from "../Header/NotesMenu";
@@ -18,8 +19,18 @@ import ReportsMenu from "../Header/ReportsMenu";
 
 import "../../styles/custom-header.less";
 import AboutModal from "../modals/AboutModal";
+import SedesApplicantsMenu from "../Header/SedesApplicantsMenu";
 
-const CustomHeader = ({ history, location, expanded, handleLogged }) => {
+const CustomHeader = ({
+  router,
+  expanded,
+  handleLogged,
+  user,
+  handleUserModalOpen,
+  handleStoreModalOpen,
+  handleApplicantModalOpen,
+  handleSedeModalOpen,
+}) => {
   const [showAboutModal, handleAboutModal] = useState(false);
 
   const onOpenAboutModal = () => {
@@ -30,29 +41,71 @@ const CustomHeader = ({ history, location, expanded, handleLogged }) => {
     handleAboutModal(false);
   };
 
+  const onOpenUserFormModal = () => {
+    handleUserModalOpen(true);
+  };
+
+  const onOpenStoreFormModal = () => {
+    handleStoreModalOpen(true);
+  };
+
+  const onOpenSedeFormModal = () => {
+    handleSedeModalOpen(true);
+  };
+
+  const onOpenApplicantFormModal = () => {
+    handleApplicantModalOpen(true);
+  };
+
   const logout = () => {
-    localStorage.setItem("logged", false);
+    cookieCutter.set("sialincaUser", "", { expires: new Date(0) });
     handleLogged(false);
-    history.push("/login");
+    router.push("/login");
   };
 
   const renderCustomMenu = () => {
-    switch (location.pathname) {
-      case "/items":
-        return <ItemsMenu />;
-      case "/users":
-        return (
-          <Button appearance="primary" className="custom-button">
-            <Icon icon="plus" style={{ paddingRight: "0.3em" }} /> Nuevo Usuario
-          </Button>
-        );
-      case "/notes":
-        return <NotesMenu />;
-      case "/reports":
-        return <ReportsMenu />;
-      default:
-        return null;
+    if (user?.roleName !== "guest") {
+      switch (router.pathname) {
+        case "/items":
+          return <ItemsMenu router={router} user={user} />;
+        case "/users":
+          return (
+            <Button
+              appearance="primary"
+              className="custom-button"
+              onClick={onOpenUserFormModal}
+            >
+              <Icon icon="plus" style={{ paddingRight: "0.3em" }} /> Nuevo
+              Usuario
+            </Button>
+          );
+        case "/stores":
+          return (
+            <Button
+              appearance="primary"
+              className="custom-button"
+              onClick={onOpenStoreFormModal}
+            >
+              <Icon icon="plus" style={{ paddingRight: "0.3em" }} /> Nuevo
+              Almacén
+            </Button>
+          );
+        case "/sedes-applicants":
+          return (
+            <SedesApplicantsMenu
+              handleOpenApplicantModal={onOpenApplicantFormModal}
+              handleOpenSedeModal={onOpenSedeFormModal}
+            />
+          );
+        case "/notes":
+          return <NotesMenu />;
+        case "/reports":
+          return <ReportsMenu />;
+        default:
+          return null;
+      }
     }
+    return null;
   };
 
   return (
@@ -67,7 +120,9 @@ const CustomHeader = ({ history, location, expanded, handleLogged }) => {
           </Avatar>
           <Dropdown
             placement="bottomEnd"
-            title="Hola, Mary F."
+            title={`Hola, ${user?.names.split(" ")[0]} ${user?.lastNames.charAt(
+              0
+            )}.`}
             className="user-dropdown"
           >
             <Dropdown.Item className="dropdown-item" icon={<Icon icon="cog" />}>
