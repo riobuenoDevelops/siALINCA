@@ -11,10 +11,10 @@ import {
 import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
 import { useForm } from "react-hook-form";
 
-import "../../styles/login-form.less";
+import "../../styles/forms.less";
 import { useState } from "react";
 
-const LoginForm = ({ onSubmit, errorMessage }) => {
+const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
   const { handleSubmit, register, errors } = useForm();
   const [showContent, handleContent] = useState(false);
 
@@ -122,12 +122,17 @@ const LoginForm = ({ onSubmit, errorMessage }) => {
             appearance="primary"
             className="bg-color-secundary text-bold"
             style={{ padding: "1em 0.7em" }}
+            loading={loading}
           >
             Iniciar Sesión
           </Button>
         </FlexboxGridItem>
         <FlexboxGridItem colspan={24}>
-          <Button appearance="link" className="text-color-dark-gray">
+          <Button
+            appearance="link"
+            className="text-color-dark-gray"
+            onClick={onSubmitAsGuest}
+          >
             Entrar como invitado
           </Button>
         </FlexboxGridItem>
