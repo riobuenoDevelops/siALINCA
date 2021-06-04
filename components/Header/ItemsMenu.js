@@ -2,27 +2,75 @@ import { Dropdown, Icon } from "rsuite";
 
 import "../../styles/custom-header.less";
 
-const ItemsMenu = ({ history, location }) => {
-	return (
-		<Dropdown
-			title="Nuevo Insumo"
-			icon={<Icon icon="plus" style={{ color: "white" }} />}
-			placement="bottomStart"
-			className="menu-dropdown no-full-width">
-			<Dropdown.Item className="dropdown-item">
-				<Icon icon="medkit" /> Medicamento
-			</Dropdown.Item>
-			<Dropdown.Item className="dropdown-item">
-				<Icon icon="cutlery" /> Alimento
-			</Dropdown.Item>
-			<Dropdown.Item className="dropdown-item">
-				<Icon icon="home" /> Inmueble
-			</Dropdown.Item>
-			<Dropdown.Item className="dropdown-item">
-				<Icon icon="tv" /> Equipo Electrónico
-			</Dropdown.Item>
-		</Dropdown>
-	);
+const ItemsMenu = ({ router, user }) => {
+  const onHandleSelect = (eventKey) => {
+    switch (eventKey) {
+      case "1":
+        router.push({
+          pathname: `${router.pathname}/new-medicine`,
+        });
+        break;
+      case "2":
+        router.push({
+          pathname: `${router.pathname}/new-meal`,
+        });
+        break;
+      case "3":
+        router.push({
+          pathname: `${router.pathname}/new-enamelware`,
+        });
+        break;
+      case "4":
+        router.push({
+          pathname: `${router.pathname}/new-property`,
+        });
+        break;
+      default:
+    }
+  };
+  return (
+    <Dropdown
+      title="Nuevo Insumo"
+      icon={<Icon icon="plus" style={{ color: "white" }} />}
+      placement="bottomStart"
+      className="menu-dropdown no-full-width"
+    >
+      <Dropdown.Item
+        className="dropdown-item"
+        eventKey="1"
+        onSelect={onHandleSelect}
+      >
+        <Icon icon="medkit" /> Medicamento
+      </Dropdown.Item>
+      <Dropdown.Item
+        className="dropdown-item"
+        eventKey="2"
+        onSelect={onHandleSelect}
+      >
+        <Icon icon="apple" /> Alimento
+      </Dropdown.Item>
+      <Dropdown.Item
+        className="dropdown-item"
+        eventKey="3"
+        onSelect={onHandleSelect}
+      >
+        <Icon icon="cutlery" /> Utencilio
+      </Dropdown.Item>
+      <Dropdown.Item
+        className="dropdown-item"
+        eventKey="4"
+        onSelect={onHandleSelect}
+      >
+        <Icon icon="home" /> Inmueble
+      </Dropdown.Item>
+      <Dropdown.Item className="dropdown-item">
+        <Icon icon="file-text" /> Papelería
+      </Dropdown.Item>
+      <Dropdown.Item className="dropdown-item">
+        <Icon icon="tv" /> Equipo Electrónico
+      </Dropdown.Item>
+    </Dropdown>
+  );
 };
 
 export default ItemsMenu;
