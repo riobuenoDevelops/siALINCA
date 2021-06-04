@@ -10,8 +10,8 @@ class ItemService {
   static MongoDB = new MongoLib();
   static collection = "items";
 
-  static async getItems({ quantity, userId, type }) {
-    const query = { quantity, userId, type };
+  static async getItems({ quantity, userId, type, disabled }) {
+    const query = { quantity, userId, type, disabled };
 
     Object.keys(query).forEach((key) => {
       if (query[key] === undefined) {
@@ -61,7 +61,7 @@ class ItemService {
   }
 
   static async createItem({ item }) {
-    return await this.MongoDB.create(this.collection, item);
+    return await this.MongoDB.create(this.collection, {...item, disabled: false});
   }
 
   static async updateItem({ id, item }) {

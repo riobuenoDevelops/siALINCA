@@ -45,6 +45,7 @@ class UserService {
   }
 
   static async updateUser({ id, user }) {
+    let hashedPassword, roleId;
     const existentUser = await this.getUser({ id });
 
     if (!existentUser) {
@@ -52,7 +53,23 @@ class UserService {
       return;
     }
 
-    return await this.MongoDB.update(this.collection, id, user);
+    if (user.password) {
+      hashedPassword = await bcrypt.hash(user.password, 10);
+    }
+
+    const role = await RoleService.getRoleByName({ name: user.roleName });
+
+    if (role._id !== existentUser.roleId) {
+      roleId = role._id;
+    }
+
+    delete user["roleName"];
+
+    return await this.MongoDB.update(this.collection, id, {
+      ...user,
+      password: hashedPassword,
+      roleId: roleId ? roleId : existentUser.roleId,
+    });
   }
 
   static async deleteUser({ id }) {

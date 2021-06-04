@@ -35,12 +35,14 @@ class StoreService {
     return await this.MongoDB.get(this.collection, id);
   }
 
-  static getStoreItems({ ids }) {
-    const items = [];
-    ids.map(async (itemId) => {
-      const item = await ItemService.getItems({ id: itemId });
-      items.push(item);
-    });
+  static async getStoreItems({ ids }) {
+    let items = [];
+    
+    for(let i = 0; i < ids.length; i++){
+      let item = await ItemService.getItems({id: ids[i]});
+      items.push(item[0]);
+    }
+    
     return items;
   }
 

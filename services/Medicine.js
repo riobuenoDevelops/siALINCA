@@ -26,7 +26,7 @@ class MedicineService {
 	}
 
 	static async createMedicine({ medicine }) {
-		return await this.MongoDB.create(this.collection, { medicine });
+		return await this.MongoDB.create(this.collection, medicine);
 	}
 
 	static async updateMedicine({ id, medicine }) {

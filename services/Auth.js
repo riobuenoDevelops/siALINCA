@@ -11,12 +11,13 @@ class AuthService {
     }
 
     const user = await UserService.getUsers({ email });
-
-    if (!user) {
-      throw new Error(`User with email ${email} not found`);
+    if (!user.length) {
+      throw new Error(`Usuario ${email} no existe`);
     }
     if (user[0].disabled) {
-      throw new Error("This user has been disabled by an administrator");
+      throw new Error(
+        "Este usuario ha sido deshabilitado por un administrador"
+      );
     }
 
     const match = await compare(password, user[0].password);
@@ -49,9 +50,12 @@ class AuthService {
         expiresIn: "20h",
       });
 
-      return { token, user: { email, names, lastNames, roleId, userConfig } };
+      return {
+        token,
+        user: { _id: id, email, names, lastNames, roleName: role.name, userConfig },
+      };
     } else {
-      throw new Error("Email or password invalid");
+      throw new Error("Correo o contraseña invalidos");
     }
   }
 }
