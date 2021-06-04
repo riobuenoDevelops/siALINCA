@@ -1,0 +1,44 @@
+@import "./custom-theme.less";
+
+.form {
+
+  .input-title {
+    display: block;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+    color: black;
+  }
+
+  .with-shadow {
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  }
+
+  .select-dropdown {
+    width: 100%;
+    border-radius: 8px;
+
+    a {
+      border: none !important;
+      font-size: 16px;
+      padding: 1em !important;
+
+      .rs-picker-toggle-value {
+        color: @dropdown-item-font-color !important;
+      }
+
+      .rs-picker-toggle-caret {
+        top: 1em !important;
+      }
+    }
+
+    &:focus {
+      border: 2px solid @gray-font-color;
+    }
+  }
+}
+
+.form-modal {
+  .rs-modal-dialog > .rs-modal-content {
+    background-color: @background-gray-color !important;
+  }
+}
