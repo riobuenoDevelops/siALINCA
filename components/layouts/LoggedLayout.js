@@ -15,9 +15,19 @@ import "../../styles/logged-layout.less";
 import CustomHeader from "../customComponents/CustomHeader";
 import SideNavbar from "./SideNavbar";
 
-const LoggedLayout = ({ isLogged, handleLogged, children }) => {
-  const history = useRouter();
+const LoggedLayout = ({
+  isLogged,
+  handleLogged,
+  children,
+  user,
+  handleUser,
+}) => {
+  const router = useRouter();
   const [expanded, handleExpanded] = useState(true);
+  const [userModalIsOpen, handleUserModalOpen] = useState(false);
+  const [storeModalIsOpen, handleStoreModalOpen] = useState(false);
+  const [sedeModalIsOpen, handleSedeModalOpen] = useState(false);
+  const [applicantModalIsOpen, handleApplicantModalOpen] = useState(false);
 
   const onHandleExpanded = () => {
     handleExpanded(!expanded);
@@ -49,9 +59,9 @@ const LoggedLayout = ({ isLogged, handleLogged, children }) => {
           />
         </div>
         <SideNavbar
+          roleName={user?.user?.roleName}
           expanded={expanded}
-          location={history.pathname}
-          history={history}
+          router={router}
         />
       </Sidebar>
       <Container className="logged-layout-content-container">
@@ -60,9 +70,13 @@ const LoggedLayout = ({ isLogged, handleLogged, children }) => {
           style={{ display: isLogged ? "initial" : "none" }}
         >
           <CustomHeader
-            location={history.pathname}
+            handleUserModalOpen={handleUserModalOpen}
+            handleStoreModalOpen={handleStoreModalOpen}
+            handleSedeModalOpen={handleSedeModalOpen}
+            handleApplicantModalOpen={handleApplicantModalOpen}
+            user={user?.user}
+            router={router}
             expanded={expanded}
-            history={history}
             handleLogged={handleLogged}
           />
         </Header>
@@ -73,7 +87,19 @@ const LoggedLayout = ({ isLogged, handleLogged, children }) => {
               : "logged-layout-content-container"
           }
         >
-          {React.cloneElement(children, { isLogged, handleLogged })}
+          {React.cloneElement(children, {
+            isLogged,
+            handleLogged,
+            handleUser,
+            handleUserModalOpen,
+            handleStoreModalOpen,
+            handleSedeModalOpen,
+            handleApplicantModalOpen,
+            userModalIsOpen,
+            storeModalIsOpen,
+            sedeModalIsOpen,
+            applicantModalIsOpen,
+          })}
         </Content>
       </Container>
     </Container>
