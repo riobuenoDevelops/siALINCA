@@ -50,7 +50,7 @@ export default authenticated(async function (req, res) {
       scopeValidator(["read:store"], req, res, getMethodHandler);
       break;
     case "POST":
-      schemaValidator("role", "body", req, res, (req, res) => {
+      schemaValidator("store", "body", req, res, (req, res) => {
         scopeValidator(["create:store"], req, res, postMethodHandler);
       });
       break;

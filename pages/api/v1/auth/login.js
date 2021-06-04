@@ -3,7 +3,6 @@ import { errorHandler } from "../../../../utils/handlers/index";
 import AuthService from "../../../../services/Auth";
 
 export default async function handler(req, res) {
-  debugger;
   const { method } = req;
 
   if (method === "POST") {

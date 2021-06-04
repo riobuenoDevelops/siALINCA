@@ -15,11 +15,11 @@ async function postMethodHandler(req, res) {
 
 async function getMethodHandler(req, res) {
   const {
-    query: { email, phone },
+    query: { email, phone, disabled },
   } = req;
 
   try {
-    const users = await UserService.getUsers({ email, phone });
+    const users = await UserService.getUsers({ email, phone, disabled });
     res.status(200).json(users);
   } catch (err) {
     errorHandler(boom.internal(err), req, res);
