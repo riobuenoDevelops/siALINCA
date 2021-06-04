@@ -3,7 +3,7 @@ const purchaseOrderSchema = {
 	type: "object",
 	properties: {
 		_id: { $ref: "modelId#" },
-		date: { $ref: "string" },
+		date: { type: "string" },
 		currency: { type: "string" },
 		totalPrice: { type: "number" },
 		disabled: { type: "boolean" },
@@ -36,7 +36,7 @@ const updatedPurchaseOrderSchema = {
 	type: "object",
 	properties: {
 		_id: { $ref: "modelId#" },
-		date: { $ref: "string" },
+		date: { type: "string" },
 		currency: { type: "string" },
 		totalPrice: { type: "number" },
 		disabled: { type: "boolean" },

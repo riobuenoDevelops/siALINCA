@@ -1,0 +1,27 @@
+{
+  "tableHeaders": {
+    "id": "Código",
+    "price": "Precio",
+    "quantity": "Cantidad",
+    "name": "Nombre",
+    "category": "Categoría",
+    "names": "Nombres",
+    "lastNames": "Apellidos",
+    "email": "Correo Electronico",
+    "role": "Rol de Usuario"
+  },
+  "roles": {
+    "guest": "Invitado",
+    "employee": "Empleado",
+    "admin": "Administrador",
+    "superAdmin": "Súper Administrador"
+  },
+  "categories": {
+    "medicine": "Medicamento",
+    "meal": "Alimento",
+    "electroDevice": "Equipo Electrónico",
+    "enamelware": "Utencilio",
+    "stationary": "Papelería",
+    "property": "Inmueble"
+  }
+}
