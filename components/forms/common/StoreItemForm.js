@@ -12,10 +12,7 @@ export default function StoreItemForm({
 }) {
   return (
     <>
-      <FlexboxGrid.Item
-        colspan={24}
-        style={{ marginBottom: "1rem", marginTop: "2rem" }}
-      >
+      <FlexboxGrid.Item colspan={24} style={{ marginTop: "2rem" }}>
         <h4>Almacenamiento</h4>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1rem" }}>

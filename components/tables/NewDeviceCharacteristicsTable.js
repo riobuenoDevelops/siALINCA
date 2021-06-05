@@ -14,7 +14,7 @@ const DeleteCell = ({ handleData, data, rowData, dataKey, ...props }) => {
   );
 };
 
-const NewItemStoreTable = ({ data, handleData }) => {
+export default function NewDeviceCharacteristicsTable({ data, handleData }) {
   const { HeaderCell, Cell, Column } = Table;
 
   return (
@@ -28,13 +28,13 @@ const NewItemStoreTable = ({ data, handleData }) => {
     >
       <Column flexGrow={3} verticalAlign="middle">
         <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>
-          <h6 className="text-black text-bold">Almacén</h6>
+          <h6 className="text-black text-bold">Característica</h6>
         </HeaderCell>
         <Cell dataKey="store" />
       </Column>
       <Column flexGrow={1} verticalAlign="middle">
         <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>
-          <h6 className="text-black text-bold">Cantidad</h6>
+          <h6 className="text-black text-bold">Valor</h6>
         </HeaderCell>
         <Cell dataKey="quantity" />
       </Column>
@@ -46,6 +46,4 @@ const NewItemStoreTable = ({ data, handleData }) => {
       </Column>
     </Table>
   );
-};
-
-export default NewItemStoreTable;
+}

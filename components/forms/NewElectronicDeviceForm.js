@@ -1,32 +1,34 @@
 import { useState } from "react";
-import { FlexboxGrid, Input, SelectPicker } from "rsuite";
 import { Controller, useForm } from "react-hook-form";
-
-import FormDropdownFooter from "./common/FormDropdownFooter";
-import currencyData from "../../public/staticData/Common-Currency.json";
+import { FlexboxGrid, Input, SelectPicker } from "rsuite";
 import Crc from "country-state-city";
 
-import "../../styles/forms.less";
+import FormDropdownFooter from "./common/FormDropdownFooter";
 import StoreItemForm from "./common/StoreItemForm";
+import currencyData from "../../public/staticData/Common-Currency.json";
 
-export default function NewPropertyForm({
+import ".././../styles/forms.less";
+import DeviceCharacteristicsForm from "./DeviceCharacteristicsForm";
+
+export default function NewElectronicDeviceForm({
   register,
   control,
   errors,
-  token,
   stores,
+  token,
   marks,
-  materials,
+  types,
 }) {
   const storeForm = useForm();
+  const characteristicsForm = useForm();
   const [isAddingMark, handleAddingMark] = useState(false);
   const [isAddingMaterial, handleAddingMaterial] = useState(false);
   const [quantityValue, setQuantity] = useState(0);
-  const [selectedCountry, setCountry] = useState("");
-  const [selectedState, setState] = useState("");
   const [storeItemData, setStoreItemData] = useState([]);
+  const [characteristicsData, setCharacteristicsData] = useState([]);
 
   const onAddStoreItem = () => {};
+  const onAddCharacteristics = () => {};
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -68,7 +70,7 @@ export default function NewPropertyForm({
                       isEditing={isAddingMark}
                       setEditing={handleAddingMark}
                       placeholder="Marca"
-                      route="property/marks"
+                      route="electro-device/marks"
                       token={token}
                     />
                   </div>
@@ -88,16 +90,16 @@ export default function NewPropertyForm({
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
-        <span className="input-title">Material</span>
+        <span className="input-title">Tipo</span>
         <Controller
-          name="material"
+          name="deviceType"
           control={control}
           rules={{ required: true }}
           render={(field) => (
             <SelectPicker
               {...field}
               className="select-dropdown"
-              data={materials}
+              data={types}
               searchable={false}
               cleanable={false}
               renderExtraFooter={() => {
@@ -106,8 +108,8 @@ export default function NewPropertyForm({
                     <FormDropdownFooter
                       isEditing={isAddingMaterial}
                       setEditing={handleAddingMaterial}
-                      placeholder="Material"
-                      route="property/materials"
+                      placeholder="Tipo"
+                      route="electro-device/types"
                       token={token}
                     />
                   </div>
@@ -181,102 +183,12 @@ export default function NewPropertyForm({
           name="unitQuantity"
         />
       </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={11} style={{ marginTop: "0.5rem" }}>
-        <span className="text-black text-bold input-title">Direccion</span>
-        <Input
-          size="lg"
-          placeholder="Av. Upata"
-          name="addressLine"
-          inputRef={register({ required: true })}
-        />
-      </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
-        <span className="input-title">País</span>
-        <Controller
-          name="addressCountry"
-          control={control}
-          rules={{ required: true }}
-          render={(field) => (
-            <SelectPicker
-              {...field}
-              cleanable={false}
-              placement="autoVerticalStart"
-              className="select-dropdown"
-              data={Crc.getAllCountries()}
-              labelKey="name"
-              valueKey="isoCode"
-              onSelect={(value, item) => {
-                setCountry(value);
-              }}
-            />
-          )}
-        />
-      </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
-        <span className="input-title">Estado</span>
-        <Controller
-          name="addressState"
-          control={control}
-          rules={{ required: true }}
-          render={(field) => (
-            <SelectPicker
-              {...field}
-              cleanable={false}
-              placement="autoVerticalStart"
-              className="select-dropdown"
-              data={Crc.getStatesOfCountry(selectedCountry)}
-              labelKey="name"
-              valueKey="isoCode"
-              onSelect={(value, item) => {
-                setState(value);
-              }}
-            />
-          )}
-        />
-      </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
-        <span className="input-title">Ciudad</span>
-        <Controller
-          name="addressCity"
-          control={control}
-          rules={{ required: true }}
-          render={(field) => {
-            return (
-              <SelectPicker
-                {...field}
-                cleanable={false}
-                searchable={false}
-                placement="autoVerticalStart"
-                className="select-dropdown"
-                data={Crc.getCitiesOfState(selectedCountry, selectedState)}
-                labelKey="name"
-                valueKey="name"
-              />
-            );
-          }}
-        />
-      </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
-        <span className="input-title">Código Postal</span>
-        <Controller
-          name="addressZipcode"
-          control={control}
-          rules={{ required: true }}
-          render={(field) => <Input {...field} size="lg" placeholder="8050" />}
-        />
-      </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={10} style={{ marginTop: "0.5rem" }}>
-        <span className="input-title">Descripción</span>
-        <Input
-          style={{ border: 0 }}
-          size="lg"
-          name="description"
-          inputRef={register()}
-          componentClass="textarea"
-          rows={4}
-          placeholder="Escriba una breve descripción del Inmueble"
-        />
-      </FlexboxGrid.Item>
+      <DeviceCharacteristicsForm
+        characteristicsForm={characteristicsForm}
+        characteristicsData={characteristicsData}
+        onAddCharacteristics={onAddCharacteristics}
+        setCharacteristicsData={setCharacteristicsData}
+      />
       <StoreItemForm
         storeForm={storeForm}
         stores={stores}

@@ -11,26 +11,27 @@ import routes from "../../config/routes";
 import NewMedicineForm from "../../components/forms/NewMedicineForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 
+import "../../styles/forms.less";
+
 const NewMedicinePage = ({
   handleLogged,
   handleUser,
   user,
   stores,
   contentMeasures,
-  markLabsList,
-  presentationList,
+  markLabs,
+  presentations,
   isError,
 }) => {
   const history = useRouter();
   const { handleSubmit, errors, register, control } = useForm({
     mode: "onBlur",
-    defaultValues: {
-      disabled: false,
-    },
   });
   const [isOpen, handleOpen] = useState(false);
   const [storeData, setStoreData] = useState([]);
   const [isLoading, handleLoading] = useState(false);
+  const [quantityValue, setQuantity] = useState("");
+  const [storeItemData, setStoreItemData] = useState([]);
 
   useEffect(() => {
     if (isError) {
@@ -46,7 +47,7 @@ const NewMedicinePage = ({
     const itemData = {
       name: data.name,
       type: "medicine",
-      quantity: data.quantity,
+      quantity: quantityValue,
       unitQuantity: data.quantityUnit,
       price: `${data.priceCurrency} ${data.priceText}`,
       userId: user.user._id,
@@ -116,7 +117,7 @@ const NewMedicinePage = ({
 
   return (
     <>
-      <FlexboxGrid justify="start">
+      <FlexboxGrid className="form" justify="space-between">
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "3em" }}>
           <h3>Nuevo Medicamento</h3>
         </FlexboxGrid.Item>
@@ -126,40 +127,35 @@ const NewMedicinePage = ({
             register={register}
             control={control}
             stores={stores}
-            storeItemData={storeData}
-            setStoreItemData={setStoreData}
-            markLabsData={markLabsList}
-            contentMeasureData={contentMeasures}
-            presentationData={presentationList}
+            storeData={[storeItemData, setStoreItemData]}
+            quantityData={[quantityValue, setQuantity]}
+            markLabs={markLabs}
+            contentMeasures={contentMeasures}
+            presentations={presentations}
             token={user.token}
           />
         </FlexboxGrid.Item>
-        <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1rem" }}>
-          <FlexboxGrid>
-            <FlexboxGrid.Item colspan={15} />
-            <FlexboxGrid.Item colspan={4}>
-              <Button
-                block
-                appearance="default"
-                className="button shadow bg-color-white text-medium text-black"
-                onClick={onCancel}
-              >
-                Cancelar
-              </Button>
-            </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={1} />
-            <FlexboxGrid.Item colspan={4}>
-              <Button
-                block
-                className="button shadow text-medium bg-color-primary text-white"
-                onClick={handleSubmit(onSubmit)}
-                loading={isLoading}
-                appearance="primary"
-              >
-                Finalizar
-              </Button>
-            </FlexboxGrid.Item>
-          </FlexboxGrid>
+        <FlexboxGrid.Item colspan={13} />
+        <FlexboxGrid.Item colspan={4} className="form-buttons-container">
+          <Button
+            block
+            appearance="default"
+            className="button shadow bg-color-white text-medium text-black"
+            onClick={onCancel}
+          >
+            Cancelar
+          </Button>
+        </FlexboxGrid.Item>
+        <FlexboxGrid.Item colspan={4} className="form-buttons-container">
+          <Button
+            block
+            className="button shadow text-medium bg-color-primary text-white"
+            onClick={handleSubmit(onSubmit)}
+            loading={isLoading}
+            appearance="primary"
+          >
+            Finalizar
+          </Button>
         </FlexboxGrid.Item>
       </FlexboxGrid>
       <CancelConfirmationModal
@@ -176,9 +172,9 @@ export async function getServerSideProps({ req, res }) {
   let user = null,
     stores,
     measures,
-    contentMeasures,
-    presentationList,
-    markLabsList;
+    contentMeasures = [],
+    presentations = [],
+    markLabs = [];
 
   const cookies = parseCookies(req);
 
@@ -191,45 +187,30 @@ export async function getServerSideProps({ req, res }) {
 
       measures = await MeasureService.getMeasures({});
 
-      contentMeasures = measures
-        .map((measureItem) => {
-          if (
-            measureItem.name === "gramo" ||
-            measureItem.name === "litro" ||
-            measureItem.name === "metro" ||
-            measureItem.name === "superficie" ||
-            measureItem.name === "volumen"
-          ) {
-            return measureItem.measures;
-          }
-        })
-        .flat()
-        .filter((item) => item !== undefined);
-
-      presentationList = measures
-        .map((measureitem) => {
-          if (measureitem.name === "medicinePresentation") {
-            return measureitem.measures;
-          }
-        })
-        .flat()
-        .filter((item) => item !== undefined);
-
-      markLabsList = measures
-        .map((measureitem) => {
-          if (measureitem.name === "markLabs") {
-            return measureitem.measures;
-          }
-        })
-        .flat()
-        .filter((item) => item !== undefined);
+      measures.map((measureItem) => {
+        if (
+          measureItem.name === "gramo" ||
+          measureItem.name === "litro" ||
+          measureItem.name === "metro" ||
+          measureItem.name === "superficie" ||
+          measureItem.name === "volumen"
+        ) {
+          contentMeasures = measureItem.measures;
+        }
+        if (measureItem.name === "medicineMarkLabs") {
+          markLabs = measureItem.measures;
+        }
+        if (measureItem.name === "medicinePresentation") {
+          presentations = measureItem.measures;
+        }
+      });
 
       return {
         props: {
-          stores: stores || [],
-          markLabsList: markLabsList || [],
-          contentMeasures: contentMeasures || [],
-          presentationList: presentationList || [],
+          stores,
+          markLabs,
+          contentMeasures,
+          presentations,
           user,
           isError: false,
         },
@@ -238,10 +219,6 @@ export async function getServerSideProps({ req, res }) {
       return {
         props: {
           user,
-          stores: stores?.data || [],
-          markLabsList: markLabsList || [],
-          contentMeasures: contentMeasures || [],
-          presentationList: presentationList || [],
           isError: true,
         },
       };

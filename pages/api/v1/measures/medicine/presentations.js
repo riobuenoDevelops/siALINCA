@@ -1,18 +1,18 @@
 import boom from "@hapi/boom";
-import { errorHandler } from "../../../../utils/handlers/index";
-import authenticated from "../../../../utils/middleware/auth/authenticatedWrapper";
-import MeasureService from "../../../../services/Measure";
+import { errorHandler } from "../../../../../utils/handlers/index";
+import authenticated from "../../../../../utils/middleware/auth/authenticatedWrapper";
+import MeasureService from "../../../../../services/Measure";
 
 export default authenticated(async function (req, res) {
   const { method } = req;
-  
+
   switch (method) {
     case "POST":
       try {
-        const mark = await MeasureService.addMarkLab({
+        const presentation = await MeasureService.addMedicinePresentation({
           name: req.body.name,
         });
-        res.status(200).json(mark);
+        res.status(200).json(presentation);
       } catch (err) {
         errorHandler(boom.internal(err), req, res);
       }

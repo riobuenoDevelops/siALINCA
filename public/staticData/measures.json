@@ -1,0 +1,248 @@
+[
+  {
+    "name": "gramo",
+    "measures": [
+      {
+        "label": "kg",
+        "value": "kg"
+      },
+      {
+        "label": "hg",
+        "value": "hg"
+      },
+      {
+        "label": "dag",
+        "value": "dag"
+      },
+      {
+        "label": "g",
+        "value": "g"
+      },
+      {
+        "label": "dg",
+        "value": "dg"
+      },
+      {
+        "label": "cg",
+        "value": "cg"
+      },
+      {
+        "label": "mg",
+        "value": "mg"
+      }
+    ]
+  },
+  {
+    "name": "litro",
+    "measures": [
+      {
+        "label": "kl",
+        "value": "kl"
+      },
+      {
+        "label": "hl",
+        "value": "hl"
+      },
+      {
+        "label": "dal",
+        "value": "dal"
+      },
+      {
+        "label": "l",
+        "value": "l"
+      },
+      {
+        "label": "dl",
+        "value": "dl"
+      },
+      {
+        "label": "cl",
+        "value": "cl"
+      },
+      {
+        "label": "ml",
+        "value": "ml"
+      }
+    ]
+  },
+  {
+    "name": "metro",
+    "measures": [
+      {
+        "label": "km",
+        "value": "km"
+      },
+      {
+        "label": "hm",
+        "value": "hm"
+      },
+      {
+        "label": "dam",
+        "value": "dam"
+      },
+      {
+        "label": "m",
+        "value": "m"
+      },
+      {
+        "label": "dm",
+        "value": "dm"
+      },
+      {
+        "label": "cm",
+        "value": "cm"
+      },
+      {
+        "label": "mm",
+        "value": "mm"
+      }
+    ]
+  },
+  {
+    "name": "superficie",
+    "measures": [
+      {
+        "label": "km2",
+        "value": "km2"
+      },
+      {
+        "label": "hm2",
+        "value": "hm2"
+      },
+      {
+        "label": "dam2",
+        "value": "dam2"
+      },
+      {
+        "label": "m2",
+        "value": "m2"
+      },
+      {
+        "label": "dm2",
+        "value": "dm2"
+      },
+      {
+        "label": "cm2",
+        "value": "cm2"
+      },
+      {
+        "label": "mm2",
+        "value": "mm2"
+      }
+    ]
+  },
+  {
+    "name": "volumen",
+    "measures": [
+      {
+        "label": "km3",
+        "value": "km3"
+      },
+      {
+        "label": "hm3",
+        "value": "hm3"
+      },
+      {
+        "label": "dam3",
+        "value": "dam3"
+      },
+      {
+        "label": "m3",
+        "value": "m3"
+      },
+      {
+        "label": "dm3",
+        "value": "dm3"
+      },
+      {
+        "label": "cm3",
+        "value": "cm3"
+      },
+      {
+        "label": "mm3",
+        "value": "mm3"
+      }
+    ]
+  },
+  {
+    "name": "medicinePresentation",
+    "measures": [
+      {
+        "label": "Polvo",
+        "value": "Polvo"
+      },
+      {
+        "label": "Granulado",
+        "value": "Granulado"
+      },
+      {
+        "label": "Comprimido",
+        "value": "Comprimido"
+      },
+      {
+        "label": "Cápsula",
+        "value": "Cápsula"
+      },
+      {
+        "label": "Jarabe",
+        "value": "Jarabe"
+      },
+      {
+        "label": "Sello",
+        "value": "Sello"
+      },
+      {
+        "label": "Tableta",
+        "value": "Tableta"
+      },
+      {
+        "label": "Supositorio",
+        "value": "Supositorio"
+      },
+      {
+        "label": "Implante",
+        "value": "Implante"
+      },
+      {
+        "label": "Pomada",
+        "value": "Pomada"
+      },
+      {
+        "label": "Pasta",
+        "value": "Pasta"
+      },
+      {
+        "label": "Crema",
+        "value": "Crema"
+      },
+      {
+        "label": "Gel",
+        "value": "Gel"
+      },
+      {
+        "label": "Solución",
+        "value": "Solución"
+      },
+      {
+        "label": "Suspensión",
+        "value": "Suspensión"
+      },
+      {
+        "label": "Emulsión",
+        "value": "Emulsión"
+      },
+      {
+        "label": "Elixir",
+        "value": "Elixir"
+      },
+      {
+        "label": "Loción",
+        "value": "Loción"
+      },
+      {
+        "label": "Inyectable",
+        "value": "Inyectable"
+      }
+    ]
+  }
+]

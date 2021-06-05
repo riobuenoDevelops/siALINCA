@@ -25,6 +25,16 @@ const ItemsMenu = ({ router, user }) => {
           pathname: `${router.pathname}/new-property`,
         });
         break;
+      case "5":
+        router.push({
+          pathname: `${router.pathname}/new-stationary`,
+        });
+        break;
+      case "6":
+        router.push({
+          pathname: `${router.pathname}/new-electronic-device`,
+        });
+        break;
       default:
     }
   };
@@ -63,10 +73,18 @@ const ItemsMenu = ({ router, user }) => {
       >
         <Icon icon="home" /> Inmueble
       </Dropdown.Item>
-      <Dropdown.Item className="dropdown-item">
+      <Dropdown.Item
+        className="dropdown-item"
+        eventKey="5"
+        onSelect={onHandleSelect}
+      >
         <Icon icon="file-text" /> Papelería
       </Dropdown.Item>
-      <Dropdown.Item className="dropdown-item">
+      <Dropdown.Item
+        className="dropdown-item"
+        eventKey="6"
+        onSelect={onHandleSelect}
+      >
         <Icon icon="tv" /> Equipo Electrónico
       </Dropdown.Item>
     </Dropdown>
