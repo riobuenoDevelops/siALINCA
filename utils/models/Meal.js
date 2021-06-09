@@ -8,7 +8,7 @@ const mealSchema = {
     content: { type: "string" },
     expiratedDate: { type: "string" },
   },
-  required: ["itemId", "description", "content", "expiratedDate"],
+  required: ["itemId", "content", "expiratedDate"],
   additionalProperties: false,
 };
 
