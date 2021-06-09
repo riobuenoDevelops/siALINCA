@@ -17,51 +17,13 @@ const NewMealForm = ({
   stores,
   mealPresentations,
   contentMeasures,
+  storeItemData,
+  quantityData,
   token,
 }) => {
   const storeForm = useForm();
-  const [storeItemData, setStoreItemData] = useState([]);
-  const [storeItemQuantityError, showStoreQuantityError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [isAddingPresentation, handleAddingPresentation] = useState(false);
-  const [quantityValue, setQuantity] = useState(0);
-
-  const onAddStoreItem = (data) => {
-    const reducerFunction = (total, item) => {
-      debugger;
-      return total + parseInt(item.quantity);
-    };
-
-    if (storeItemData.length) {
-      const totalQuantity = storeItemData?.reduce(reducerFunction, 0);
-      if (totalQuantity + parseInt(data.quantity) > parseInt(quantityValue)) {
-        showStoreQuantityError(true);
-        return;
-      }
-    }
-    if (storeItemData.some((item) => item.storeId === data.storeId)) {
-      const index = storeItemData.findIndex(
-        (item) => item.storeId === data.storeId
-      );
-      const array = storeItemData.splice(index, 1, {
-        index,
-        store: stores.filter((store) => store._id === data.storeId)[0].name,
-        storeId: data.storeId,
-        quantity: data.quantity,
-      });
-      setStoreItemData(array);
-      return;
-    }
-
-    setStoreItemData([
-      ...storeItemData,
-      {
-        index: storeItemData.length,
-        store: stores.filter((store) => store._id === data.storeId)[0].name,
-        storeId: data.storeId,
-        quantity: data.quantity,
-      },
-    ]);
-  };
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -185,8 +147,8 @@ const NewMealForm = ({
             setValueAs: (v) => parseInt(v),
           })}
           name="quantity"
-          value={quantityValue}
-          onChange={(value) => setQuantity(value)}
+          value={quantityData[0]}
+          onChange={(value) => quantityData[1](parseInt(value))}
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
@@ -225,11 +187,10 @@ const NewMealForm = ({
       </FlexboxGrid.Item>
       <StoreItemForm
         stores={stores}
-        onAddStoreItem={onAddStoreItem}
-        storeItemData={storeItemData}
-        setStoreItemData={setStoreItemData}
+        storeData={storeItemData}
+        quantityData={quantityData}
         storeForm={storeForm}
-        showStoreQuantityError={storeItemQuantityError}
+        errorMessageData={[errorMessage, setErrorMessage]}
       />
     </FlexboxGrid>
   );

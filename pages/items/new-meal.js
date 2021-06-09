@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, FlexboxGrid, Modal } from "rsuite";
+import {Button, FlexboxGrid, Notification} from "rsuite";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
@@ -9,8 +9,10 @@ import CancelConfirmationModal from "../../components/modals/CancelConfirmationM
 import { parseCookies } from "../../lib/parseCookies";
 import StoreService from "../../services/Store";
 import MeasureService from "../../services/Measure";
+import AxiosService from "../../services/Axios";
+import routes from "../../config/routes";
 
-const NewMealPage = ({
+export default function NewMealPage({
   handleLogged,
   handleUser,
   user,
@@ -18,10 +20,13 @@ const NewMealPage = ({
   stores,
   mealPresentations,
   contentMeasures,
-}) => {
+}) {
   const router = useRouter();
   const { handleSubmit, errors, register, control } = useForm();
   const [isOpen, handleIsOpen] = useState(false);
+  const [storeItemData, setStoreItemData] = useState([]);
+  const [quantityValue, setQuantity] = useState('');
+  const [isLoading, handleLoading] = useState(false);
 
   useEffect(() => {
     handleLogged(true);
@@ -40,8 +45,71 @@ const NewMealPage = ({
     router.push("/items");
   };
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    handleLoading(true);
+
+    const itemData = {
+      name: data.name,
+      type: "meal",
+      quantity: data.quantity,
+      unitQuantity: data.unitQuantity,
+      price: `${data.priceCurrency} ${data.price}`,
+      userId: user.user._id,
+      disabled: false
+    };
+    const mealData = {
+      content: `${data.contentText} ${data.contentMeasure}`,
+      presentation: data.presentation,
+      expiratedDate: data.expiredDate,
+    };
+
+    try {
+      const item = await AxiosService.instance.post(routes.items, itemData, {
+        headers: {
+          Authorization: user.token,
+        },
+      });
+
+      await AxiosService.instance.post(
+        routes.items + "/meals",
+        { ...mealData, itemId: item.data },
+        {
+          headers: {
+            Authorization: user.token,
+          },
+        }
+      );
+
+      storeItemData.map(async (store) => {
+        await AxiosService.instance.post(
+          routes.getStores + `/${store.storeId}/items`,
+          [{ itemId: item.data, quantity: store.quantity }],
+          {
+            headers: {
+              Authorization: user.token,
+            },
+          }
+        );
+      });
+
+      Notification.success({
+        title: "Nuevo Alimento",
+        description: "Alimento agregado con exito",
+        placement: "bottomStart",
+        duration: 9000,
+      });
+      handleLoading(false);
+      history.push("/items");
+    } catch (err) {
+      Notification.error({
+        title: "Error",
+        description: err.response.data.message,
+        placement: "bottomStart",
+        duration: 9000,
+      });
+      console.error(err.response.data.message);
+      handleLoading(false);
+    }
   };
 
   return (
@@ -57,13 +125,15 @@ const NewMealPage = ({
             errors={errors}
             control={control}
             stores={stores}
+            storeItemData={[storeItemData,setStoreItemData]}
+            quantityData={[quantityValue, setQuantity]}
             mealPresentations={mealPresentations}
             contentMeasures={contentMeasures}
             token={user.token}
           />
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
-          <FlexboxGrid>
+          <FlexboxGrid justify="space-between">
             <FlexboxGrid.Item colspan={17} />
             <FlexboxGrid.Item colspan={3}>
               <Button
@@ -75,10 +145,10 @@ const NewMealPage = ({
                 Cancelar
               </Button>
             </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={1} />
             <FlexboxGrid.Item colspan={3}>
               <Button
                 block
+                loading={isLoading}
                 appearance="primary"
                 className="button text-white text-medium bg-color-primary shadow"
                 onClick={handleSubmit(onSubmit)}
@@ -143,8 +213,6 @@ export async function getServerSideProps({ req }) {
       return {
         props: {
           user,
-          stores,
-          mealPresentations: measures?.length ? measures[0] : null,
           isError: true,
         },
       };
@@ -158,5 +226,3 @@ export async function getServerSideProps({ req }) {
     props: {},
   };
 }
-
-export default NewMealPage;
