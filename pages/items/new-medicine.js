@@ -28,7 +28,6 @@ const NewMedicinePage = ({
     mode: "onBlur",
   });
   const [isOpen, handleOpen] = useState(false);
-  const [storeData, setStoreData] = useState([]);
   const [isLoading, handleLoading] = useState(false);
   const [quantityValue, setQuantity] = useState("");
   const [storeItemData, setStoreItemData] = useState([]);
@@ -47,7 +46,7 @@ const NewMedicinePage = ({
     const itemData = {
       name: data.name,
       type: "medicine",
-      quantity: quantityValue,
+      quantity: data.quantity,
       unitQuantity: data.quantityUnit,
       price: `${data.priceCurrency} ${data.priceText}`,
       userId: user.user._id,
@@ -77,10 +76,10 @@ const NewMedicinePage = ({
         }
       );
 
-      storeData.map(async (store) => {
+      storeItemData.map(async (store) => {
         await AxiosService.instance.post(
           routes.getStores + `/${store.storeId}/items`,
-          [{ itemId: item.data, quantity: parseInt(store.quantity) }],
+          [{ itemId: item.data, quantity: store.quantity }],
           {
             headers: {
               Authorization: user.token,
@@ -98,6 +97,12 @@ const NewMedicinePage = ({
       handleLoading(false);
       history.push("/items");
     } catch (err) {
+      Notification.error({
+        title: "Error",
+        description: err.response.data.message,
+        placement: "bottomStart",
+        duration: 9000,
+      });
       console.error(err.response.data.message);
       handleLoading(false);
     }
@@ -170,8 +175,8 @@ const NewMedicinePage = ({
 
 export async function getServerSideProps({ req, res }) {
   let user = null,
-    stores,
-    measures,
+    stores = [],
+    measures = [],
     contentMeasures = [],
     presentations = [],
     markLabs = [];
@@ -195,7 +200,7 @@ export async function getServerSideProps({ req, res }) {
           measureItem.name === "superficie" ||
           measureItem.name === "volumen"
         ) {
-          contentMeasures = measureItem.measures;
+          contentMeasures.push(measureItem.measures);
         }
         if (measureItem.name === "medicineMarkLabs") {
           markLabs = measureItem.measures;
