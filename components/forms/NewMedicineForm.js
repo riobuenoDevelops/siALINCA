@@ -27,18 +27,7 @@ const NewMedicineForm = ({
   const storeForm = useForm();
   const [isAddingMark, setAddingMark] = useState(false);
   const [isAddingPresentation, setAddingPresentation] = useState(false);
-
-  const onAddStoreItem = (data) => {
-    storeData[1]([
-      ...storeData[0],
-      {
-        index: storeData[0].length,
-        store: stores.filter((store) => store._id === data.storeId)[0].name,
-        storeId: data.storeId,
-        quantity: data.quantity,
-      },
-    ]);
-  };
+  const [errorMessage, setErrorMessage] = useState("");
 
   return (
     <FlexboxGrid justify="space-between">
@@ -67,7 +56,7 @@ const NewMedicineForm = ({
             <SelectPicker
               {...field}
               className="select-dropdown"
-              data={markLabsData}
+              data={markLabs}
               cleanable={false}
               searchable={false}
               renderExtraFooter={() => (
@@ -103,7 +92,7 @@ const NewMedicineForm = ({
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={8} className="not-first-row">
         <span className="input-title">Contenido</span>
-        <FlexboxGrid>
+        <FlexboxGrid justify="space-between">
           <FlexboxGrid.Item colspan={15}>
             <Input
               name="contentText"
@@ -126,18 +115,9 @@ const NewMedicineForm = ({
                 <SelectPicker
                   {...field}
                   className="select-dropdown"
-                  data={contentMeasureData}
+                  data={contentMeasures}
                   cleanable={false}
                   searchable={false}
-                  renderExtraFooter={() => (
-                    <FormDropdownFooter
-                      placeholder="Medida"
-                      route="markLabs"
-                      token
-                      isEditing={isMarkListEditing}
-                      setEditing={setMarkListEditing}
-                    />
-                  )}
                 />
               )}
             />
@@ -156,7 +136,7 @@ const NewMedicineForm = ({
               })}
               size="lg"
               type="number"
-              placeholder={0.0}
+              placeholder="0.0"
             />
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={1} />
@@ -192,7 +172,7 @@ const NewMedicineForm = ({
             <SelectPicker
               {...field}
               className="select-dropdown"
-              data={presentationData}
+              data={presentations}
               cleanable={false}
               searchable={false}
               renderExtraFooter={() => (
@@ -212,13 +192,15 @@ const NewMedicineForm = ({
         <span className="input-title">Cantidad</span>
         <Input
           name="quantity"
+          value={quantityData[0]}
+          onChange={(e) => quantityData[1](parseInt(e))}
           inputRef={register({
             required: true,
             setValueAs: (v) => parseInt(v),
           })}
           size="lg"
           type="number"
-          placeholder={0}
+          placeholder="0"
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={4} className="not-first-row">
@@ -249,11 +231,12 @@ const NewMedicineForm = ({
       <StoreItemForm
         storeForm={storeForm}
         stores={stores}
-        storeItemData={storeItemData}
-        onAddStoreItem={onAddStoreItem}
-        setStoreItemData={setStoreItemData}
+        storeData={storeData}
+        quantityData={quantityData}
+        errorMessageData={[errorMessage, setErrorMessage]}
       />
     </FlexboxGrid>
   );
 };
+
 export default NewMedicineForm;
