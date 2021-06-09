@@ -1,6 +1,6 @@
 import React, { useState } from "react";
+import {useTranslation} from "react-i18next";
 import {
-  Divider,
   Dropdown,
   Icon,
   IconButton,
@@ -10,6 +10,17 @@ import {
 } from "rsuite";
 
 import "../../styles/custom-theme.less";
+import StatusCell from "./customCells/StatusCell";
+
+const TypeCell = ({ rowData, rowKey, dataKey, ...props }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Table.Cell {...props}>
+      <span>{t(`categories.${rowData[dataKey]}`)}</span>
+    </Table.Cell>
+  )
+}
 
 const ActionCell = ({ tableRef, rowData, rowKey, ...props }) => {
   const Menu = ({ onSelect }) => (
@@ -109,7 +120,6 @@ const ItemsTable = ({ items, handleItems, searchInputValue }) => {
         headerHeight={50}
         rowHeight={60}
         onRowClick={(row) => console.log(row)}
-        width="100%"
         className="header-table shadow"
         bodyRef={(ref) => {
           tableBody = ref;
@@ -131,11 +141,11 @@ const ItemsTable = ({ items, handleItems, searchInputValue }) => {
           </HeaderCell>
           <Cell dataKey="name" />
         </Column>
-        <Column verticalAlign="middle" flexGrow={2}>
+        <Column verticalAlign="middle" flexGrow={1}>
           <HeaderCell>
             <h6 className="text-black text-bold">Categoría</h6>
           </HeaderCell>
-          <Cell dataKey="category" />
+          <TypeCell dataKey="type" />
         </Column>
         <Column verticalAlign="middle" flexGrow={1}>
           <HeaderCell>
@@ -149,10 +159,16 @@ const ItemsTable = ({ items, handleItems, searchInputValue }) => {
           </HeaderCell>
           <Cell dataKey="price" />
         </Column>
+        <Column verticalAlign="middle" flexGrow={1}>
+          <HeaderCell>
+            <h6 className="text-black text-bold">Status</h6>
+          </HeaderCell>
+          <StatusCell  />
+        </Column>
         <Column
           verticalAlign="middle"
           flexGrow={1}
-          align="end"
+          align="right"
           style={{ paddingRight: "1.5em" }}
         >
           <HeaderCell>{""}</HeaderCell>
