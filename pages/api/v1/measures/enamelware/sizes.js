@@ -1,7 +1,7 @@
 import boom from "@hapi/boom";
-import { errorHandler } from "../../../../utils/handlers/index";
-import authenticated from "../../../../utils/middleware/auth/authenticatedWrapper";
-import MeasureService from "../../../../services/Measure";
+import { errorHandler } from "../../../../../utils/handlers/index";
+import authenticated from "../../../../../utils/middleware/auth/authenticatedWrapper";
+import MeasureService from "../../../../../services/Measure";
 
 export default authenticated(async function (req, res) {
   const { method } = req;
@@ -9,10 +9,10 @@ export default authenticated(async function (req, res) {
   switch (method) {
     case "POST":
       try {
-        const material = await MeasureService.addEnamelwareMaterial({
+        const size = await MeasureService.addEnamelwareSize({
           name: req.body.name,
         });
-        res.status(200).json(material);
+        res.status(200).json(size);
       } catch (err) {
         errorHandler(boom.internal(err), req, res);
       }

@@ -3,28 +3,27 @@ import { FlexboxGrid, Input, SelectPicker } from "rsuite";
 import { Controller, useForm } from "react-hook-form";
 
 import FormDropdownFooter from "./common/FormDropdownFooter";
+import StoreItemForm from "./common/StoreItemForm";
 
 import currencyData from "../../public/staticData/Common-Currency.json";
 
 import "../../styles/forms.less";
-import StoreItemForm from "./common/StoreItemForm";
 
 export default function NewEnamelwareForm({
   token,
   stores,
   materialsData,
+  sizes,
   errors,
   register,
   control,
+  storeItemData,
+  quantityData
 }) {
   const storeForm = useForm();
-
   const [isAddingMaterial, handleAddingMaterial] = useState(false);
-  const [quantityValue, setQuantity] = useState(0);
-  const [storeItemData, setStoreItemData] = useState([]);
-  const [showStoreQuantityError, setQuantityError] = useState(false);
-
-  const onAddStoreItem = () => {};
+  const [isAddingSize, handleAddingSize] = useState(false);
+  const errorMessage = useState('');
 
   return (
     <FlexboxGrid justify="space-between" className="form">
@@ -38,7 +37,7 @@ export default function NewEnamelwareForm({
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7}>
-        <span className="input-title">Tamano</span>
+        <span className="input-title">Tamaño</span>
         <FlexboxGrid justify="space-between" align="middle">
           <FlexboxGrid.Item colspan={5}>
             <Input
@@ -58,9 +57,22 @@ export default function NewEnamelwareForm({
                 <SelectPicker
                   {...field}
                   className="select-dropdown"
-                  data={[]}
+                  data={sizes}
                   searchable={false}
                   cleanable={false}
+                  renderExtraFooter={() => {
+                    return (
+                      <div style={{ padding: "0.5em", width: "100%" }}>
+                        <FormDropdownFooter
+                          isEditing={isAddingSize}
+                          setEditing={handleAddingSize}
+                          placeholder="Tamaño"
+                          route="enamelware/sizes"
+                          token={token}
+                        />
+                      </div>
+                    );
+                  }}
                 />
               )}
             />
@@ -85,9 +97,22 @@ export default function NewEnamelwareForm({
                 <SelectPicker
                   {...field}
                   className="select-dropdown"
-                  data={[]}
+                  data={sizes}
                   searchable={false}
                   cleanable={false}
+                  renderExtraFooter={() => {
+                    return (
+                      <div style={{ padding: "0.5em", width: "100%" }}>
+                        <FormDropdownFooter
+                          isEditing={isAddingSize}
+                          setEditing={handleAddingSize}
+                          placeholder="Tamaño"
+                          route="enamelware/sizes"
+                          token={token}
+                        />
+                      </div>
+                    );
+                  }}
                 />
               )}
             />
@@ -114,7 +139,7 @@ export default function NewEnamelwareForm({
                       isEditing={isAddingMaterial}
                       setEditing={handleAddingMaterial}
                       placeholder="Material"
-                      route="enamelware-materials"
+                      route="enamelware/materials"
                       token={token}
                     />
                   </div>
@@ -171,8 +196,8 @@ export default function NewEnamelwareForm({
             setValueAs: (v) => parseInt(v),
           })}
           name="quantity"
-          value={quantityValue}
-          onChange={(value) => setQuantity(value)}
+          value={quantityData[0]}
+          onChange={(value) => quantityData[1](parseInt(value))}
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7} style={{ marginTop: ".5rem" }}>
@@ -190,10 +215,9 @@ export default function NewEnamelwareForm({
       </FlexboxGrid.Item>
       <StoreItemForm
         stores={stores}
-        storeItemData={storeItemData}
-        setStoreItemData={setStoreItemData}
-        onAddStoreItem={onAddStoreItem}
-        showStoreQuantityError={showStoreQuantityError}
+        storeData={storeItemData}
+        quantityData={quantityData}
+        errorMessageData={errorMessage}
         storeForm={storeForm}
       />
     </FlexboxGrid>
