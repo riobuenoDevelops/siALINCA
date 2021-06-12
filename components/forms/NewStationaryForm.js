@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FlexboxGrid, Input, SelectPicker } from "rsuite";
-import Crc from "country-state-city";
 
 import StoreItemForm from "./common/StoreItemForm";
 import FormDropdownFooter from "./common/FormDropdownFooter";
@@ -17,14 +16,13 @@ export default function NewStationaryForm({
   stores,
   marks,
   presentations,
+  storeData,
+  quantityData
 }) {
   const storeForm = useForm();
   const [isAddingMark, handleAddingMark] = useState(false);
   const [isAddingPresentation, handleAddingPresentation] = useState(false);
-  const [quantityValue, setQuantity] = useState(0);
-  const [storeItemData, setStoreItemData] = useState([]);
-
-  const onAddStoreItem = () => {};
+  const [errorMessage, setErrorMessage] = useState('');
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -68,7 +66,7 @@ export default function NewStationaryForm({
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7}>
-        <span className="input-title">Presentacion</span>
+        <span className="input-title">Presentación</span>
         <Controller
           name="presentation"
           control={control}
@@ -86,7 +84,7 @@ export default function NewStationaryForm({
                     <FormDropdownFooter
                       isEditing={isAddingPresentation}
                       setEditing={handleAddingPresentation}
-                      placeholder="Presentacion"
+                      placeholder="Presentación"
                       route="stationary/presentations"
                       token={token}
                     />
@@ -144,8 +142,8 @@ export default function NewStationaryForm({
             setValueAs: (v) => parseInt(v),
           })}
           name="quantity"
-          value={quantityValue}
-          onChange={(value) => setQuantity(value)}
+          value={quantityData[0]}
+          onChange={(value) => quantityData[1](value)}
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7} style={{ marginTop: "0.5rem" }}>
@@ -164,9 +162,9 @@ export default function NewStationaryForm({
       <StoreItemForm
         storeForm={storeForm}
         stores={stores}
-        storeItemData={storeItemData}
-        onAddStoreItem={onAddStoreItem}
-        setStoreItemData={setStoreItemData}
+        storeData={storeData}
+        quantityData={quantityData}
+        errorMessageData={[errorMessage, setErrorMessage]}
       />
     </FlexboxGrid>
   );

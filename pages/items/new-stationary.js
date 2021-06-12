@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Button, FlexboxGrid } from "rsuite";
+import {Button, FlexboxGrid, Notification} from "rsuite";
 import { useForm } from "react-hook-form";
 
 import NewStationaryForm from "../../components/forms/NewStationaryForm";
@@ -11,6 +11,8 @@ import StoreService from "../../services/Store";
 import MeasureService from "../../services/Measure";
 
 import "../../styles/forms.less";
+import AxiosService from "../../services/Axios";
+import routes from "../../config/routes";
 
 export default function NewStationaryPage({
   handleLogged,
@@ -25,6 +27,8 @@ export default function NewStationaryPage({
   const { handleSubmit, errors, control, register } = useForm();
   const [isLoading, handleLoading] = useState();
   const [isOpen, handleIsOpen] = useState(false);
+  const [storeItemData, setStoreItemData] = useState([]);
+  const quantity = useState(0);
 
   useEffect(() => {
     if (isError) {
@@ -45,8 +49,69 @@ export default function NewStationaryPage({
     router.push("/items");
   };
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    handleLoading(true);
+
+    const itemData = {
+      name: data.name,
+      type: "stationary",
+      quantity: data.quantity,
+      unitQuantity: data.unitQuantity,
+      price: `${data.priceCurrency} ${data.price}`,
+      userId: user.user._id,
+      disabled: false
+    };
+    const stationaryData = {
+      presentation: data.presentation,
+      mark: data.mark
+    };
+
+    try {
+      const item = await AxiosService.instance.post(routes.items, itemData, {
+        headers: {
+          Authorization: user.token,
+        },
+      });
+
+      await AxiosService.instance.post(
+        routes.items + "/stationary",
+        { ...stationaryData, itemId: item.data },
+        {
+          headers: {
+            Authorization: user.token,
+          },
+        }
+      );
+
+      storeItemData.map(async (store) => {
+        await AxiosService.instance.post(
+          routes.getStores + `/${store.storeId}/items`,
+          [{ itemId: item.data, quantity: store.quantity }],
+          {
+            headers: {
+              Authorization: user.token,
+            },
+          }
+        );
+      });
+
+      Notification.success({
+        title: "Nuevo Papelería",
+        description: "Papelería agregado con exito",
+        placement: "bottomStart",
+        duration: 9000,
+      });
+      handleLoading(false);
+      history.push("/items");
+    } catch (err) {
+      Notification.error({
+        title: "Error",
+        description: err?.response?.data,
+        placement: "bottomStart",
+        duration: 9000,
+      });
+      handleLoading(false);
+    }
   };
 
   return (
@@ -65,6 +130,8 @@ export default function NewStationaryPage({
             marks={marks}
             presentations={presentations}
             token={user.token}
+            storeData={[storeItemData, setStoreItemData]}
+            quantityData={quantity}
           />
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
