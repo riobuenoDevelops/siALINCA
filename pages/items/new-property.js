@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { Button, FlexboxGrid } from "rsuite";
+import {Button, FlexboxGrid, Notification} from "rsuite";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/router";
 
 import NewPropertyForm from "../../components/forms/NewPropertyForm";
+import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
+
 import { parseCookies } from "../../lib/parseCookies";
 import StoreService from "../../services/Store";
+import MeasureService from "../../services/Measure";
 
 import "../../styles/forms.less";
-import MeasureService from "../../services/Measure";
-import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
-import { useRouter } from "next/router";
+import AxiosService from "../../services/Axios";
+import routes from "../../config/routes";
 
 export default function NewPropertyPage({
   handleLogged,
@@ -24,6 +27,8 @@ export default function NewPropertyPage({
   const { handleSubmit, errors, control, register } = useForm();
   const [isLoading, handleLoading] = useState();
   const [isOpen, handleIsOpen] = useState(false);
+  const [storeItemData, setStoreItemData] = useState([]);
+  const quantity = useState(0);
 
   useEffect(() => {
     if (isError) {
@@ -44,8 +49,77 @@ export default function NewPropertyPage({
     router.push("/items");
   };
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    handleLoading(true);
+
+    const itemData = {
+      name: data.name,
+      type: "property",
+      quantity: data.quantity,
+      unitQuantity: data.unitQuantity,
+      price: `${data.priceCurrency} ${data.price}`,
+      userId: user.user._id,
+      disabled: false
+    };
+    const propertyData = {
+      description: data.description,
+      serial: data.serial,
+      model: data.model,
+      mark: data.mark,
+      material: data.material,
+      addressLine: data.addressLine,
+      addressCountry: data.addressCountry,
+      addressCity: data.addressCity,
+      addressState: data.addressState,
+      addressZipcode: data.zipCode,
+    };
+
+    try {
+      const item = await AxiosService.instance.post(routes.items, itemData, {
+        headers: {
+          Authorization: user.token,
+        },
+      });
+
+      await AxiosService.instance.post(
+        routes.items + "/properties",
+        { ...propertyData, itemId: item.data },
+        {
+          headers: {
+            Authorization: user.token,
+          },
+        }
+      );
+
+      storeItemData.map(async (store) => {
+        await AxiosService.instance.post(
+          routes.getStores + `/${store.storeId}/items`,
+          [{ itemId: item.data, quantity: store.quantity }],
+          {
+            headers: {
+              Authorization: user.token,
+            },
+          }
+        );
+      });
+
+      Notification.success({
+        title: "Nueva Inmueble",
+        description: "Inmueble agregado con exito",
+        placement: "bottomStart",
+        duration: 9000,
+      });
+      handleLoading(false);
+      history.push("/items");
+    } catch (err) {
+      Notification.error({
+        title: "Error",
+        description: err?.response?.data,
+        placement: "bottomStart",
+        duration: 9000,
+      });
+      handleLoading(false);
+    }
   };
 
   return (
@@ -61,6 +135,8 @@ export default function NewPropertyPage({
             register={register}
             control={control}
             stores={stores}
+            storeData={[storeItemData, setStoreItemData]}
+            quantityData={quantity}
             marks={marks}
             materials={materials}
             token={user.token}
@@ -68,11 +144,11 @@ export default function NewPropertyPage({
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
           colspan={15}
-          style={{ marginBottom: "2rem", marginTop: "2rem" }}
+          style={{ margin: "2rem 0" }}
         />
         <FlexboxGrid.Item
           colspan={4}
-          style={{ marginBottom: "2rem", marginTop: "2rem" }}
+          style={{ margin: "2rem 0" }}
         >
           <Button
             block
@@ -85,7 +161,7 @@ export default function NewPropertyPage({
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
           colspan={4}
-          style={{ marginBottom: "2rem", marginTop: "2rem" }}
+          style={{ margin: "2rem 0" }}
         >
           <Button
             block

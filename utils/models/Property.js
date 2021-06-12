@@ -18,15 +18,10 @@ const propertySchema = {
 	required: [
 		"itemId",
 		"description",
-		"content",
 		"serial",
 		"model",
 		"mark",
 		"material",
-		"addressCountry",
-		"addressCity",
-		"addressState",
-		"addresZipcode",
 	],
 	additionalProperties: false,
 };

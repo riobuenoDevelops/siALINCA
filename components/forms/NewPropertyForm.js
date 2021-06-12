@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { FlexboxGrid, Input, SelectPicker } from "rsuite";
 import { Controller, useForm } from "react-hook-form";
-
-import FormDropdownFooter from "./common/FormDropdownFooter";
-import currencyData from "../../public/staticData/Common-Currency.json";
 import Crc from "country-state-city";
 
-import "../../styles/forms.less";
+import FormDropdownFooter from "./common/FormDropdownFooter";
 import StoreItemForm from "./common/StoreItemForm";
+
+import currencyData from "../../public/staticData/Common-Currency.json";
+
+import "../../styles/forms.less";
 
 export default function NewPropertyForm({
   register,
@@ -17,16 +18,15 @@ export default function NewPropertyForm({
   stores,
   marks,
   materials,
+  quantityData,
+  storeData
 }) {
   const storeForm = useForm();
+  const [errorMessage, setErrorMessage] = useState('');
   const [isAddingMark, handleAddingMark] = useState(false);
   const [isAddingMaterial, handleAddingMaterial] = useState(false);
-  const [quantityValue, setQuantity] = useState(0);
   const [selectedCountry, setCountry] = useState("");
   const [selectedState, setState] = useState("");
-  const [storeItemData, setStoreItemData] = useState([]);
-
-  const onAddStoreItem = () => {};
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -164,8 +164,8 @@ export default function NewPropertyForm({
             setValueAs: (v) => parseInt(v),
           })}
           name="quantity"
-          value={quantityValue}
-          onChange={(value) => setQuantity(value)}
+          value={quantityData[0]}
+          onChange={(value) => quantityData[1](parseInt(value))}
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
@@ -182,12 +182,12 @@ export default function NewPropertyForm({
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={11} style={{ marginTop: "0.5rem" }}>
-        <span className="text-black text-bold input-title">Direccion</span>
+        <span className="text-black text-bold input-title">Dirección</span>
         <Input
           size="lg"
           placeholder="Av. Upata"
           name="addressLine"
-          inputRef={register({ required: true })}
+          inputRef={register()}
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
@@ -195,7 +195,6 @@ export default function NewPropertyForm({
         <Controller
           name="addressCountry"
           control={control}
-          rules={{ required: true }}
           render={(field) => (
             <SelectPicker
               {...field}
@@ -217,7 +216,6 @@ export default function NewPropertyForm({
         <Controller
           name="addressState"
           control={control}
-          rules={{ required: true }}
           render={(field) => (
             <SelectPicker
               {...field}
@@ -239,7 +237,6 @@ export default function NewPropertyForm({
         <Controller
           name="addressCity"
           control={control}
-          rules={{ required: true }}
           render={(field) => {
             return (
               <SelectPicker
@@ -261,7 +258,6 @@ export default function NewPropertyForm({
         <Controller
           name="addressZipcode"
           control={control}
-          rules={{ required: true }}
           render={(field) => <Input {...field} size="lg" placeholder="8050" />}
         />
       </FlexboxGrid.Item>
@@ -280,9 +276,9 @@ export default function NewPropertyForm({
       <StoreItemForm
         storeForm={storeForm}
         stores={stores}
-        storeItemData={storeItemData}
-        onAddStoreItem={onAddStoreItem}
-        setStoreItemData={setStoreItemData}
+        storeData={storeData}
+        quantityData={quantityData}
+        errorMessageData={[errorMessage, setErrorMessage]}
       />
     </FlexboxGrid>
   );
