@@ -52,6 +52,7 @@ const StorePage = ({
       addressState: data.addressState,
       addressCountry: data.addressCountry,
       addressZipcode: data.addressZipcode,
+      disabled: false
     };
 
     try {
