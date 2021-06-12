@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { Button, FlexboxGrid } from "rsuite";
+import {Button, FlexboxGrid, Notification} from "rsuite";
 
 import NewElectronicDeviceForm from "../../components/forms/NewElectronicDeviceForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
@@ -11,6 +11,8 @@ import StoreService from "../../services/Store";
 import MeasureService from "../../services/Measure";
 
 import "../../styles/forms.less";
+import AxiosService from "../../services/Axios";
+import routes from "../../config/routes";
 
 export default function NewElectronicDevicePage({
   handleLogged,
@@ -22,9 +24,12 @@ export default function NewElectronicDevicePage({
   types,
 }) {
   const router = useRouter();
-  const { handleSubmit, errors, control, register } = useForm();
+  const { handleSubmit, errors, control, register, setError } = useForm();
   const [isLoading, handleLoading] = useState();
   const [isOpen, handleIsOpen] = useState(false);
+  const [storeItemData, setStoreItemData] = useState([]);
+  const [deviceCharacteristics, setDeviceCharacteristics] = useState([]);
+  const quantity = useState(0);
 
   useEffect(() => {
     if (isError) {
@@ -45,8 +50,84 @@ export default function NewElectronicDevicePage({
     router.push("/items");
   };
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    debugger;
+    handleLoading(true);
+
+    if(!deviceCharacteristics.length) {
+      setError("characteristics",
+        {
+          type: "empty",
+          message: "Debe de existir por lo menos una característica del dispositivo electrónico",
+          shouldFocus: false
+        })
+      handleLoading(false);
+      return;
+    }
+
+    const itemData = {
+      name: data.name,
+      type: "stationary",
+      quantity: data.quantity,
+      unitQuantity: data.unitQuantity,
+      price: `${data.priceCurrency} ${data.price}`,
+      userId: user.user._id,
+      disabled: false
+    };
+    const electroDeviceData = {
+      deviceType: data.deviceType,
+      serial: data.serial,
+      mark: data.mark,
+      model: data.model,
+      characteristics: deviceCharacteristics
+    };
+
+    try {
+      const item = await AxiosService.instance.post(routes.items, itemData, {
+        headers: {
+          Authorization: user.token,
+        },
+      });
+
+      await AxiosService.instance.post(
+        routes.items + "/electro-devices",
+        { ...electroDeviceData, itemId: item.data },
+        {
+          headers: {
+            Authorization: user.token,
+          },
+        }
+      );
+
+      storeItemData.map(async (store) => {
+        await AxiosService.instance.post(
+          routes.getStores + `/${store.storeId}/items`,
+          [{ itemId: item.data, quantity: store.quantity }],
+          {
+            headers: {
+              Authorization: user.token,
+            },
+          }
+        );
+      });
+
+      Notification.success({
+        title: "Nuevo Dispoitivo Electrónico",
+        description: "Dispoitivo Electrónico agregado con exito",
+        placement: "bottomStart",
+        duration: 9000,
+      });
+      handleLoading(false);
+      history.push("/items");
+    } catch (err) {
+      Notification.error({
+        title: "Error",
+        description: err?.response?.data,
+        placement: "bottomStart",
+        duration: 9000,
+      });
+      handleLoading(false);
+    }
   };
 
   return (
@@ -58,13 +139,16 @@ export default function NewElectronicDevicePage({
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewElectronicDeviceForm
-            errors={errors}
+            errors={[errors, setError]}
             register={register}
             control={control}
             stores={stores}
             marks={marks}
             types={types}
             token={user.token}
+            storeData={[storeItemData, setStoreItemData]}
+            quantityData={quantity}
+            deviceCharacteristics={[deviceCharacteristics, setDeviceCharacteristics]}
           />
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
@@ -126,10 +210,10 @@ export async function getServerSideProps({ req, params }) {
 
       measures = await MeasureService.getMeasures({});
       measures.map((measure) => {
-        if (measure.name === "electronicMarks") {
+        if (measure.name === "electroDeviceMarks") {
           marks = measure.measures;
         }
-        if (measure.name === "electronicType") {
+        if (measure.name === "electroDeviceTypes") {
           types = measure.measures;
         }
       });

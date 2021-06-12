@@ -30,13 +30,13 @@ export default function NewDeviceCharacteristicsTable({ data, handleData }) {
         <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>
           <h6 className="text-black text-bold">Característica</h6>
         </HeaderCell>
-        <Cell dataKey="store" />
+        <Cell dataKey="name" />
       </Column>
       <Column flexGrow={1} verticalAlign="middle">
         <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>
           <h6 className="text-black text-bold">Valor</h6>
         </HeaderCell>
-        <Cell dataKey="quantity" />
+        <Cell dataKey="value" />
       </Column>
       <Column flexGrow={1} verticalAlign="middle">
         <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>

@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FlexboxGrid, Input, SelectPicker } from "rsuite";
-import Crc from "country-state-city";
 
 import FormDropdownFooter from "./common/FormDropdownFooter";
 import StoreItemForm from "./common/StoreItemForm";
+import DeviceCharacteristicsForm from "./DeviceCharacteristicsForm";
 import currencyData from "../../public/staticData/Common-Currency.json";
 
 import ".././../styles/forms.less";
-import DeviceCharacteristicsForm from "./DeviceCharacteristicsForm";
 
 export default function NewElectronicDeviceForm({
   register,
@@ -18,17 +17,15 @@ export default function NewElectronicDeviceForm({
   token,
   marks,
   types,
+  storeData,
+  quantityData,
+  deviceCharacteristics
 }) {
   const storeForm = useForm();
   const characteristicsForm = useForm();
   const [isAddingMark, handleAddingMark] = useState(false);
-  const [isAddingMaterial, handleAddingMaterial] = useState(false);
-  const [quantityValue, setQuantity] = useState(0);
-  const [storeItemData, setStoreItemData] = useState([]);
-  const [characteristicsData, setCharacteristicsData] = useState([]);
-
-  const onAddStoreItem = () => {};
-  const onAddCharacteristics = () => {};
+  const [isAddingType, handleAddingType] = useState(false);
+  const errorMessage = useState('');
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -106,8 +103,8 @@ export default function NewElectronicDeviceForm({
                 return (
                   <div style={{ padding: "0.5em", width: "100%" }}>
                     <FormDropdownFooter
-                      isEditing={isAddingMaterial}
-                      setEditing={handleAddingMaterial}
+                      isEditing={isAddingType}
+                      setEditing={handleAddingType}
                       placeholder="Tipo"
                       route="electro-device/types"
                       token={token}
@@ -166,8 +163,8 @@ export default function NewElectronicDeviceForm({
             setValueAs: (v) => parseInt(v),
           })}
           name="quantity"
-          value={quantityValue}
-          onChange={(value) => setQuantity(value)}
+          value={quantityData[0]}
+          onChange={(value) => quantityData[1](value)}
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
@@ -185,16 +182,19 @@ export default function NewElectronicDeviceForm({
       </FlexboxGrid.Item>
       <DeviceCharacteristicsForm
         characteristicsForm={characteristicsForm}
-        characteristicsData={characteristicsData}
-        onAddCharacteristics={onAddCharacteristics}
-        setCharacteristicsData={setCharacteristicsData}
+        characteristicsData={deviceCharacteristics}
       />
+      {errors[0].characteristics &&
+        <FlexboxGrid.Item colspan={24} style={{ color: "red", marginTop: "1rem" }}>
+          <span>{errors[0].characteristics.message}</span>
+        </FlexboxGrid.Item>
+      }
       <StoreItemForm
         storeForm={storeForm}
         stores={stores}
-        storeItemData={storeItemData}
-        onAddStoreItem={onAddStoreItem}
-        setStoreItemData={setStoreItemData}
+        storeData={storeData}
+        errorMessageData={errorMessage}
+        quantityData={quantityData}
       />
     </FlexboxGrid>
   );

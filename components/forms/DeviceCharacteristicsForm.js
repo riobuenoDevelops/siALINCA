@@ -4,10 +4,13 @@ import NewDeviceCharacteristicsTable from "../tables/NewDeviceCharacteristicsTab
 
 export default function DeviceCharacteristicsForm({
   characteristicsForm,
-  onAddCharacteristics,
   characteristicsData,
-  setCharacteristicsData,
 }) {
+
+  const onAddCharacteristics = (data) => {
+    characteristicsData[1]([...characteristicsData[0], { name: data.name, value: data.value }])
+  }
+
   return (
     <>
       <FlexboxGrid.Item
@@ -19,7 +22,7 @@ export default function DeviceCharacteristicsForm({
       <FlexboxGrid.Item colspan={6} style={{ marginBottom: "1rem" }}>
         <span className="input-title">Característica</span>
         <Input
-          name="characteristic"
+          name="name"
           inputRef={characteristicsForm.register({ required: true })}
           size="lg"
           placeholder="RAM"
@@ -28,7 +31,7 @@ export default function DeviceCharacteristicsForm({
       <FlexboxGrid.Item colspan={6}>
         <span className="input-title">Valor</span>
         <Input
-          name="characteristicValue"
+          name="value"
           inputRef={characteristicsForm.register({ required: true })}
           size="lg"
           placeholder="8GB"
@@ -48,8 +51,8 @@ export default function DeviceCharacteristicsForm({
       <FlexboxGrid.Item colspan={7} />
       <FlexboxGrid.Item colspan={24}>
         <NewDeviceCharacteristicsTable
-          data={characteristicsData}
-          handleData={setCharacteristicsData}
+          data={characteristicsData[0]}
+          handleData={characteristicsData[1]}
         />
       </FlexboxGrid.Item>
     </>

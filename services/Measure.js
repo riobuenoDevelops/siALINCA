@@ -97,6 +97,28 @@ class MeasureService {
     );
   }
 
+  static async addEnamelwareSize({ name }) {
+    const enamelwareSizes = await this.getMeasures({
+      name: "enamelwareSizes",
+    });
+    if (!enamelwareSizes.length) {
+      return await this.MongoDB.create(this.collection, {
+        name: "enamelwareSizes",
+        measures: [{ label: name, value: name }],
+      });
+    }
+    return await this.MongoDB.update(
+      this.collection,
+      enamelwareSizes[0]._id,
+      {
+        measures: [
+          ...enamelwareSizes[0].measures,
+          { label: name, value: name },
+        ],
+      }
+    );
+  }
+
   static async addPropertyMaterial({ name }) {
     const propertyMaterials = await this.getMeasures({
       name: "propertyMaterials",
@@ -166,6 +188,50 @@ class MeasureService {
         measures: [
           ...stationaryPresentations[0].measures,
           { label: name, value: name },
+        ],
+      }
+    );
+  }
+
+  static async addElectroDeviceMark({ name }) {
+    const electroDeviceMarks = await this.getMeasures({
+      name: "electroDeviceMarks",
+    });
+    if (!electroDeviceMarks.length) {
+      return await this.MongoDB.create(this.collection, {
+        name: "electroDeviceMarks",
+        measures: [{ label: name, value: name }],
+      });
+    }
+    return await this.MongoDB.update(
+      this.collection,
+      electroDeviceMarks[0]._id,
+      {
+        measures: [
+          ...electroDeviceMarks[0].measures,
+          { label: name, value: name },
+        ],
+      }
+    );
+  }
+
+  static async addElectroDeviceType({ name }) {
+    const electroDeviceTypes = await this.getMeasures({
+      name: "electroDeviceTypes",
+    });
+    if (!electroDeviceTypes.length) {
+      return await this.MongoDB.create(this.collection, {
+        name: "electroDeviceTypes",
+        measures: [{label: name, value: name}],
+      });
+    }
+    return await this.MongoDB.update(
+      this.collection,
+      electroDeviceTypes[0]._id,
+      {
+        measures: [
+          ...electroDeviceTypes[0].measures,
+          {label: name, value: name},
         ],
       }
     );
