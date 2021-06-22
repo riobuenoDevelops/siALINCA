@@ -2,24 +2,20 @@ import { useState } from "react";
 import {
   Avatar,
   Button,
-  Col,
   Dropdown,
   FlexboxGrid,
-  Grid,
-  Icon,
-  Modal,
-  Row,
+  Icon
 } from "rsuite";
 import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
 import cookieCutter from "cookie-cutter";
 
+import AboutModal from "../modals/AboutModal";
+import SedesApplicantsMenu from "../Header/SedesApplicantsMenu";
 import ItemsMenu from "../Header/ItemsMenu";
 import NotesMenu from "../Header/NotesMenu";
 import ReportsMenu from "../Header/ReportsMenu";
 
 import "../../styles/custom-header.less";
-import AboutModal from "../modals/AboutModal";
-import SedesApplicantsMenu from "../Header/SedesApplicantsMenu";
 
 const CustomHeader = ({
   router,
@@ -98,7 +94,7 @@ const CustomHeader = ({
             />
           );
         case "/notes":
-          return <NotesMenu />;
+          return <NotesMenu router={router} />;
         case "/reports":
           return <ReportsMenu />;
         default:
@@ -120,9 +116,9 @@ const CustomHeader = ({
           </Avatar>
           <Dropdown
             placement="bottomEnd"
-            title={`Hola, ${user?.names.split(" ")[0]} ${user?.lastNames.charAt(
+            title={`Hola, ${user?.names ? user.names.split(" ")[0] : "Invitado"} ${user?.lastNames ? user.lastNames.charAt(
               0
-            )}.`}
+            ) : ""}.`}
             className="user-dropdown"
           >
             <Dropdown.Item className="dropdown-item" icon={<Icon icon="cog" />}>

@@ -29,6 +29,7 @@ const deliveryNoteSchema = {
 		"applicantType",
 		"applicantId",
 		"items",
+		"disabled"
 	],
 	additionalProperties: false,
 };

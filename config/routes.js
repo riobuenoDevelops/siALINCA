@@ -8,7 +8,8 @@ const routes = {
   getMeasures: "/measures",
   sedes: "/sedes",
   applicants: "/applicants",
-  items: "/items"
+  items: "/items",
+  notes: "/delivery-notes"
 };
 
 module.exports = routes;

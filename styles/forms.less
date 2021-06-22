@@ -13,6 +13,14 @@
     box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
   }
 
+  .rs-input-group {
+    border: 0;
+
+    .rs-input-group-addon {
+      background-color: #C5CBD3;
+    }
+  }
+
   .select-dropdown {
     width: 100%;
     border-radius: 8px;
@@ -32,9 +40,14 @@
     }
 
     &:focus {
-      border: 2px solid @gray-font-color;
+      border: 2px solid @gray-font-color !important;
+    }
+
+    &.rs-picker-disabled > a {
+      background-color: #DADFF7 !important;
     }
   }
+
 
   .not-first-row {
     margin-top: 0.75rem;
