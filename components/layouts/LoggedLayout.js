@@ -4,16 +4,16 @@ import {
   Container,
   Header,
   Content,
-  Footer,
   Sidebar,
   Icon,
   IconButton,
 } from "rsuite";
 
-//Styles
-import "../../styles/logged-layout.less";
 import CustomHeader from "../customComponents/CustomHeader";
 import SideNavbar from "./SideNavbar";
+
+//Styles
+import "../../styles/logged-layout.less";
 
 const LoggedLayout = ({
   isLogged,
