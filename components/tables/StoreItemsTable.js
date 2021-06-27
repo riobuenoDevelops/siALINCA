@@ -2,12 +2,21 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { Table } from "rsuite";
 import StoreActionCell from "./customCells/StoreActionCell";
+import {useTranslation} from "react-i18next";
 
-const StoreItemsTable = ({
-                           items,
-                           handleSelectedStore,
-                           handleUpdateStore,
-                         }) => {
+const TypeCell = ({ dataKey, rowKey, rowData, ...props }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Table.Cell {...props}>{t(`categories.${rowData[dataKey]}`)}</Table.Cell>
+  );
+}
+
+export default function StoreItemsTable({
+ items,
+ handleSelectedStore,
+ handleUpdateStore,
+}) {
   let tableBody;
   const router = useRouter();
   const {Column, Cell, HeaderCell, Pagination} = Table;
@@ -69,7 +78,7 @@ const StoreItemsTable = ({
           <HeaderCell className="header-table-primary">
             <h6 className="text-black text-bold">Tipo</h6>
           </HeaderCell>
-          <Cell dataKey="type"/>
+          <TypeCell dataKey="type" />
         </Column>
         <Column verticalAlign="middle" flexGrow={1}>
           <HeaderCell className="header-table-primary">
@@ -116,5 +125,3 @@ const StoreItemsTable = ({
     </>
   );
 };
-
-export default StoreItemsTable;
