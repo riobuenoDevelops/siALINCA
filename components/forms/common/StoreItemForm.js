@@ -1,5 +1,6 @@
 import { Button, FlexboxGrid, Input, SelectPicker } from "rsuite";
-import {Controller, useForm} from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+
 import NewItemStoreTable from "../../tables/NewItemStoreTable";
 import FormErrorMessage from "../../common/FormErrorMessage";
 
@@ -11,7 +12,6 @@ export default function StoreItemForm({
   const { register, control, setError, errors, reset, handleSubmit } = useForm();
 
   const onAddStoreItem = (data) => {
-    debugger;
     const index = storeData[0].findIndex(
       (item) => item.storeId === data.storeId
     );
