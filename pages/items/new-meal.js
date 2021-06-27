@@ -11,6 +11,7 @@ import StoreService from "../../services/Store";
 import MeasureService from "../../services/Measure";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
+import FormErrorMessage from "../../components/common/FormErrorMessage";
 
 export default function NewMealPage({
   handleLogged,
@@ -21,11 +22,11 @@ export default function NewMealPage({
   mealPresentations,
   contentMeasures,
 }) {
-  const router = useRouter();
-  const { handleSubmit, errors, register, control } = useForm();
+  const history = useRouter();
+  const { id, childId } = history.query;
+  const { handleSubmit, errors, register, control, setError, clearErrors } = useForm();
   const [isOpen, handleIsOpen] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
-  const [quantityValue, setQuantity] = useState('');
   const [isLoading, handleLoading] = useState(false);
 
   useEffect(() => {
@@ -42,10 +43,35 @@ export default function NewMealPage({
   };
 
   const onConfirmCancel = () => {
-    router.push("/items");
+    history.push("/items");
   };
 
   const onSubmit = async (data) => {
+    if(!storeItemData.length) {
+      setError("storeData", {
+        message: "El item debe estar por lo menos en un almacén"
+      })
+
+      setTimeout(() => {
+        clearErrors("storeData")
+      }, 3000);
+      return;
+    }
+
+    const quantityCheck = storeItemData.reduce((accum, item) => {
+      return { quantity: accum.quantity + item.quantity }
+    })
+
+    if(quantityCheck.quantity !== data.quantity){
+      setError("quantityValue", {
+        message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
+      })
+      setTimeout(() => {
+        clearErrors("quantityValue")
+      }, 3000);
+      return;
+    }
+
     handleLoading(true);
 
     const itemData = {
@@ -57,6 +83,7 @@ export default function NewMealPage({
       userId: user.user._id,
       disabled: false
     };
+
     const mealData = {
       content: `${data.contentText} ${data.contentMeasure}`,
       presentation: data.presentation,
@@ -64,37 +91,68 @@ export default function NewMealPage({
     };
 
     try {
-      const item = await AxiosService.instance.post(routes.items, itemData, {
-        headers: {
-          Authorization: user.token,
-        },
-      });
-
-      await AxiosService.instance.post(
-        routes.items + "/meals",
-        { ...mealData, itemId: item.data },
-        {
+      if (id) {
+        await AxiosService.instance.put(routes.items + "/" + id, itemData, {
           headers: {
             Authorization: user.token,
           },
-        }
-      );
+        });
 
-      storeItemData.map(async (store) => {
+        await AxiosService.instance.put(
+          routes.items + "/meals/" + childId,
+          mealData,
+          {
+            headers: {
+              Authorization: user.token
+            },
+          }
+        );
+
+        storeItemData.map(async (store) => {
+          const storeItems = stores.filter(myStore => myStore._id === store.storeId)[0].items;
+          await AxiosService.instance.put(
+            routes.getStores + `/${store.storeId}/items`,
+            storeItems.map(storeItem => storeItem.itemId !== id ? { itemId: id, quantity: store.quantity } : storeItem),
+            {
+              headers: {
+                Authorization: user.token,
+              },
+            }
+          );
+        });
+      } else {
+        const item = await AxiosService.instance.post(routes.items, itemData, {
+          headers: {
+            Authorization: user.token,
+          },
+        });
+
         await AxiosService.instance.post(
-          routes.getStores + `/${store.storeId}/items`,
-          [{ itemId: item.data, quantity: store.quantity }],
+          routes.items + "/meals",
+          { ...mealData, itemId: item.data },
           {
             headers: {
               Authorization: user.token,
             },
           }
         );
-      });
+
+        storeItemData.map(async (store) => {
+          await AxiosService.instance.post(
+            routes.getStores + `/${store.storeId}/items`,
+            [{ itemId: item.data, quantity: store.quantity }],
+            {
+              headers: {
+                Authorization: user.token,
+              },
+            }
+          );
+        });
+      }
 
       Notification.success({
-        title: "Nuevo Alimento",
-        description: "Alimento agregado con exito",
+        title: id? "Alimento Actualizado" :"Nuevo Alimento",
+        description: id ? "Alimento actualizado con exito" : "Alimento agregado con exito",
         placement: "bottomStart",
         duration: 9000,
       });
@@ -103,11 +161,11 @@ export default function NewMealPage({
     } catch (err) {
       Notification.error({
         title: "Error",
-        description: err.response.data.message,
+        description: err.response.data,
         placement: "bottomStart",
         duration: 9000,
       });
-      console.error(err.response.data.message);
+      console.error(err.response.data);
       handleLoading(false);
     }
   };
@@ -126,11 +184,12 @@ export default function NewMealPage({
             control={control}
             stores={stores}
             storeItemData={[storeItemData,setStoreItemData]}
-            quantityData={[quantityValue, setQuantity]}
             mealPresentations={mealPresentations}
             contentMeasures={contentMeasures}
             token={user.token}
           />
+          {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
+          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <FlexboxGrid justify="space-between">

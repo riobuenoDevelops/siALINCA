@@ -1,14 +1,17 @@
 import { Button, FlexboxGrid, Input } from "rsuite";
+import {useForm} from "react-hook-form";
 
 import NewDeviceCharacteristicsTable from "../tables/NewDeviceCharacteristicsTable";
+import FormErrorMessage from "../common/FormErrorMessage";
 
 export default function DeviceCharacteristicsForm({
-  characteristicsForm,
   characteristicsData,
 }) {
+  const { register, errors, reset, handleSubmit } = useForm();
 
   const onAddCharacteristics = (data) => {
-    characteristicsData[1]([...characteristicsData[0], { name: data.name, value: data.value }])
+    characteristicsData[1]([...characteristicsData[0], { name: data.name, value: data.value }]);
+    reset({ name: "", value: "" })
   }
 
   return (
@@ -23,19 +26,21 @@ export default function DeviceCharacteristicsForm({
         <span className="input-title">Característica</span>
         <Input
           name="name"
-          inputRef={characteristicsForm.register({ required: true })}
+          inputRef={register({ required: true })}
           size="lg"
           placeholder="RAM"
         />
+        {errors.name && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={6}>
         <span className="input-title">Valor</span>
         <Input
           name="value"
-          inputRef={characteristicsForm.register({ required: true })}
+          inputRef={register({ required: true })}
           size="lg"
           placeholder="8GB"
         />
+        {errors.value && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={2}>
         <Button
@@ -43,7 +48,7 @@ export default function DeviceCharacteristicsForm({
           appearance="primary"
           className="bg-color-secundary shadow button text-white text-medium"
           block
-          onClick={characteristicsForm.handleSubmit(onAddCharacteristics)}
+          onClick={handleSubmit(onAddCharacteristics)}
         >
           Agregar
         </Button>

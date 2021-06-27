@@ -9,10 +9,11 @@ import CancelConfirmationModal from "../../components/modals/CancelConfirmationM
 import { parseCookies } from "../../lib/parseCookies";
 import StoreService from "../../services/Store";
 import MeasureService from "../../services/Measure";
-
-import "../../styles/forms.less";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
+
+import "../../styles/forms.less";
+import FormErrorMessage from "../../components/common/FormErrorMessage";
 
 export default function NewElectronicDevicePage({
   handleLogged,
@@ -23,13 +24,14 @@ export default function NewElectronicDevicePage({
   marks,
   types,
 }) {
-  const router = useRouter();
-  const { handleSubmit, errors, control, register, setError } = useForm();
+  const history = useRouter();
+  const { id, childId } = history.query;
+  const { handleSubmit, errors, register, control, setError, clearErrors } = useForm();
   const [isLoading, handleLoading] = useState();
   const [isOpen, handleIsOpen] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
   const [deviceCharacteristics, setDeviceCharacteristics] = useState([]);
-  const quantity = useState(0);
+
 
   useEffect(() => {
     if (isError) {
@@ -47,13 +49,10 @@ export default function NewElectronicDevicePage({
   };
 
   const onConfirmCancel = () => {
-    router.push("/items");
+    history.push("/items");
   };
 
   const onSubmit = async (data) => {
-    debugger;
-    handleLoading(true);
-
     if(!deviceCharacteristics.length) {
       setError("characteristics",
         {
@@ -61,13 +60,42 @@ export default function NewElectronicDevicePage({
           message: "Debe de existir por lo menos una característica del dispositivo electrónico",
           shouldFocus: false
         })
-      handleLoading(false);
+      setTimeout(() => {
+        clearErrors("characteristics")
+      }, 3000);
       return;
     }
 
+    if(!storeItemData.length) {
+      setError("storeData", {
+        message: "El item debe estar por lo menos en un almacén"
+      })
+
+      setTimeout(() => {
+        clearErrors("storeData")
+      }, 3000);
+      return;
+    }
+
+    const quantityCheck = storeItemData.reduce((accum, item) => {
+      return { quantity: accum.quantity + item.quantity }
+    })
+
+    if(quantityCheck.quantity !== data.quantity){
+      setError("quantityValue", {
+        message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
+      })
+      setTimeout(() => {
+        clearErrors("quantityValue")
+      }, 3000);
+      return;
+    }
+
+    handleLoading(true);
+
     const itemData = {
       name: data.name,
-      type: "stationary",
+      type: "electroDevice",
       quantity: data.quantity,
       unitQuantity: data.unitQuantity,
       price: `${data.priceCurrency} ${data.price}`,
@@ -83,37 +111,68 @@ export default function NewElectronicDevicePage({
     };
 
     try {
-      const item = await AxiosService.instance.post(routes.items, itemData, {
-        headers: {
-          Authorization: user.token,
-        },
-      });
-
-      await AxiosService.instance.post(
-        routes.items + "/electro-devices",
-        { ...electroDeviceData, itemId: item.data },
-        {
+      if(id) {
+        await AxiosService.instance.put(routes.items + "/" + id, itemData, {
           headers: {
             Authorization: user.token,
           },
-        }
-      );
+        });
 
-      storeItemData.map(async (store) => {
+        await AxiosService.instance.put(
+          routes.items + "/electro-devices/" + childId,
+          electroDeviceData,
+          {
+            headers: {
+              Authorization: user.token
+            },
+          }
+        );
+
+        storeItemData.map(async (store) => {
+          const storeItems = stores.filter(myStore => myStore._id === store.storeId)[0].items;
+          await AxiosService.instance.put(
+            routes.getStores + `/${store.storeId}/items`,
+            storeItems.map(storeItem => storeItem.itemId !== id ? { itemId: id, quantity: store.quantity } : storeItem),
+            {
+              headers: {
+                Authorization: user.token,
+              },
+            }
+          );
+        });
+      } else {
+        const item = await AxiosService.instance.post(routes.items, itemData, {
+          headers: {
+            Authorization: user.token,
+          },
+        });
+
         await AxiosService.instance.post(
-          routes.getStores + `/${store.storeId}/items`,
-          [{ itemId: item.data, quantity: store.quantity }],
+          routes.items + "/electro-devices",
+          { ...electroDeviceData, itemId: item.data },
           {
             headers: {
               Authorization: user.token,
             },
           }
         );
-      });
+
+        storeItemData.map(async (store) => {
+          await AxiosService.instance.post(
+            routes.getStores + `/${store.storeId}/items`,
+            [{ itemId: item.data, quantity: store.quantity }],
+            {
+              headers: {
+                Authorization: user.token,
+              },
+            }
+          );
+        });
+      }
 
       Notification.success({
-        title: "Nuevo Dispoitivo Electrónico",
-        description: "Dispoitivo Electrónico agregado con exito",
+        title: id ? "Dispositivo Actualizado" :"Nuevo Dispositivo Electrónico",
+        description: id ? "Dispositivo actualizado con exito" :"Dispositivo Electrónico agregado con exito",
         placement: "bottomStart",
         duration: 9000,
       });
@@ -139,7 +198,7 @@ export default function NewElectronicDevicePage({
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewElectronicDeviceForm
-            errors={[errors, setError]}
+            errors={errors}
             register={register}
             control={control}
             stores={stores}
@@ -147,9 +206,10 @@ export default function NewElectronicDevicePage({
             types={types}
             token={user.token}
             storeData={[storeItemData, setStoreItemData]}
-            quantityData={quantity}
             deviceCharacteristics={[deviceCharacteristics, setDeviceCharacteristics]}
           />
+          {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
+          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
           colspan={15}

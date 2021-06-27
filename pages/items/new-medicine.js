@@ -1,4 +1,4 @@
-import { Button, FlexboxGrid, Modal, Notification } from "rsuite";
+import { Button, FlexboxGrid, Notification } from "rsuite";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
@@ -10,10 +10,11 @@ import routes from "../../config/routes";
 
 import NewMedicineForm from "../../components/forms/NewMedicineForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
+import FormErrorMessage from "../../components/common/FormErrorMessage";
 
 import "../../styles/forms.less";
 
-const NewMedicinePage = ({
+export default function NewMedicinePage({
   handleLogged,
   handleUser,
   user,
@@ -22,14 +23,14 @@ const NewMedicinePage = ({
   markLabs,
   presentations,
   isError,
-}) => {
+}) {
   const history = useRouter();
-  const { handleSubmit, errors, register, control } = useForm({
+  const { id, childId } = history.query;
+  const { handleSubmit, errors, register, control, setError, clearErrors } = useForm({
     mode: "onBlur",
   });
   const [isOpen, handleOpen] = useState(false);
   const [isLoading, handleLoading] = useState(false);
-  const [quantityValue, setQuantity] = useState("");
   const [storeItemData, setStoreItemData] = useState([]);
 
   useEffect(() => {
@@ -41,6 +42,31 @@ const NewMedicinePage = ({
   }, []);
 
   const onSubmit = async (data) => {
+    if(!storeItemData.length) {
+      setError("storeData", {
+        message: "El item debe estar por lo menos en un almacén"
+      })
+
+      setTimeout(() => {
+        clearErrors("storeData")
+      }, 3000);
+      return;
+    }
+
+    const quantityCheck = storeItemData.reduce((accum, item) => {
+      return { quantity: accum.quantity + item.quantity }
+    })
+
+    if(quantityCheck.quantity !== data.quantity){
+      setError("quantityValue", {
+        message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
+      })
+      setTimeout(() => {
+        clearErrors("quantityValue")
+      }, 3000);
+      return;
+    }
+
     handleLoading(true);
 
     const itemData = {
@@ -60,37 +86,68 @@ const NewMedicinePage = ({
     };
 
     try {
-      const item = await AxiosService.instance.post(routes.items, itemData, {
-        headers: {
-          Authorization: user.token,
-        },
-      });
-
-      await AxiosService.instance.post(
-        routes.items + "/medicines",
-        { ...medicineData, itemId: item.data },
-        {
+      if(id) {
+        await AxiosService.instance.put(routes.items + "/" + id, itemData, {
           headers: {
             Authorization: user.token,
           },
-        }
-      );
+        });
 
-      storeItemData.map(async (store) => {
+        await AxiosService.instance.put(
+          routes.items + "/medicines/" + childId,
+          medicineData,
+          {
+            headers: {
+              Authorization: user.token
+            },
+          }
+        );
+
+        storeItemData.map(async (store) => {
+          const storeItems = stores.filter(myStore => myStore._id === store.storeId)[0].items;
+          await AxiosService.instance.put(
+            routes.getStores + `/${store.storeId}/items`,
+            storeItems.map(storeItem => storeItem.itemId !== id ? { itemId: id, quantity: store.quantity } : storeItem),
+            {
+              headers: {
+                Authorization: user.token,
+              },
+            }
+          );
+        });
+      } else {
+        const item = await AxiosService.instance.post(routes.items, itemData, {
+          headers: {
+            Authorization: user.token,
+          },
+        });
+
         await AxiosService.instance.post(
-          routes.getStores + `/${store.storeId}/items`,
-          [{ itemId: item.data, quantity: store.quantity }],
+          routes.items + "/medicines",
+          { ...medicineData, itemId: item.data },
           {
             headers: {
               Authorization: user.token,
             },
           }
         );
-      });
+
+        storeItemData.map(async (store) => {
+          await AxiosService.instance.post(
+            routes.getStores + `/${store.storeId}/items`,
+            [{ itemId: item.data, quantity: store.quantity }],
+            {
+              headers: {
+                Authorization: user.token,
+              },
+            }
+          );
+        });
+      }
 
       Notification.success({
-        title: "Nuevo Medicamento",
-        description: "Medicamento agregado con exito",
+        title: id ? "Medicamento Actualizado" :"Nuevo Medicamento",
+        description: id ? "Medicamento actualizado con exito" : "Medicamento agregado con exito",
         placement: "bottomStart",
         duration: 9000,
       });
@@ -99,11 +156,11 @@ const NewMedicinePage = ({
     } catch (err) {
       Notification.error({
         title: "Error",
-        description: err.response.data.message,
+        description: err.response.data,
         placement: "bottomStart",
         duration: 9000,
       });
-      console.error(err.response.data.message);
+      console.error(err.response.data);
       handleLoading(false);
     }
   };
@@ -133,12 +190,13 @@ const NewMedicinePage = ({
             control={control}
             stores={stores}
             storeData={[storeItemData, setStoreItemData]}
-            quantityData={[quantityValue, setQuantity]}
             markLabs={markLabs}
             contentMeasures={contentMeasures}
             presentations={presentations}
             token={user.token}
           />
+          {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
+          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={13} />
         <FlexboxGrid.Item colspan={4} className="form-buttons-container">
@@ -173,7 +231,7 @@ const NewMedicinePage = ({
   );
 };
 
-export async function getServerSideProps({ req, res }) {
+export async function getServerSideProps({ req}) {
   let user = null,
     stores = [],
     measures = [],
@@ -200,7 +258,7 @@ export async function getServerSideProps({ req, res }) {
           measureItem.name === "superficie" ||
           measureItem.name === "volumen"
         ) {
-          contentMeasures.push(measureItem.measures);
+          contentMeasures.push(...measureItem.measures);
         }
         if (measureItem.name === "medicineMarkLabs") {
           markLabs = measureItem.measures;
@@ -238,4 +296,4 @@ export async function getServerSideProps({ req, res }) {
   };
 }
 
-export default NewMedicinePage;
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import {
   ErrorMessage,
   DatePicker,
@@ -11,6 +11,10 @@ import { Controller, useForm } from "react-hook-form";
 import StoreItemForm from "./common/StoreItemForm";
 import FormDropdownFooter from "./common/FormDropdownFooter";
 import currencyData from "../../public/staticData/Common-Currency.json";
+import {useItem} from "../../swr";
+import {useRouter} from "next/router";
+import FormErrorMessage from "../common/FormErrorMessage";
+import LoadingScreen from "../layouts/LoadingScreen";
 
 const NewMedicineForm = ({
   control,
@@ -18,16 +22,35 @@ const NewMedicineForm = ({
   errors,
   stores,
   storeData,
-  quantityData,
   contentMeasures,
   markLabs,
   presentations,
-  token,
+  token
 }) => {
-  const storeForm = useForm();
+  const history = useRouter();
+  const { id } = history.query;
+  const quantityData = useState('');
   const [isAddingMark, setAddingMark] = useState(false);
   const [isAddingPresentation, setAddingPresentation] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const { item, itemStores = [], isLoading } = useItem(token, id ? id : '');
+
+  useEffect(() => {
+    if(id && item && itemStores) {
+      quantityData[1](item?.quantity || 0);
+      storeData[1](
+        itemStores.map((itemStore, index) => (
+          {
+            index,
+            storeId: itemStore.storeId,
+            store: itemStore.store,
+            quantity: itemStore.quantity
+          }
+        ))
+      );
+    }
+  }, [id]);
+
+  if(isLoading) return <LoadingScreen />
 
   return (
     <FlexboxGrid justify="space-between">
@@ -36,13 +59,12 @@ const NewMedicineForm = ({
         <Input
           size="lg"
           name="name"
+          defaultValue={item?.name || ""}
           inputRef={register({ required: true })}
           placeholder="Ibuprofeno"
         />
-        {errors.name?.message && (
-          <ErrorMessage show={true} placement="bottomStart">
-            {errors?.name?.message}
-          </ErrorMessage>
+        {errors.name && (
+          <FormErrorMessage message="El campo es requerido" />
         )}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7}>
@@ -50,7 +72,7 @@ const NewMedicineForm = ({
         <Controller
           name="markLab"
           control={control}
-          defaultValue=""
+          defaultValue={item?.markLab || ""}
           rules={{ required: true }}
           render={(field) => (
             <SelectPicker
@@ -78,7 +100,7 @@ const NewMedicineForm = ({
           name="expiredDate"
           control={control}
           rules={{ required: true }}
-          defaultValue={new Date()}
+          defaultValue={item?.expiratedDate ? new Date(item.expiratedDate) : new Date(Date.now())}
           render={(field) => (
             <DatePicker
               {...field}
@@ -96,6 +118,7 @@ const NewMedicineForm = ({
           <FlexboxGrid.Item colspan={15}>
             <Input
               name="contentText"
+              defaultValue={item?.content?.split(' ')[0] || ""}
               inputRef={register({
                 required: true,
                 setValueAs: (v) => parseInt(v),
@@ -108,7 +131,7 @@ const NewMedicineForm = ({
           <FlexboxGrid.Item colspan={8}>
             <Controller
               name="contentMeasure"
-              defaultValue=""
+              defaultValue={item?.content?.split(' ')[1] || ""}
               control={control}
               rules={{ required: true }}
               render={(field) => (
@@ -130,6 +153,7 @@ const NewMedicineForm = ({
           <FlexboxGrid.Item colspan={15}>
             <Input
               name="priceText"
+              defaultValue={item?.price?.split(' ')[1] || ""}
               inputRef={register({
                 required: true,
                 setValueAs: (v) => parseFloat(v),
@@ -143,7 +167,7 @@ const NewMedicineForm = ({
           <FlexboxGrid.Item colspan={8}>
             <Controller
               name="priceCurrency"
-              defaultValue=""
+              defaultValue={item?.price?.split(' ')[0] || ""}
               control={control}
               rules={{ required: true }}
               render={(field) => (
@@ -165,7 +189,7 @@ const NewMedicineForm = ({
         <span className="input-title">Presentación</span>
         <Controller
           name="presentation"
-          defaultValue=""
+          defaultValue={item?.presentation || ""}
           control={control}
           rules={{ required: true }}
           render={(field) => (
@@ -192,6 +216,7 @@ const NewMedicineForm = ({
         <span className="input-title">Cantidad</span>
         <Input
           name="quantity"
+          defaultValue={item?.quantity || ""}
           value={quantityData[0]}
           onChange={(e) => quantityData[1](parseInt(e))}
           inputRef={register({
@@ -207,6 +232,7 @@ const NewMedicineForm = ({
         <span className="input-title">Cantidad por unidad</span>
         <Input
           name="quantityUnit"
+          defaultValue={item?.unitQuantity || ""}
           inputRef={register({
             required: true,
             setValueAs: (v) => parseInt(v),
@@ -222,6 +248,7 @@ const NewMedicineForm = ({
           style={{ border: 0 }}
           size="lg"
           name="description"
+          defaultValue={item?.description || ""}
           inputRef={register()}
           componentClass="textarea"
           rows={4}
@@ -229,11 +256,9 @@ const NewMedicineForm = ({
         />
       </FlexboxGrid.Item>
       <StoreItemForm
-        storeForm={storeForm}
         stores={stores}
         storeData={storeData}
         quantityData={quantityData}
-        errorMessageData={[errorMessage, setErrorMessage]}
       />
     </FlexboxGrid>
   );

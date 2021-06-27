@@ -1,9 +1,14 @@
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { Controller } from "react-hook-form";
 import { FlexboxGrid, Input, SelectPicker } from "rsuite";
+import {useRouter} from "next/router";
 
 import StoreItemForm from "./common/StoreItemForm";
 import FormDropdownFooter from "./common/FormDropdownFooter";
+import FormErrorMessage from "../common/FormErrorMessage";
+
+import {useItem} from "../../swr";
+
 import currencyData from "../../public/staticData/Common-Currency.json";
 
 import "../../styles/forms.less";
@@ -17,12 +22,29 @@ export default function NewStationaryForm({
   marks,
   presentations,
   storeData,
-  quantityData
 }) {
-  const storeForm = useForm();
+  const history = useRouter();
+  const { id } = history.query;
+  const quantityData = useState('');
   const [isAddingMark, handleAddingMark] = useState(false);
   const [isAddingPresentation, handleAddingPresentation] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const { item, itemStores = [] } = useItem(token, id ? id : '');
+
+  useEffect(() => {
+    if(id && item && itemStores) {
+      quantityData[1](item?.quantity || 0);
+      storeData[1](
+        itemStores.map((itemStore, index) => (
+          {
+            index,
+            storeId: itemStore.storeId,
+            store: itemStore.store,
+            quantity: itemStore.quantity
+          }
+        ))
+      );
+    }
+  }, [id]);
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -30,16 +52,19 @@ export default function NewStationaryForm({
         <span className="text-black text-bold input-title">Nombre</span>
         <Input
           size="lg"
-          placeholder="Mueble"
+          placeholder="Resma de hojas blancas"
+          defaultValue={item ? item?.name : ""}
           name="name"
           inputRef={register({ required: true })}
         />
+        {errors.name && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7}>
         <span className="input-title">Marca</span>
         <Controller
           name="mark"
           control={control}
+          defaultValue={item ? item?.mark : ""}
           rules={{ required: true }}
           render={(field) => (
             <SelectPicker
@@ -64,12 +89,14 @@ export default function NewStationaryForm({
             />
           )}
         />
+        {errors.mark && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7}>
         <span className="input-title">Presentación</span>
         <Controller
           name="presentation"
           control={control}
+          defaultValue={item ? item?.presentation : ""}
           rules={{ required: true }}
           render={(field) => (
             <SelectPicker
@@ -94,14 +121,28 @@ export default function NewStationaryForm({
             />
           )}
         />
+        {errors.presentation && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={8} style={{ marginTop: "0.5rem" }}>
         <span className="input-title">Precio</span>
         <FlexboxGrid justify="space-between">
+          <FlexboxGrid.Item colspan={15}>
+            <Input
+              size="lg"
+              placeholder="0"
+              type="number"
+              defaultValue={item ? item.price?.split(" ")[1] : ""}
+              inputRef={register({
+                required: true,
+                setValueAs: (v) => parseInt(v),
+              })}
+              name="priceText"
+            />
+          </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={8}>
             <Controller
               name="priceCurrency"
-              defaultValue=""
+              defaultValue={item ? item.price?.split(" ")[0] : ""}
               control={control}
               rules={{ required: true }}
               render={(field) => (
@@ -117,18 +158,8 @@ export default function NewStationaryForm({
               )}
             />
           </FlexboxGrid.Item>
-          <FlexboxGrid.Item colspan={15}>
-            <Input
-              size="lg"
-              placeholder="0"
-              type="number"
-              inputRef={register({
-                required: true,
-                setValueAs: (v) => parseInt(v),
-              })}
-              name="price"
-            />
-          </FlexboxGrid.Item>
+          {errors.priceText && <FormErrorMessage message="El campo es requerido" />}
+          {errors.priceCurrency && <FormErrorMessage message="El campo es requerido" />}
         </FlexboxGrid>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7} style={{ marginTop: "0.5rem" }}>
@@ -137,6 +168,7 @@ export default function NewStationaryForm({
           size="lg"
           placeholder="0"
           type="number"
+          defaultValue={item ? item.quantity : ""}
           inputRef={register({
             required: true,
             setValueAs: (v) => parseInt(v),
@@ -145,6 +177,7 @@ export default function NewStationaryForm({
           value={quantityData[0]}
           onChange={(value) => quantityData[1](value)}
         />
+        {errors.quantity && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7} style={{ marginTop: "0.5rem" }}>
         <span className="input-title">Cantidad por unidad</span>
@@ -152,19 +185,19 @@ export default function NewStationaryForm({
           size="lg"
           placeholder="0"
           type="number"
+          defaultValue={item ? item.unitQuantity : ""}
           inputRef={register({
             required: true,
             setValueAs: (v) => parseInt(v),
           })}
           name="unitQuantity"
         />
+        {errors.unitQuantity && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <StoreItemForm
-        storeForm={storeForm}
         stores={stores}
         storeData={storeData}
         quantityData={quantityData}
-        errorMessageData={[errorMessage, setErrorMessage]}
       />
     </FlexboxGrid>
   );

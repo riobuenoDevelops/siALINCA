@@ -1,10 +1,15 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FlexboxGrid, Input, SelectPicker } from "rsuite";
+import {useRouter} from "next/router";
 
 import FormDropdownFooter from "./common/FormDropdownFooter";
 import StoreItemForm from "./common/StoreItemForm";
 import DeviceCharacteristicsForm from "./DeviceCharacteristicsForm";
+import FormErrorMessage from "../common/FormErrorMessage";
+
+import {useItem} from "../../swr";
+
 import currencyData from "../../public/staticData/Common-Currency.json";
 
 import ".././../styles/forms.less";
@@ -18,14 +23,31 @@ export default function NewElectronicDeviceForm({
   marks,
   types,
   storeData,
-  quantityData,
   deviceCharacteristics
 }) {
-  const storeForm = useForm();
-  const characteristicsForm = useForm();
+  const history = useRouter();
+  const { id } = history.query;
+  const quantityData = useState('');
   const [isAddingMark, handleAddingMark] = useState(false);
   const [isAddingType, handleAddingType] = useState(false);
-  const errorMessage = useState('');
+  const { item, itemStores = [] } = useItem(token, id ? id : '');
+
+  useEffect(() => {
+    if(id && item && itemStores) {
+      quantityData[1](item?.quantity || 0);
+      storeData[1](
+        itemStores.map((itemStore, index) => (
+          {
+            index,
+            storeId: itemStore.storeId,
+            store: itemStore.store,
+            quantity: itemStore.quantity
+          }
+        ))
+      );
+      deviceCharacteristics[1](item.characteristics)
+    }
+  }, [id]);
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -33,10 +55,12 @@ export default function NewElectronicDeviceForm({
         <span className="text-black text-bold input-title">Nombre</span>
         <Input
           size="lg"
-          placeholder="Mueble"
+          placeholder="Laptop"
+          defaultValue={item ? item?.name : ""}
           name="name"
           inputRef={register({ required: true })}
         />
+        {errors.name && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5}>
         <span className="input-title">Nro. de Serial</span>
@@ -44,8 +68,10 @@ export default function NewElectronicDeviceForm({
           size="lg"
           placeholder="000000000"
           name="serial"
+          defaultValue={item ? item?.serial : ""}
           inputRef={register({ required: true })}
         />
+        {errors.serial && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5}>
         <span className="input-title">Marca</span>
@@ -53,6 +79,7 @@ export default function NewElectronicDeviceForm({
           name="mark"
           control={control}
           rules={{ required: true }}
+          defaultValue={item ? item?.mark : ""}
           render={(field) => (
             <SelectPicker
               {...field}
@@ -76,6 +103,7 @@ export default function NewElectronicDeviceForm({
             />
           )}
         />
+        {errors.mark && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5}>
         <span className="text-black text-bold input-title">Modelo</span>
@@ -83,14 +111,17 @@ export default function NewElectronicDeviceForm({
           size="lg"
           placeholder="King"
           name="model"
+          defaultValue={item ? item?.model : ""}
           inputRef={register({ required: true })}
         />
+        {errors.model && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
         <span className="input-title">Tipo</span>
         <Controller
           name="deviceType"
           control={control}
+          defaultValue={item ? item?.deviceType : ""}
           rules={{ required: true }}
           render={(field) => (
             <SelectPicker
@@ -115,15 +146,29 @@ export default function NewElectronicDeviceForm({
             />
           )}
         />
+        {errors.deviceType && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
         <span className="input-title">Precio</span>
         <FlexboxGrid justify="space-between">
+          <FlexboxGrid.Item colspan={15}>
+            <Input
+              size="lg"
+              placeholder="0"
+              type="number"
+              defaultValue={item ? item.price?.split(" ")[1] : ""}
+              inputRef={register({
+                required: true,
+                setValueAs: (v) => parseInt(v),
+              })}
+              name="priceText"
+            />
+          </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={8}>
             <Controller
               name="priceCurrency"
-              defaultValue=""
               control={control}
+              defaultValue={item ? item.price?.split(" ")[0] : ""}
               rules={{ required: true }}
               render={(field) => (
                 <SelectPicker
@@ -138,18 +183,8 @@ export default function NewElectronicDeviceForm({
               )}
             />
           </FlexboxGrid.Item>
-          <FlexboxGrid.Item colspan={15}>
-            <Input
-              size="lg"
-              placeholder="0"
-              type="number"
-              inputRef={register({
-                required: true,
-                setValueAs: (v) => parseInt(v),
-              })}
-              name="price"
-            />
-          </FlexboxGrid.Item>
+          {errors.priceText && <FormErrorMessage message="El campo es requerido" />}
+          {errors.priceCurrency && <FormErrorMessage message="El campo es requerido" />}
         </FlexboxGrid>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
@@ -158,6 +193,7 @@ export default function NewElectronicDeviceForm({
           size="lg"
           placeholder="0"
           type="number"
+          defaultValue={item ? item?.quantity : ""}
           inputRef={register({
             required: true,
             setValueAs: (v) => parseInt(v),
@@ -166,6 +202,7 @@ export default function NewElectronicDeviceForm({
           value={quantityData[0]}
           onChange={(value) => quantityData[1](value)}
         />
+        {errors.quantity && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
         <span className="input-title">Cantidad por unidad</span>
@@ -173,27 +210,24 @@ export default function NewElectronicDeviceForm({
           size="lg"
           placeholder="0"
           type="number"
+          defaultValue={item ? item?.unitQuantity : ""}
           inputRef={register({
             required: true,
             setValueAs: (v) => parseInt(v),
           })}
           name="unitQuantity"
         />
+        {errors.unitQuantity && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <DeviceCharacteristicsForm
-        characteristicsForm={characteristicsForm}
         characteristicsData={deviceCharacteristics}
       />
-      {errors[0].characteristics &&
-        <FlexboxGrid.Item colspan={24} style={{ color: "red", marginTop: "1rem" }}>
-          <span>{errors[0].characteristics.message}</span>
-        </FlexboxGrid.Item>
+      {errors.characteristics &&
+        <FormErrorMessage message={errors.characteristics.message} />
       }
       <StoreItemForm
-        storeForm={storeForm}
         stores={stores}
         storeData={storeData}
-        errorMessageData={errorMessage}
         quantityData={quantityData}
       />
     </FlexboxGrid>

@@ -1,14 +1,17 @@
-import { useState } from "react";
-import { Button, DatePicker, FlexboxGrid, Input, SelectPicker } from "rsuite";
-import { Controller, useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import {useRouter} from "next/router";
+import { DatePicker, FlexboxGrid, Input, SelectPicker } from "rsuite";
+import { Controller } from "react-hook-form";
 
 import StoreItemForm from "./common/StoreItemForm";
+import FormDropdownFooter from "./common/FormDropdownFooter";
+import FormErrorMessage from "../common/FormErrorMessage";
+
+import {useItem} from "../../swr";
+
 import currencyData from "../../public/staticData/Common-Currency.json";
-import AxiosService from "../../services/Axios";
-import routes from "../../config/routes";
 
 import "../../styles/forms.less";
-import FormDropdownFooter from "./common/FormDropdownFooter";
 
 const NewMealForm = ({
   register,
@@ -18,12 +21,29 @@ const NewMealForm = ({
   mealPresentations,
   contentMeasures,
   storeItemData,
-  quantityData,
   token,
 }) => {
-  const storeForm = useForm();
-  const [errorMessage, setErrorMessage] = useState('');
+  const history = useRouter();
+  const { id } = history.query;
+  const quantityData = useState('');
   const [isAddingPresentation, handleAddingPresentation] = useState(false);
+  const { item, itemStores = [] } = useItem(token, id ? id : '');
+
+  useEffect(() => {
+    if(id && item && itemStores) {
+      quantityData[1](item?.quantity || 0);
+      storeItemData[1](
+        itemStores.map((itemStore, index) => (
+          {
+            index,
+            storeId: itemStore.storeId,
+            store: itemStore.store,
+            quantity: itemStore.quantity
+          }
+        ))
+      );
+    }
+  }, [id]);
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -32,15 +52,18 @@ const NewMealForm = ({
         <Input
           size="lg"
           placeholder="Harina Pan"
+          defaultValue={item ? item?.name : ""}
           name="name"
           inputRef={register({ required: true })}
         />
+        {errors.name && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7}>
         <span className="text-black text-bold input-title">Presentación</span>
         <Controller
           name="presentation"
           control={control}
+          defaultValue={item ? item?.presentation : ""}
           rules={{ required: true }}
           render={(field) => (
             <SelectPicker
@@ -65,6 +88,7 @@ const NewMealForm = ({
             />
           )}
         />
+        {errors.presentation && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={7}>
         <span className="input-title">Contenido</span>
@@ -72,6 +96,7 @@ const NewMealForm = ({
           <FlexboxGrid.Item colspan={15}>
             <Input
               name="contentText"
+              defaultValue={item ? item.content?.split(" ")[0] : ""}
               inputRef={register({
                 required: true,
                 setValueAs: (v) => parseInt(v),
@@ -84,7 +109,7 @@ const NewMealForm = ({
           <FlexboxGrid.Item colspan={8}>
             <Controller
               name="contentMeasure"
-              defaultValue=""
+              defaultValue={item ? item.content?.split(" ")[1] : ""}
               control={control}
               rules={{ required: true }}
               render={(field) => (
@@ -98,15 +123,30 @@ const NewMealForm = ({
               )}
             />
           </FlexboxGrid.Item>
+          {errors.contentText && <FormErrorMessage message="El campo es requerido" />}
+          {errors.contentMeasure && <FormErrorMessage message="El campo es requerido" />}
         </FlexboxGrid>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={6} style={{ marginTop: "0.5rem" }}>
         <span className="input-title">Precio</span>
         <FlexboxGrid justify="space-between">
+          <FlexboxGrid.Item colspan={15}>
+            <Input
+              size="lg"
+              placeholder="0"
+              defaultValue={item ? item.price?.split(" ")[1] : ""}
+              type="number"
+              inputRef={register({
+                required: true,
+                setValueAs: (v) => parseInt(v),
+              })}
+              name="price"
+            />
+          </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={8}>
             <Controller
               name="priceCurrency"
-              defaultValue=""
+              defaultValue={item ? item.price?.split(" ")[0] : ""}
               control={control}
               rules={{ required: true }}
               render={(field) => (
@@ -122,18 +162,8 @@ const NewMealForm = ({
               )}
             />
           </FlexboxGrid.Item>
-          <FlexboxGrid.Item colspan={15}>
-            <Input
-              size="lg"
-              placeholder="0"
-              type="number"
-              inputRef={register({
-                required: true,
-                setValueAs: (v) => parseInt(v),
-              })}
-              name="price"
-            />
-          </FlexboxGrid.Item>
+          {errors.priceText && <FormErrorMessage message="El campo es requerido" />}
+          {errors.priceCurrency && <FormErrorMessage message="El campo es requerido" />}
         </FlexboxGrid>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
@@ -141,6 +171,7 @@ const NewMealForm = ({
         <Input
           size="lg"
           placeholder="0"
+          defaultValue={item ? item.quantity : ""}
           type="number"
           inputRef={register({
             required: true,
@@ -150,12 +181,14 @@ const NewMealForm = ({
           value={quantityData[0]}
           onChange={(value) => quantityData[1](parseInt(value))}
         />
+        {errors.quantity && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={5} style={{ marginTop: "0.5rem" }}>
         <span className="input-title">Cantidad por unidad</span>
         <Input
           size="lg"
           placeholder="0"
+          defaultValue={item ? item.unitQuantity : ""}
           type="number"
           inputRef={register({
             required: true,
@@ -163,6 +196,7 @@ const NewMealForm = ({
           })}
           name="unitQuantity"
         />
+        {errors.unitQuantity && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <FlexboxGrid.Item
         colspan={5}
@@ -173,7 +207,7 @@ const NewMealForm = ({
           name="expiredDate"
           control={control}
           rules={{ required: true }}
-          defaultValue={new Date()}
+          defaultValue={item ? new Date(item.expiratedDate) : new Date()}
           render={(field) => (
             <DatePicker
               {...field}
@@ -184,13 +218,12 @@ const NewMealForm = ({
             />
           )}
         />
+        {errors.expiredDate && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
       <StoreItemForm
         stores={stores}
         storeData={storeItemData}
         quantityData={quantityData}
-        storeForm={storeForm}
-        errorMessageData={[errorMessage, setErrorMessage]}
       />
     </FlexboxGrid>
   );
