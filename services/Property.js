@@ -1,4 +1,5 @@
 const MongoLib = require("../lib/db");
+const ItemService = require("./Item");
 
 class PropertyService {
 	static MongoDB = new MongoLib();
@@ -49,6 +50,10 @@ class PropertyService {
 	}
 
 	static async deleteProperty({ id }) {
+		const property = this.getProperty({ id });
+
+		await ItemService.deleteItem({ id: property.itemId });
+
 		return await this.MongoDB.delete(this.collection, id);
 	}
 }

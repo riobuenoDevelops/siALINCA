@@ -1,4 +1,5 @@
 const MongoLib = require("../lib/db");
+const ItemService = require("./Item");
 
 class StationaryService {
 	static MongoDB = new MongoLib();
@@ -29,6 +30,10 @@ class StationaryService {
 	}
 
 	static async deleteStationary({ id }) {
+		const stationary = this.getStationary({ id });
+
+		await ItemService.deleteItem({ id: stationary.itemId });
+
 		return await this.MongoDB.delete(this.collection, id);
 	}
 }
