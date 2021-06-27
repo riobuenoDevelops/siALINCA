@@ -1,6 +1,29 @@
-import { Icon, IconButton, Tooltip, Whisper } from "rsuite";
+import { Icon, IconButton, Tooltip, Whisper, Notification } from "rsuite";
 
-const BasicActionsButtonGroup = ({disabled, onEdit, onEnableDisable, onDelete}) => {
+import AxiosService from "../../services/Axios";
+
+export default function BasicActionsButtonGroup({disabled, onEdit, onDelete, route, token, setLoading}) {
+  const onEnableDisable = async () => {
+    setLoading(true);
+    try {
+      await AxiosService.instance.put(route, {
+        disabled: !disabled
+      }, {
+        headers: {
+          Authorization: token
+        }
+      })
+    }catch (err) {
+      Notification.error({
+        title: "Error",
+        description: err.response.data,
+        duration: 9000,
+        placement: "bottomStart"
+      })
+    }
+    setLoading(false);
+  }
+
   return <>
     <Whisper placement="bottom" trigger="hover" speaker={<Tooltip>Editar</Tooltip>}>
       <IconButton size="md" appearence="primary" circle style={{marginRight: "0.5rem"}} className="bg-default" icon={<Icon icon="edit" />} onClick={onEdit} />
@@ -13,5 +36,3 @@ const BasicActionsButtonGroup = ({disabled, onEdit, onEnableDisable, onDelete}) 
     </Whisper>
   </>
 }
-
-export default BasicActionsButtonGroup;
