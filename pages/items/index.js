@@ -1,71 +1,61 @@
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import { FlexboxGrid } from "rsuite";
-import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
-import SearchInput from "../../components/Search/SearchInput";
-import { parseCookies } from "../../lib/parseCookies";
 import { useTranslation } from "react-i18next";
+import { FlexboxGrid } from "rsuite";
+
+import LoadingScreen from "../../components/layouts/LoadingScreen";
+import SearchInput from "../../components/Search/SearchInput";
 import ItemsTable from "../../components/tables/ItemsTable";
 
-import items from "../../public/staticData/medicineData.json";
+import { parseCookies } from "../../lib/parseCookies";
+import { useItems } from "../../swr";
 
-const ItemsPage = ({ isLogged, handleLogged, handleUser, user, isError }) => {
-  const history = useRouter();
+export default function ItemsPage({ handleLogged, handleUser, user }) {
   const { i18n } = useTranslation();
+  const { items, isLoading, isError } = useItems(user.token);
   const [searchInputValue, handleSearchInputValue] = useState("");
 
   useEffect(() => {
-    if (isError) {
-      history.push("/500");
-    }
     handleLogged(true);
     handleUser(user);
   }, []);
 
+  if (isLoading) return <LoadingScreen />
+
   return (
     <FlexboxGrid>
-      <FlexboxGridItem colspan={16} style={{ paddingBottom: "2em" }}>
+      <FlexboxGrid.Item colspan={16} style={{ paddingBottom: "2em" }}>
         <h2 className="text-black text-bolder">
           Inventario ({i18n.t(`roles.${user?.user?.roleName}`)})
         </h2>
-      </FlexboxGridItem>
-      <FlexboxGridItem colspan={8}>
+      </FlexboxGrid.Item>
+      <FlexboxGrid.Item colspan={8}>
         <SearchInput
           placehoderLabel="insumo"
-          data={[]}
+          data={items}
           handleValue={handleSearchInputValue}
           value={searchInputValue}
         />
-      </FlexboxGridItem>
-      <FlexboxGridItem colspan={24}>
+      </FlexboxGrid.Item>
+      <FlexboxGrid.Item colspan={24}>
         <ItemsTable items={items} searchInputValue={searchInputValue} />
-      </FlexboxGridItem>
+      </FlexboxGrid.Item>
     </FlexboxGrid>
   );
 };
 
-export async function getServerSideProps({ req, res }) {
+export async function getServerSideProps({ req }) {
   let user = {};
   const cookies = parseCookies(req);
 
   if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
+    user = JSON.parse(cookies.sialincaUser);
 
-      return {
-        props: {
-          user,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          isError: true,
-        },
-      };
-    }
+    return {
+      props: {
+        user,
+        isError: false,
+      },
+    };
   }
   return {
     redirect: {
@@ -75,5 +65,3 @@ export async function getServerSideProps({ req, res }) {
     props: {},
   };
 }
-
-export default ItemsPage;
