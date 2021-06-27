@@ -1,17 +1,17 @@
-import { Button, ErrorMessage, FlexboxGrid, Input, SelectPicker } from "rsuite";
-import { Controller } from "react-hook-form";
+import { Button, FlexboxGrid, Input, SelectPicker } from "rsuite";
+import {Controller, useForm} from "react-hook-form";
 import NewItemStoreTable from "../../tables/NewItemStoreTable";
+import FormErrorMessage from "../../common/FormErrorMessage";
 
 export default function StoreItemForm({
   stores,
-  storeForm,
   storeData,
   quantityData,
-  errorMessageData
 }) {
-  const onAddStoreItem = (data) => {
-    errorMessageData[1]('');
+  const { register, control, setError, errors, reset, handleSubmit } = useForm();
 
+  const onAddStoreItem = (data) => {
+    debugger;
     const index = storeData[0].findIndex(
       (item) => item.storeId === data.storeId
     );
@@ -29,7 +29,9 @@ export default function StoreItemForm({
             quantity: data.quantity,
           }]);
         } else {
-          errorMessageData[1]("La suma de la cantidad de items en cada almacen no debe superar la cantidad total del item.")
+          setError("sumQuantity", {
+            message: "La suma de las cantidades de cada almacén no deben superar la cantidad de item introducida."
+          })
         }
       } else {
         storeData[1]([...storeData[0], {
@@ -60,9 +62,12 @@ export default function StoreItemForm({
       if(quantity.quantity <= quantityData[0]){
         storeData[1](array);
       } else {
-        errorMessageData[1]("La suma de la cantidad de items en cada almacen no debe superar la cantidad total del item.")
+        setError("sumQuantity", {
+          message: "La suma de las cantidades de cada almacén no deben superar la cantidad de item introducida."
+        })
       }
     }
+    reset({storeId: "", quantity: ""});
   };
 
   return (
@@ -77,7 +82,7 @@ export default function StoreItemForm({
             <Controller
               name="storeId"
               rules={{ required: true }}
-              control={storeForm.control}
+              control={control}
               render={(field) => (
                 <SelectPicker
                   {...field}
@@ -90,16 +95,22 @@ export default function StoreItemForm({
                 />
               )}
             />
+            {errors.storeId && (
+              <FormErrorMessage message="El campo es reuerido" />
+            )}
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={6}>
             <span className="input-title">Cantidad</span>
             <Input
               name="quantity"
-              inputRef={storeForm.register({ required: true, setValueAs: (v) => parseInt(v), })}
+              inputRef={register({ required: true, setValueAs: (v) => parseInt(v), })}
               size="lg"
               type="number"
               placeholder="0"
             />
+            {errors.quantity && (
+              <FormErrorMessage message="El campo es reuerido" />
+            )}
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={2}>
             <Button
@@ -107,23 +118,21 @@ export default function StoreItemForm({
               appearance="primary"
               className="bg-color-secundary shadow button text-white text-medium"
               block
-              onClick={storeForm.handleSubmit(onAddStoreItem)}
+              onClick={handleSubmit(onAddStoreItem)}
             >
               Agregar
             </Button>
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={8} />
-          {errorMessageData[0] &&
-            <FlexboxGrid.Item colspan={24} style={{ color: "red" }}>
-              {errorMessageData[0]}
-            </FlexboxGrid.Item>
-          }
           <FlexboxGrid.Item colspan={24}>
             <NewItemStoreTable
               data={storeData[0]}
               handleData={storeData[1]}
             />
           </FlexboxGrid.Item>
+          {errors.sumQuantity && (
+            <FormErrorMessage message={errors.sumQuantity.message} />
+          )}
         </FlexboxGrid>
       </FlexboxGrid.Item>
     </>
