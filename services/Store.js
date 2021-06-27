@@ -35,14 +35,15 @@ class StoreService {
     return await this.MongoDB.get(this.collection, id);
   }
 
-  static async getStoreItems({ ids }) {
+  static async getStoreItems({ id }) {
     let items = [];
+
+    const store = await this.getStore({ id });
     
-    for(let i = 0; i < ids.length; i++){
-      let item = await ItemService.getItems({id: ids[i]});
-      items.push(item[0]);
+    for(let i = 0; i < store.items.length; i++){
+      let item = await ItemService.getItem({ id: store.items[i].itemId });
+      items.push(item);
     }
-    
     return items;
   }
 
@@ -52,10 +53,43 @@ class StoreService {
       throw new Error(`Store ${id} is not found`);
     }
 
+    if(store.items.length) {
+      return this.updateStore({
+        id,
+        store: { items: [...store.items, ...items] },
+      });
+    }
     return this.updateStore({
       id,
-      store: { items: [...store.items, ...items] },
+      store: { items },
     });
+  }
+
+  static async updateStoreItems({ id, items }) {
+    const store = await this.getStore({ id });
+
+    return await this.updateStore({ id, store: {
+      ...store,
+      items
+    }})
+  }
+
+  static async getStoresByItem({id}) {
+    let itemStores = [];
+    const stores = await this.getStores({ disabled: false });
+
+
+    if(!stores.length){
+      new Error("No hay ningún Almacén disponible");
+    }
+
+    for(let i = 0; i < stores.length; i++){
+      if(stores[i].items.some((item) => item.itemId === id)) {
+        itemStores.push({ store: stores[i].name, storeId: stores[i]._id, quantity: stores[i].items.filter((item) => item.itemId === id)[0].quantity});
+      }
+    }
+
+    return itemStores;
   }
 
   static async createStore({ storeData }) {
