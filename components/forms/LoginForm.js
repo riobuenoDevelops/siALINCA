@@ -1,18 +1,17 @@
 import {
   Button,
   Checkbox,
-  ErrorMessage,
   FlexboxGrid,
   Icon,
   Input,
   InputGroup,
-  Message,
 } from "rsuite";
 import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
 import { useForm } from "react-hook-form";
 
 import "../../styles/forms.less";
 import { useState } from "react";
+import FormErrorMessage from "../common/FormErrorMessage";
 
 const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
   const { handleSubmit, register, errors } = useForm();
@@ -44,26 +43,8 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
               pattern: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
             })}
           />
-        </FlexboxGridItem>
-        <FlexboxGridItem
-          className="text-left"
-          colspan={24}
-          style={{
-            margin: "0px auto auto auto",
-            display: errors.email?.type === "required" ? "initial" : "none",
-          }}
-        >
-          <div style={{ color: "Red" }}>El campo es requerido</div>
-        </FlexboxGridItem>
-        <FlexboxGridItem
-          className="text-left"
-          colspan={24}
-          style={{
-            margin: "0px auto auto auto",
-            display: errors.email?.type === "pattern" ? "initial" : "none",
-          }}
-        >
-          <div style={{ color: "Red" }}>Introduzca un correo válido</div>
+          {errors.email?.type === "required" && <FormErrorMessage message="El campo es requerido" />}
+          {errors.email?.type === "pattern" && <FormErrorMessage message="El correo no es valido" />}
         </FlexboxGridItem>
         <FlexboxGridItem colspan={24}>
           <InputGroup inside>
