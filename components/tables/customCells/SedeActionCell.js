@@ -1,11 +1,13 @@
 import React from "react";
-import { Dropdown, Icon, IconButton, Table, Notification } from "rsuite";
-import { CustomWhisper } from "../common/MenuWrapper";
-import { useRouter } from "next/router";
-import AxiosService from "../../../services/Axios";
 import cookiesCutter from "cookie-cutter";
-import routes from "../../../config/routes";
+import { useRouter } from "next/router";
+import { Icon, IconButton, Table, Notification } from "rsuite";
+
+import { CustomWhisper } from "../common/MenuWrapper";
 import CustomDropdownMenu from "../common/CustomDropdownMenu";
+
+import AxiosService from "../../../services/Axios";
+import routes from "../../../config/routes";
 
 const SedeActionCell = ({
   tableRef,
