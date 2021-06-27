@@ -24,40 +24,37 @@ class ItemService {
 
   static async getItem({ id, withChild }) {
     const item = await this.MongoDB.get(this.collection, id);
-    if (withChild) {
-      const childItem = this.getItemByType({ id, type: item.type });
+    if (withChild === "true") {
+      const childItem = await this.getItemByType({ id, type: item.type });
       return { ...item, ...childItem };
     }
     return item;
   }
 
   static async getItemByType({ id, type }) {
+    let item = {};
     switch (type) {
       case "medicine":
-        return (await MedicineService.getMedicines({ itemId: id })[0]) || null;
+        item = await MedicineService.getMedicineByItem({ itemId: id });
+        break;
       case "meal":
-        return (await MealService.getMeals({ itemId: id })[0]) || null;
+        item = await MealService.getMeals({ itemId: id });
         break;
       case "electroDevice":
-        return (
-          (await ElectroDeviceService.getElectroDevices({ itemId: id })[0]) ||
-          null
-        );
+        item = await ElectroDeviceService.getElectroDevices({ itemId: id });
         break;
       case "property":
-        return (await PropertyService.getProperties({ itemId: id })[0]) || null;
+        item = await PropertyService.getProperties({ itemId: id });
         break;
       case "enamelware":
-        return (
-          (await EnamelwareService.getEnamelwares({ itemId: id })[0]) || null
-        );
+        item = await EnamelwareService.getEnamelwares({ itemId: id });
         break;
       case "stationary":
-        return (
-          (await StationaryService.getStationarys({ itemId: id })[0]) || null
-        );
+        item = await StationaryService.getStationarys({ itemId: id });
         break;
     }
+
+    return item[0];
   }
 
   static async createItem({ item }) {
