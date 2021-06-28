@@ -1,4 +1,4 @@
-const { compare } = require("bcrypt");
+const Cryptr = require("cryptr");
 const jwt = require("jsonwebtoken");
 const { config } = require("../config/index");
 const UserService = require("./User");
@@ -6,6 +6,7 @@ const RoleService = require("./Role");
 
 class AuthService {
   static async login({ email, password }) {
+    const cryptr = new Cryptr(config.passwordSecret);
     if (!email || password === undefined) {
       throw new Error("Email and password required");
     }
@@ -20,9 +21,9 @@ class AuthService {
       );
     }
 
-    const match = await compare(password, user[0].password);
+    const unhashedPassword = cryptr.decrypt(user[0].password);
 
-    if (match) {
+    if (password === unhashedPassword) {
       const {
         _id: id,
         names,
