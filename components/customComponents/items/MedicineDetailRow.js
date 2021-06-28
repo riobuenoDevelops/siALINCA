@@ -17,7 +17,7 @@ export default function MedicineDetailRow({ data }) {
       </FlexboxGrid.Item>
       <FlexboxGrid.Item style={{ marginRight: "1rem" }}>
         <span>Fecha de Vencimiento</span>
-        <p>{new Date(data.expiratedDate).toLocaleString()}</p>
+        <p>{new Intl.DateTimeFormat('es',{month:'2-digit',day:'2-digit', year:'numeric'}).format(new Date(data.expiratedDate))}</p>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item style={{ marginRight: "1rem" }}>
         <span>Creado por</span>
