@@ -11,14 +11,20 @@ class SedeService {
     addressState,
     addressCountry,
     disabled,
+    deleted,
+    createdAt,
+    startDate,
+    endDate
   }) {
-    const query = {
+    let query = {
       name,
       addressCity,
       addressZipcode,
       addressState,
       addressCountry,
       disabled,
+      deleted,
+      createdAt
     };
 
     Object.keys(query).map((key) => {
@@ -27,6 +33,16 @@ class SedeService {
       }
     });
 
+    if(startDate) {
+      query = {
+        ...query,
+        createdAt: {
+          "$gte": new Date(startDate),
+          "lt": new Date(endDate)
+        }
+      }
+    }
+
     return (await this.MongoDB.getAll(this.collection, query)) || [];
   }
 
@@ -34,21 +50,13 @@ class SedeService {
     return await this.MongoDB.get(this.collection, id);
   }
 
-  static async addDeparments({ id, deparments }) {
-    const existentSede = await this.getSede({ id });
-
-    if (!existentSede) {
-      throw new Error(`Sede ${id} not found`);
-    }
-
-    return this.updateSede({
-      id,
-      sede: { deparments: [...existentSede.deparments, ...deparments] },
-    });
-  }
-
   static async createSede({ sede }) {
-    return await this.MongoDB.create(this.collection, sede);
+    return await this.MongoDB.create(this.collection, {
+      ...sede,
+      disabled: false,
+      deleted: false,
+      createAt: new Date(Date.now())
+    });
   }
 
   static async updateSede({ id, sede }) {
@@ -68,7 +76,7 @@ class SedeService {
       throw new Error(`Sede ${id} is not found`);
     }
 
-    return await this.updateSede({ id, sede: { disabled: true } });
+    return await this.updateSede({ id, sede: { deleted: true } });
   }
 }
 

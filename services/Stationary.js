@@ -30,11 +30,15 @@ class StationaryService {
 	}
 
 	static async deleteStationary({ id }) {
-		const stationary = this.getStationary({ id });
+		const stationary = await this.getStationary({ id });
+
+		if(!stationary) {
+			throw new Error(`El item con el id ${id} no existe`);
+		}
 
 		await ItemService.deleteItem({ id: stationary.itemId });
 
-		return await this.MongoDB.delete(this.collection, id);
+		return await this.updateStationary({ id, stationary: { deleted: true } });
 	}
 }
 

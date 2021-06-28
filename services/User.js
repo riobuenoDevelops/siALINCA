@@ -1,19 +1,31 @@
 const MongoLib = require("../lib/db");
+const { config } = require("../config/index");
 const RoleService = require("./Role");
-const bcrypt = require("bcrypt");
+const Cryptr = require("cryptr");
 
 class UserService {
   static MongoDB = new MongoLib();
   static collection = "users";
+  static cryptrInstance = new Cryptr(config.passwordSecret);
 
-  static async getUsers({ email, roleId, disabled }) {
-    const query = { email, roleId, disabled };
+  static async getUsers({ email, roleId, deleted, disabled, createdAt, startDate, endDate }) {
+    let query = { email, roleId, deleted, disabled, createdAt };
 
     Object.keys(query).forEach((key) => {
       if (query[key] === undefined) {
         delete query[key];
       }
     });
+
+    if(startDate) {
+      query = {
+        ...query,
+        createdAt: {
+          "$gte": new Date(startDate),
+          "lt": new Date(endDate)
+        }
+      }
+    }
 
     return (await this.MongoDB.getAll(this.collection, query)) || [];
   }
@@ -27,7 +39,7 @@ class UserService {
       name: userData.roleName,
     });
 
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const hashedPassword = this.cryptrInstance.encrypt(userData.password);
 
     const user = {
       ...userData,
@@ -37,6 +49,8 @@ class UserService {
       roleId: userRole[0]._id,
       password: hashedPassword,
       disabled: false,
+      deleted: false,
+      createdAt: new Date(Date.now())
     };
 
     delete user["roleName"];
@@ -50,12 +64,9 @@ class UserService {
 
     if (!existentUser) {
       throw new Error(`User ${id} is not found`);
-      return;
     }
 
-    if (user.password) {
-      hashedPassword = await bcrypt.hash(user.password, 10);
-    }
+    hashedPassword = this.cryptrInstance.encrypt(user.password);
 
     const role = await RoleService.getRoleByName({ name: user.roleName });
 
@@ -76,10 +87,9 @@ class UserService {
     const existentUser = await this.getUser({ id });
     if (!existentUser) {
       throw new Error(`User ${id} is not found`);
-      return;
     }
 
-    return await this.updateUser({ id, user: { disabled: true } });
+    return await this.updateUser({ id, user: { deleted: true } });
   }
 }
 

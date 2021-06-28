@@ -30,11 +30,15 @@ class ElectroDeviceService {
 	}
 
 	static async deleteElectroDevice({ id }) {
-		const electroDevice = this.getElectroDevice({ id });
+		const electroDevice = await this.getElectroDevice({ id });
+
+		if(!electroDevice) {
+			throw new Error(`El item con el id ${id} no existe`)
+		}
 
 		await ItemService.deleteItem({ id: electroDevice.itemId });
 
-		return await this.MongoDB.delete(this.collection, id);
+		return await this.updateElectroDevice({ id, electroDevice: { deleted: true } })
 	}
 }
 

@@ -12,14 +12,20 @@ class StoreService {
     addressCountry,
     addressZipcode,
     disabled,
+    deleted,
+    createdAt,
+    startDate,
+    endDate
   }) {
-    const query = {
+    let query = {
       name,
       addressCity,
       addressState,
       addressCountry,
       addressZipcode,
       disabled,
+      deleted,
+      createdAt
     };
 
     Object.keys(query).forEach((key) => {
@@ -27,6 +33,16 @@ class StoreService {
         delete query[key];
       }
     });
+
+    if(startDate) {
+      query = {
+        ...query,
+        createdAt: {
+          "$gte": new Date(startDate),
+          "lt": new Date(endDate)
+        }
+      }
+    }
 
     return (await this.MongoDB.getAll(this.collection, query)) || [];
   }
@@ -78,13 +94,12 @@ class StoreService {
     let itemStores = [];
     const stores = await this.getStores({ disabled: false });
 
-
     if(!stores.length){
       new Error("No hay ningún Almacén disponible");
     }
 
     for(let i = 0; i < stores.length; i++){
-      if(stores[i].items.some((item) => item.itemId === id)) {
+      if(stores[i].items?.some((item) => item.itemId === id)) {
         itemStores.push({ store: stores[i].name, storeId: stores[i]._id, quantity: stores[i].items.filter((item) => item.itemId === id)[0].quantity});
       }
     }
@@ -98,7 +113,12 @@ class StoreService {
       items: [],
     };
 
-    return await this.MongoDB.create(this.collection, store);
+    return await this.MongoDB.create(this.collection, {
+      ...store,
+      disabled: false,
+      deleted: false,
+      createdAt: new Date(Date.now())
+    });
   }
 
   static async updateStore({ id, store }) {
@@ -118,7 +138,7 @@ class StoreService {
       throw new Error(`Store ${id} is not found`);
     }
 
-    return await this.updateStore({ id, store: { disabled: true } });
+    return await this.updateStore({ id, store: { deleted: true } });
   }
 }
 

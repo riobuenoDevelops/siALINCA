@@ -30,11 +30,15 @@ class MealService {
 	}
 
 	static async deleteMeal({ id }) {
-		const meal = this.getMeal({ id });
+		const meal = await this.getMeal({ id });
+
+		if (!meal) {
+			throw new Error(`Item ${id} is not found`);
+		}
 
 		await ItemService.deleteItem({ id: meal.itemId });
 
-		return await this.MongoDB.delete(this.collection, id);
+		return await this.updateMeal({ id, meal: { deleted: true } });
 	}
 }
 

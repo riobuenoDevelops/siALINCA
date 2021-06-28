@@ -11,14 +11,20 @@ class DeliveryNoteService {
     applicantType,
     applicantId,
     disabled,
+    deleted,
+    createdAt,
+    startDate,
+    endDate
   }) {
-    const query = {
+    let query = {
       createStamp,
       returnStamp,
       noteType,
       applicantType,
       applicantId,
       disabled,
+      deleted,
+      createdAt
     };
 
     Object.keys(query).map((key) => {
@@ -26,6 +32,16 @@ class DeliveryNoteService {
         delete query[key];
       }
     });
+
+    if(startDate) {
+      query = {
+        ...query,
+        createdAt: {
+          "$gte": new Date(startDate),
+          "lt": new Date(endDate)
+        }
+      }
+    }
 
     return (await this.MongoDB.getAll(this.collection, query)) || [];
   }
@@ -40,8 +56,24 @@ class DeliveryNoteService {
     return note;
   }
 
+  static async getDeliveryNotesByItem({ itemId }){
+    const deliveryNotes = await this.getDeliveryNotes({});
+    if (!deliveryNotes.length) {
+      return [];
+    }
+
+    return deliveryNotes.filter(note => (
+      note.items.some((item) => ( item.itemId === itemId ))
+    ))
+  }
+
   static async createDeliveryNote({ deliveryNote }) {
-    return await this.MongoDB.create(this.collection, deliveryNote);
+    return await this.MongoDB.create(this.collection, {
+      ...deliveryNote,
+      disabled: false,
+      deleted: false,
+      createdAt: new Date(Date.now())
+    });
   }
 
   static async updateDeliveryNote({ id, deliveryNote }) {
@@ -63,7 +95,7 @@ class DeliveryNoteService {
 
     return await this.updateDeliveryNote({
       id,
-      deliveryNote: { disabled: true },
+      deliveryNote: { deleted: true },
     });
   }
 }

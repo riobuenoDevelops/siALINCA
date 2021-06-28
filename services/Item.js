@@ -10,8 +10,25 @@ class ItemService {
   static MongoDB = new MongoLib();
   static collection = "items";
 
-  static async getItems({ quantity, userId, type, disabled }) {
-    const query = { quantity, userId, type, disabled };
+  static async getItems({
+    quantity,
+    userId,
+    type,
+    disabled,
+    deleted,
+    createdAt,
+    startDate,
+    endDate
+  }) {
+    let itemsWithChild = [];
+    let query = {
+      quantity,
+      userId,
+      type,
+      disabled,
+      deleted,
+      createdAt
+    };
 
     Object.keys(query).forEach((key) => {
       if (query[key] === undefined) {
@@ -19,7 +36,24 @@ class ItemService {
       }
     });
 
-    return await this.MongoDB.getAll(this.collection, query);
+    if(startDate) {
+      query = {
+        ...query,
+        createdAt: {
+          "$gte": new Date(startDate),
+          "lt": new Date(endDate)
+        }
+      }
+    }
+
+    const items = await this.MongoDB.getAll(this.collection, query);
+
+    for(let i = 0; i < items.length; i++) {
+      const item = await this.getItem({ id: items[i]._id, withChild: "true" });
+      itemsWithChild.push(item);
+    }
+
+    return itemsWithChild;
   }
 
   static async getItem({ id, withChild }) {
@@ -35,7 +69,7 @@ class ItemService {
     let item = {};
     switch (type) {
       case "medicine":
-        item = await MedicineService.getMedicineByItem({ itemId: id });
+        item = await MedicineService.getMedicines({ itemId: id });
         break;
       case "meal":
         item = await MealService.getMeals({ itemId: id });
@@ -58,7 +92,12 @@ class ItemService {
   }
 
   static async createItem({ item }) {
-    return await this.MongoDB.create(this.collection, {...item, disabled: false});
+    return await this.MongoDB.create(this.collection, {
+      ...item,
+      disabled: false,
+      deleted: false,
+      createdAt: new Date(Date.now())
+    });
   }
 
   static async updateItem({ id, item }) {
@@ -78,7 +117,7 @@ class ItemService {
       throw new Error(`Item ${id} is not found`);
     }
 
-    return await this.updateItem({ id, item: { disabled: true } });
+    return await this.updateItem({ id, item: { deleted: true } });
   }
 }
 

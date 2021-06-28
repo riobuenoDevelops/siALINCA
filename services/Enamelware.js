@@ -30,11 +30,15 @@ class EnamelwareService {
 	}
 
 	static async deleteEnamelware({ id }) {
-		const enamelware = this.getEnamelware({ id });
+		const enamelware = await this.getEnamelware({ id });
+
+		if(!enamelware) {
+			throw new Error(`El item con el id ${id} no existe`)
+		}
 
 		await ItemService.deleteItem({ id: enamelware.itemId });
 
-		return await this.MongoDB.delete(this.collection, id);
+		return await this.updateEnamelware({ id, enamelware: { deleted: true } });
 	}
 }
 

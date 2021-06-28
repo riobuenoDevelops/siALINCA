@@ -50,11 +50,15 @@ class PropertyService {
 	}
 
 	static async deleteProperty({ id }) {
-		const property = this.getProperty({ id });
+		const property = await this.getProperty({ id });
+
+		if(!property) {
+			throw new Error(`El item con el id ${id} no existe`);
+		}
 
 		await ItemService.deleteItem({ id: property.itemId });
 
-		return await this.MongoDB.delete(this.collection, id);
+		return await this.updateProperty({ id, property: { deleted: true } });
 	}
 }
 

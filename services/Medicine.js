@@ -34,11 +34,15 @@ class MedicineService {
 	}
 
 	static async deleteMedicine({ id }) {
-		const medicine = this.getMedicine({ id });
+		const medicine = await this.getMedicine({ id });
+
+		if(!medicine) {
+			throw new Error(`El item con el id ${id} no existe`);
+		}
 
 		await ItemService.deleteItem({ id: medicine.itemId });
 
-		return await this.MongoDB.delete(this.collection, id);
+		return await this.updateMedicine({ id, medicine: { deleted: true } });
 	}
 }
 
