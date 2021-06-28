@@ -10,11 +10,8 @@ const sedeSchema = {
     addressCountry: { type: "string" },
     addressZipcode: { type: "string" },
     disabled: { type: "boolean" },
-    departments: {
-      type: "array",
-      minItems: 1,
-      items: { type: "string" },
-    },
+    deleted: { type: "boolean" },
+    createAt: { type: "date" }
   },
   required: [
     "name",
@@ -22,7 +19,6 @@ const sedeSchema = {
     "addressState",
     "addressCountry",
     "addressZipcode",
-    "departments",
   ],
   additionalProperties: false,
 };
@@ -39,10 +35,8 @@ const updatedSedeSchema = {
     addressCountry: { type: "string" },
     addressZipcode: { type: "string" },
     disabled: { type: "boolean" },
-    departments: {
-      type: "array",
-      items: { type: "string" },
-    },
+    deleted: { type: "boolean" },
+    createAt: { type: "date" }
   },
   additionalProperties: false,
 };
