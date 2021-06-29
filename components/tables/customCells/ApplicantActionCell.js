@@ -8,14 +8,14 @@ import routes from "../../../config/routes";
 import CustomDropdownMenu from "../common/CustomDropdownMenu";
 
 const ApplicantActionCell = ({
-                          tableRef,
-                          rowData,
-                          rowKey,
-                          handleApplicantModalOpen,
+  tableRef,
+  rowData,
+  rowKey,
+  handleApplicantModalOpen,
   handleSelectedApplicant,
   handleUpdateApplicant,
-                          ...props
-                        }) => {
+  ...props
+}) => {
   const router = useRouter();
   
   const onChangeApplicant = async () => {
