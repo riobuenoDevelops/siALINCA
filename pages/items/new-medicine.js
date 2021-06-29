@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { parseCookies } from "../../lib/parseCookies";
 import AxiosService from "../../services/Axios";
-import StoreService from "../../services/Store";
 import MeasureService from "../../services/Measure";
 import routes from "../../config/routes";
 
 import NewMedicineForm from "../../components/forms/NewMedicineForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 import FormErrorMessage from "../../components/common/FormErrorMessage";
+import LoadingScreen from "../../components/layouts/LoadingScreen";
+
+import { useStores } from "../../hooks";
 
 import "../../styles/forms.less";
 
@@ -18,7 +20,6 @@ export default function NewMedicinePage({
   handleLogged,
   handleUser,
   user,
-  stores,
   contentMeasures,
   markLabs,
   presentations,
@@ -29,6 +30,7 @@ export default function NewMedicinePage({
   const { handleSubmit, errors, register, control, setError, clearErrors } = useForm({
     mode: "onBlur",
   });
+  const { stores, isLoading: storesLoading } = useStores(user.token);
   const [isOpen, handleOpen] = useState(false);
   const [isLoading, handleLoading] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
@@ -87,7 +89,7 @@ export default function NewMedicinePage({
 
     try {
       if(id) {
-        await AxiosService.instance.put(routes.items + "/" + id, itemData, {
+        await AxiosService.instance.put(`${routes.items}/${id}?email=${user?.user.email}`, itemData, {
           headers: {
             Authorization: user.token,
           },
@@ -107,7 +109,7 @@ export default function NewMedicinePage({
           const storeItems = stores.filter(myStore => myStore._id === store.storeId)[0].items;
           await AxiosService.instance.put(
             routes.getStores + `/${store.storeId}/items`,
-            storeItems.map(storeItem => storeItem.itemId !== id ? { itemId: id, quantity: store.quantity } : storeItem),
+            storeItems.map(storeItem => storeItem.itemId === id ? { itemId: id, quantity: store.quantity } : storeItem),
             {
               headers: {
                 Authorization: user.token,
@@ -177,6 +179,8 @@ export default function NewMedicinePage({
     history.push("/items");
   };
 
+  if(storesLoading) return <LoadingScreen />;
+
   return (
     <>
       <FlexboxGrid className="form" justify="space-between">
@@ -233,7 +237,6 @@ export default function NewMedicinePage({
 
 export async function getServerSideProps({ req}) {
   let user = null,
-    stores = [],
     measures = [],
     contentMeasures = [],
     presentations = [],
@@ -244,9 +247,6 @@ export async function getServerSideProps({ req}) {
   if (cookies && cookies.sialincaUser) {
     try {
       user = JSON.parse(cookies.sialincaUser);
-
-      stores = await StoreService.getStores({ disabled: false });
-      stores = stores.map((store) => ({ ...store, _id: store._id.toString() }));
 
       measures = await MeasureService.getMeasures({});
 
@@ -270,7 +270,6 @@ export async function getServerSideProps({ req}) {
 
       return {
         props: {
-          stores,
           markLabs,
           contentMeasures,
           presentations,

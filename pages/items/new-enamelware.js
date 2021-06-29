@@ -5,7 +5,6 @@ import {Button, FlexboxGrid, Notification} from "rsuite";
 import NewEnamelwareForm from "../../components/forms/NewEnamelwareForm";
 
 import { parseCookies } from "../../lib/parseCookies";
-import StoreService from "../../services/Store";
 import MeasureService from "../../services/Measure";
 
 import "../../styles/forms.less";
@@ -13,22 +12,23 @@ import CancelConfirmationModal from "../../components/modals/CancelConfirmationM
 import {useRouter} from "next/router";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
+import {useStores} from "../../hooks";
 
 export default function NewEnamelwarePage({
   handleLogged,
   handleUser,
   isError,
   user,
-  stores,
   materials,
   sizes
 }) {
-  const router = useRouter();
-  const { handleSubmit, errors, control, register } = useForm();
+  const history = useRouter();
+  const { id, childId } = history.query;
+  const { handleSubmit, errors, register, control, setError, clearErrors } = useForm();
+  const { stores, isLoading: storesLoading } = useStores(user.token);
   const [isOpen, handleIsOpen] = useState(false);
   const [isLoading, handleLoading] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
-  const [quantityValue, setQuantity] = useState('');
 
   useEffect(() => {
     if (isError) {
@@ -46,10 +46,35 @@ export default function NewEnamelwarePage({
   };
 
   const onConfirmCancel = () => {
-    router.push("/items");
+    history.push("/items");
   };
 
   const onSubmit = async (data) => {
+    if(!storeItemData.length) {
+      setError("storeData", {
+        message: "El item debe estar por lo menos en un almacén"
+      })
+
+      setTimeout(() => {
+        clearErrors("storeData")
+      }, 3000);
+      return;
+    }
+
+    const quantityCheck = storeItemData.reduce((accum, item) => {
+      return { quantity: accum.quantity + item.quantity }
+    })
+
+    if(quantityCheck.quantity !== data.quantity){
+      setError("quantityValue", {
+        message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
+      })
+      setTimeout(() => {
+        clearErrors("quantityValue")
+      }, 3000);
+      return;
+    }
+
     handleLoading(true);
 
     const itemData = {
@@ -67,37 +92,68 @@ export default function NewEnamelwarePage({
     };
 
     try {
-      const item = await AxiosService.instance.post(routes.items, itemData, {
-        headers: {
-          Authorization: user.token,
-        },
-      });
-
-      await AxiosService.instance.post(
-        routes.items + "/enamelware",
-        { ...enamelwareData, itemId: item.data },
-        {
+      if (id) {
+        await AxiosService.instance.put(routes.items + "/" + id, itemData, {
           headers: {
             Authorization: user.token,
           },
-        }
-      );
+        });
 
-      storeItemData.map(async (store) => {
+        await AxiosService.instance.put(
+          routes.items + "/enamelware/" + childId,
+          enamelwareData,
+          {
+            headers: {
+              Authorization: user.token
+            },
+          }
+        );
+
+        storeItemData.map(async (store) => {
+          const storeItems = stores.filter(myStore => myStore._id === store.storeId)[0].items;
+          await AxiosService.instance.put(
+            routes.getStores + `/${store.storeId}/items`,
+            storeItems.map(storeItem => storeItem.itemId !== id ? { itemId: id, quantity: store.quantity } : storeItem),
+            {
+              headers: {
+                Authorization: user.token,
+              },
+            }
+          );
+        });
+      } else {
+        const item = await AxiosService.instance.post(routes.items, itemData, {
+          headers: {
+            Authorization: user.token,
+          },
+        });
+
         await AxiosService.instance.post(
-          routes.getStores + `/${store.storeId}/items`,
-          [{ itemId: item.data, quantity: store.quantity }],
+          routes.items + "/enamelware",
+          { ...enamelwareData, itemId: item.data },
           {
             headers: {
               Authorization: user.token,
             },
           }
         );
-      });
+
+        storeItemData.map(async (store) => {
+          await AxiosService.instance.post(
+            routes.getStores + `/${store.storeId}/items`,
+            [{ itemId: item.data, quantity: store.quantity }],
+            {
+              headers: {
+                Authorization: user.token,
+              },
+            }
+          );
+        });
+      }
 
       Notification.success({
-        title: "Nuevo Utencilio",
-        description: "Utencilio agregado con exito",
+        title: id ? "Utencilio Actualizado" :"Nuevo Utencilio",
+        description: id ? "Utencilio actualizado con exito" :"Utencilio agregado con exito",
         placement: "bottomStart",
         duration: 9000,
       });
@@ -106,11 +162,11 @@ export default function NewEnamelwarePage({
     } catch (err) {
       Notification.error({
         title: "Error",
-        description: err.response.data.message,
+        description: err.message,
         placement: "bottomStart",
         duration: 9000,
       });
-      console.error(err.response.data.message);
+      console.error(err);
       handleLoading(false);
     }
   };
@@ -129,7 +185,6 @@ export default function NewEnamelwarePage({
             errors={errors}
             control={control}
             storeItemData={[storeItemData, setStoreItemData]}
-            quantityData={[quantityValue, setQuantity]}
             sizes={sizes}
             stores={stores}
             materialsData={materials}
@@ -179,16 +234,12 @@ export default function NewEnamelwarePage({
 
 export async function getServerSideProps({ req, params }) {
   let user = {},
-    stores = [],
     measures = [], sizes = [], materials = [];
   const cookies = parseCookies(req);
 
   if (cookies && cookies.sialincaUser) {
     try {
       user = JSON.parse(cookies.sialincaUser);
-
-      stores = await StoreService.getStores({});
-      stores = stores.map((store) => ({ ...store, _id: store._id.toString() }));
 
       measures = await MeasureService.getMeasures({});
       measures.map(measure => {
@@ -203,7 +254,6 @@ export async function getServerSideProps({ req, params }) {
       return {
         props: {
           user,
-          stores,
           materials,
           sizes,
           isError: false,
@@ -213,8 +263,7 @@ export async function getServerSideProps({ req, params }) {
       return {
         props: {
           user,
-          stores,
-          materials: measures ? measures[0].measures : [],
+          materials,
           isError: true,
         },
       };
