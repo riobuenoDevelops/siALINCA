@@ -41,25 +41,32 @@ export default function MyApp({ Component, pageProps }) {
         <title>Sistema de Inventario ALINCA</title>
       </Head>
       <I18nextProvider i18n={i18n}>
-        <SWRConfig
-          value={{
-            refreshInterval: 10000,
-            fetcher: (url, token) => AxiosService.instance.get(url, {
-              headers: {
-                Authorization: token
-              }
-            }).then(res => res.data)
-          }}
-        >
-          <LoggedLayout
-            isLogged={isLogged}
-            handleLogged={handleLogged}
-            user={user}
-            handleUser={handleUser}
+          <SWRConfig
+            value={{
+              refreshInterval: 10000,
+              fetcher: (url, token, query) => query
+                ? AxiosService.instance.get(url, {
+                headers: {
+                  Authorization: token
+                },
+                params: query
+              }).then(res => res.data)
+                : AxiosService.instance.get(url, {
+                  headers: {
+                    Authorization: token
+                  },
+                }).then(res => res.data)
+            }}
           >
-            {loading ? <LoadingScreen /> : <Component {...pageProps} />}
-          </LoggedLayout>
-        </SWRConfig>
+            <LoggedLayout
+              isLogged={isLogged}
+              handleLogged={handleLogged}
+              user={user}
+              handleUser={handleUser}
+            >
+              {loading ? <LoadingScreen /> : <Component {...pageProps} />}
+            </LoggedLayout>
+          </SWRConfig>
       </I18nextProvider>
     </>
   );
