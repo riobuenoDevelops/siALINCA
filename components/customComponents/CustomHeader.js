@@ -1,12 +1,13 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import {
   Avatar,
   Button,
   Dropdown,
   FlexboxGrid,
-  Icon
+  Icon,
+  Notification
 } from "rsuite";
-import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
+import PubNub from "pubnub";
 import cookieCutter from "cookie-cutter";
 
 import AboutModal from "../modals/AboutModal";
@@ -28,6 +29,25 @@ const CustomHeader = ({
   handleSedeModalOpen,
 }) => {
   const [showAboutModal, handleAboutModal] = useState(false);
+  const [channels] = useState(['notifications']);
+  const pubNub = new PubNub({
+    publishKey: process.env.NEXT_PUBLIC_PUBLISH_KEY,
+    subscribeKey: process.env.NEXT_PUBLIC_SUBSCRIBE_KEY,
+    uuid: user?.user?.email
+  });
+
+  const handleNotification = event => {
+    const message = event.message;
+    if (typeof message === 'string' || message.hasOwnProperty('text')) {
+      const text = message.text || message;
+      Notification.warning({
+        placement: "bottomEnd",
+        title: "Nivel de Inventario Critico",
+        description: text,
+        duration: 9000,
+      })
+    }
+  }
 
   const onOpenAboutModal = () => {
     handleAboutModal(true);
@@ -104,13 +124,18 @@ const CustomHeader = ({
     return null;
   };
 
+  useEffect(() => {
+    pubNub.addListener({ message: handleNotification });
+    pubNub.subscribe({ channels });
+  }, [channels])
+
   return (
     <>
       <FlexboxGrid className="custom-header">
-        <FlexboxGridItem colspan={expanded ? 19 : 20}>
+        <FlexboxGrid.Item colspan={expanded ? 19 : 20}>
           {renderCustomMenu()}
-        </FlexboxGridItem>
-        <FlexboxGridItem colspan={expanded ? 5 : 4} className="user-col">
+        </FlexboxGrid.Item>
+        <FlexboxGrid.Item colspan={expanded ? 5 : 4} className="user-col">
           <Avatar size="sm" circle style={{ marginRight: "0.5em" }}>
             <Icon icon="user" />
           </Avatar>
@@ -140,7 +165,7 @@ const CustomHeader = ({
               Cerrar Sesión
             </Dropdown.Item>
           </Dropdown>
-        </FlexboxGridItem>
+        </FlexboxGrid.Item>
       </FlexboxGrid>
       <AboutModal
         showAboutModal={showAboutModal}
