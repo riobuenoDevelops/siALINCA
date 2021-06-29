@@ -12,7 +12,7 @@ class StoreService {
     addressCountry,
     addressZipcode,
     disabled,
-    deleted,
+    isDeleted,
     createdAt,
     startDate,
     endDate
@@ -24,7 +24,7 @@ class StoreService {
       addressCountry,
       addressZipcode,
       disabled,
-      deleted,
+      isDeleted,
       createdAt
     };
 
@@ -116,7 +116,7 @@ class StoreService {
     return await this.MongoDB.create(this.collection, {
       ...store,
       disabled: false,
-      deleted: false,
+      isDeleted: false,
       createdAt: new Date(Date.now())
     });
   }
@@ -138,7 +138,7 @@ class StoreService {
       throw new Error(`Store ${id} is not found`);
     }
 
-    return await this.updateStore({ id, store: { deleted: true } });
+    return await this.updateStore({ id, store: { isDeleted: true } });
   }
 }
 

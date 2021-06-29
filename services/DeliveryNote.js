@@ -11,7 +11,7 @@ class DeliveryNoteService {
     applicantType,
     applicantId,
     disabled,
-    deleted,
+    isDeleted,
     createdAt,
     startDate,
     endDate
@@ -23,7 +23,7 @@ class DeliveryNoteService {
       applicantType,
       applicantId,
       disabled,
-      deleted,
+      isDeleted,
       createdAt
     };
 
@@ -67,11 +67,44 @@ class DeliveryNoteService {
     ))
   }
 
+  static async getDeliveryNotesByStore({ storeId }){
+    const deliveryNotes = await this.getDeliveryNotes({});
+    if (!deliveryNotes.length) {
+      return [];
+    }
+
+    return deliveryNotes.filter(note => (
+      note.items.some((item) => ( item.storeId === storeId ))
+    ))
+  }
+
+  static async getDeliveryNotesBySede({ sede }){
+    const deliveryNotes = await this.getDeliveryNotes({ applicantType: "sede" });
+    if (!deliveryNotes.length) {
+      return [];
+    }
+
+    return deliveryNotes.filter(note => (
+      note.applicantId === sede
+    ))
+  }
+
+  static async getDeliveryNotesByApplicant({ applicant }){
+    const deliveryNotes = await this.getDeliveryNotes({ applicantType: "applicant" });
+    if (!deliveryNotes.length) {
+      return [];
+    }
+
+    return deliveryNotes.filter(note => (
+      note.applicantId === applicant
+    ))
+  }
+
   static async createDeliveryNote({ deliveryNote }) {
     return await this.MongoDB.create(this.collection, {
       ...deliveryNote,
       disabled: false,
-      deleted: false,
+      isDeleted: false,
       createdAt: new Date(Date.now())
     });
   }
@@ -95,7 +128,7 @@ class DeliveryNoteService {
 
     return await this.updateDeliveryNote({
       id,
-      deliveryNote: { deleted: true },
+      deliveryNote: { isDeleted: true },
     });
   }
 }

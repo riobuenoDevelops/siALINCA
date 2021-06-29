@@ -38,7 +38,7 @@ class ElectroDeviceService {
 
 		await ItemService.deleteItem({ id: electroDevice.itemId });
 
-		return await this.updateElectroDevice({ id, electroDevice: { deleted: true } })
+		return await this.updateElectroDevice({ id, electroDevice: { isDeleted: true } })
 	}
 }
 

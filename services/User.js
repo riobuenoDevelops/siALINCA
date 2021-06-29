@@ -8,8 +8,8 @@ class UserService {
   static collection = "users";
   static cryptrInstance = new Cryptr(config.passwordSecret);
 
-  static async getUsers({ email, roleId, deleted, disabled, createdAt, startDate, endDate }) {
-    let query = { email, roleId, deleted, disabled, createdAt };
+  static async getUsers({ email, roleId, isDeleted, disabled, createdAt, startDate, endDate }) {
+    let query = { email, roleId, isDeleted, disabled, createdAt };
 
     Object.keys(query).forEach((key) => {
       if (query[key] === undefined) {
@@ -49,7 +49,7 @@ class UserService {
       roleId: userRole[0]._id,
       password: hashedPassword,
       disabled: false,
-      deleted: false,
+      isDeleted: false,
       createdAt: new Date(Date.now())
     };
 
@@ -89,7 +89,7 @@ class UserService {
       throw new Error(`User ${id} is not found`);
     }
 
-    return await this.updateUser({ id, user: { deleted: true } });
+    return await this.updateUser({ id, user: { isDeleted: true } });
   }
 }
 

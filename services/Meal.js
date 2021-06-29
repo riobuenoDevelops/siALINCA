@@ -38,7 +38,7 @@ class MealService {
 
 		await ItemService.deleteItem({ id: meal.itemId });
 
-		return await this.updateMeal({ id, meal: { deleted: true } });
+		return await this.updateMeal({ id, meal: { isDeleted: true } });
 	}
 }
 

@@ -5,6 +5,8 @@ const ElectroDeviceService = require("./ElectroDevice");
 const EnamelwareService = require("./Enamelware");
 const PropertyService = require("./Property");
 const StationaryService = require("./Stationary");
+const PubNubService = require("./PubNub")
+const UserService = require("./User");
 
 class ItemService {
   static MongoDB = new MongoLib();
@@ -15,7 +17,7 @@ class ItemService {
     userId,
     type,
     disabled,
-    deleted,
+    isDeleted,
     createdAt,
     startDate,
     endDate
@@ -26,7 +28,7 @@ class ItemService {
       userId,
       type,
       disabled,
-      deleted,
+      isDeleted,
       createdAt
     };
 
@@ -95,19 +97,31 @@ class ItemService {
     return await this.MongoDB.create(this.collection, {
       ...item,
       disabled: false,
-      deleted: false,
+      isDeleted: false,
       createdAt: new Date(Date.now())
     });
   }
 
-  static async updateItem({ id, item }) {
+  static async updateItem({ id, item, email }) {
+    if(!PubNubService.channel) {
+      PubNubService.initialize(email, 'notifications');
+      PubNubService.subscribe();
+    }
+
     const existentItem = await this.getItem({ id, withChild: false });
+    const user = await UserService.getUsers({email});
 
     if (!existentItem) {
       throw new Error(`Item ${id} is not found`);
     }
 
-    return await this.MongoDB.update(this.collection, id, item);
+    const updatedId = await this.MongoDB.update(this.collection, id, item);
+
+    if(item.quantity <= user[0].config.nivelInventario) {
+      PubNubService.publish(`El item ${item.name} ha alcanzado el nivel mínimo de inventario`);
+    }
+
+    return updatedId
   }
 
   static async deleteItem({ id }) {
@@ -117,7 +131,7 @@ class ItemService {
       throw new Error(`Item ${id} is not found`);
     }
 
-    return await this.updateItem({ id, item: { deleted: true } });
+    return await this.updateItem({ id, item: { isDeleted: true } });
   }
 }
 

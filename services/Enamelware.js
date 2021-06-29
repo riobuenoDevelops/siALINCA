@@ -38,7 +38,7 @@ class EnamelwareService {
 
 		await ItemService.deleteItem({ id: enamelware.itemId });
 
-		return await this.updateEnamelware({ id, enamelware: { deleted: true } });
+		return await this.updateEnamelware({ id, enamelware: { isDeleted: true } });
 	}
 }
 

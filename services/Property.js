@@ -58,7 +58,7 @@ class PropertyService {
 
 		await ItemService.deleteItem({ id: property.itemId });
 
-		return await this.updateProperty({ id, property: { deleted: true } });
+		return await this.updateProperty({ id, property: { isDeleted: true } });
 	}
 }
 

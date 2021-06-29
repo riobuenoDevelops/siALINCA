@@ -11,7 +11,7 @@ class SedeService {
     addressState,
     addressCountry,
     disabled,
-    deleted,
+    isDeleted,
     createdAt,
     startDate,
     endDate
@@ -23,7 +23,7 @@ class SedeService {
       addressState,
       addressCountry,
       disabled,
-      deleted,
+      isDeleted,
       createdAt
     };
 
@@ -54,8 +54,8 @@ class SedeService {
     return await this.MongoDB.create(this.collection, {
       ...sede,
       disabled: false,
-      deleted: false,
-      createAt: new Date(Date.now())
+      isDeleted: false,
+      createdAt: new Date(Date.now())
     });
   }
 
@@ -76,7 +76,7 @@ class SedeService {
       throw new Error(`Sede ${id} is not found`);
     }
 
-    return await this.updateSede({ id, sede: { deleted: true } });
+    return await this.updateSede({ id, sede: { isDeleted: true } });
   }
 }
 

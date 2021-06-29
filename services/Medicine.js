@@ -42,7 +42,7 @@ class MedicineService {
 
 		await ItemService.deleteItem({ id: medicine.itemId });
 
-		return await this.updateMedicine({ id, medicine: { deleted: true } });
+		return await this.updateMedicine({ id, medicine: { isDeleted: true } });
 	}
 }
 
