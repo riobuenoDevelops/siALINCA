@@ -9,8 +9,8 @@ const deliveryNoteSchema = {
 		applicantType: { type: "string" },
 		applicantId: { $ref: "modelId#" },
 		disabled: { type: "boolean" },
-		deleted: { type: "boolean" },
-		createAt: { type: "date" },
+		isDeleted: { type: "boolean" },
+		createdAt: { type: "string" },
 		items: {
 			minItems: 1,
 			type: "array",
@@ -26,12 +26,10 @@ const deliveryNoteSchema = {
 	},
 	required: [
 		"createStamp",
-		"returnStamp",
 		"noteType",
 		"applicantType",
 		"applicantId",
-		"items",
-		"disabled"
+		"items"
 	],
 	additionalProperties: false,
 };
@@ -57,8 +55,8 @@ const updatedDeliveryNoteSchema = {
 					quantity: { type: "integer" },
 				},
 			},
-			deleted: { type: "boolean" },
-			createAt: { type: "date" }
+			isDeleted: { type: "boolean" },
+			createdAt: { type: "string" }
 		},
 	},
 	additionalProperties: false,

@@ -27,6 +27,9 @@ const { stationarySchema, updatedStationarySchema } = require("./Stationary");
 const { storeSchema, updatedStoreSchema } = require("./Store");
 const { itemSchema, updatedItemSchema } = require("./Item");
 
+ajv.addKeyword("isDeleted");
+ajv.addKeyword("createdAt");
+
 //load schemas
 ajv.addSchema(modelIdSchema);
 ajv.addSchema(roleSchema);

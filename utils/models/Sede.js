@@ -10,8 +10,8 @@ const sedeSchema = {
     addressCountry: { type: "string" },
     addressZipcode: { type: "string" },
     disabled: { type: "boolean" },
-    deleted: { type: "boolean" },
-    createAt: { type: "date" }
+    isDeleted: { type: "boolean" },
+    createdAt: { type: "string" }
   },
   required: [
     "name",
@@ -35,8 +35,8 @@ const updatedSedeSchema = {
     addressCountry: { type: "string" },
     addressZipcode: { type: "string" },
     disabled: { type: "boolean" },
-    deleted: { type: "boolean" },
-    createAt: { type: "date" }
+    isDeleted: { type: "boolean" },
+    createdAt: { type: "string" }
   },
   additionalProperties: false,
 };

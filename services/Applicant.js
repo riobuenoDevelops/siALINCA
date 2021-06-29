@@ -4,8 +4,8 @@ class ApplicantService {
   static MongoDB = new MongoLib();
   static collection = "applicants";
 
-  static async getApplicants({ cedula, phone, deleted, disabled, createdAt, startDate, endDate }) {
-    let query = { cedula, phone, deleted, disabled, createdAt };
+  static async getApplicants({ cedula, phone, isDeleted, disabled, createdAt, startDate, endDate }) {
+    let query = { cedula, phone, isDeleted, disabled, createdAt };
 
     Object.keys(query).map((key) => {
       if (query[key] === undefined) {
@@ -33,7 +33,7 @@ class ApplicantService {
   static async createApplicant({ applicant }) {
     return await this.MongoDB.create(this.collection, {
       ...applicant,
-      deleted: false,
+      isDeleted: false,
       disabled: false,
       createdAt: new Date(Date.now())
     });
@@ -56,7 +56,7 @@ class ApplicantService {
       throw new Error(`Applicant ${id} is not found`);
     }
 
-    return await this.updateApplicant({ id, applicant: { deleted: true } });
+    return await this.updateApplicant({ id, applicant: { isDeleted: true } });
   }
 }
 

@@ -15,8 +15,8 @@ const userSchema = {
       },
     },
     disabled: { type: "boolean" },
-    deleted: { type: "boolean" },
-    createAt: { type: "date" }
+    isDeleted: { type: "boolean" },
+    createdAt: { type: "string" }
   },
   required: ["names", "lastNames", "email", "password"],
   additionalProperties: true,
@@ -39,8 +39,8 @@ const updatedUserSchema = {
       },
     },
     disabled: { type: "boolean" },
-    deleted: { type: "boolean" },
-    createAt: { type: "date" }
+    isDeleted: { type: "boolean" },
+    createdAt: { type: "string" }
   },
   additionalProperties: true,
 };

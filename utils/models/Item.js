@@ -11,8 +11,8 @@ const itemSchema = {
     price: { type: "string" },
     userId: { $ref: "user#/properties/_id" },
     disabled: { type: "boolean" },
-    deleted: { type: "boolean" },
-    createAt: { type: "date" }
+    isDeleted: { type: "boolean" },
+    createdAt: { type: "string" }
   },
   required: ["type", "quantity", "unitQuantity", "userId"],
   additionalProperties: false,
@@ -31,8 +31,8 @@ const updatedItemSchema = {
     price: { type: "string" },
     userId: { $ref: "user#/properties/_id" },
     disabled: { type: "boolean" },
-    deleted: { type: "boolean" },
-    createAt: { type: "date" }
+    isDeleted: { type: "boolean" },
+    createdAt: { type: "string" }
   },
   additionalProperties: false,
 };

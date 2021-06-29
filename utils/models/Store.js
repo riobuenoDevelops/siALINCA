@@ -20,8 +20,8 @@ const storeSchema = {
 				},
 			},
 		},
-		deleted: { type: "boolean" },
-		createAt: { type: "date" }
+		isDeleted: { type: "boolean" },
+		createdAt: { type: "string" }
 	},
 	required: [
 		"name",
@@ -55,8 +55,8 @@ const updatedStoreSchema = {
 				},
 			},
 		},
-		deleted: { type: "boolean" },
-		createAt: { type: "date" }
+		isDeleted: { type: "boolean" },
+		createdAt: { type: "string" }
 	},
 	additionalProperties: false,
 };
