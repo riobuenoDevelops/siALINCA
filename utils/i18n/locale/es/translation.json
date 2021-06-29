@@ -23,5 +23,9 @@
     "enamelware": "Utencilio",
     "stationary": "Papelería",
     "property": "Inmueble"
+  },
+  "notes": {
+    "CR": "Con Retorno",
+    "SR": "Sin Retorno"
   }
 }
