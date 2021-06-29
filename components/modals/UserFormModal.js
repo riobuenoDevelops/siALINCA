@@ -11,8 +11,11 @@ import {
 } from "rsuite";
 import { useTranslation } from "react-i18next";
 
-import "../../styles/forms.less";
 import CancelConfirmationModal from "./CancelConfirmationModal";
+
+import { useDecrypt } from "../../hooks/index";
+
+import "../../styles/forms.less";
 
 const UserFormModal = ({
   isOpen,
@@ -20,11 +23,11 @@ const UserFormModal = ({
   onSubmit,
   newUserLoading,
   roles,
-  roleName,
   handleRoleName,
   isUpdateUser,
   selectedUser,
 }) => {
+  const decryptedPassword = useDecrypt(!isUpdateUser ? "" : selectedUser.password);
   const { handleSubmit, errors, register, watch, control, reset } = useForm();
   const { i18n } = useTranslation();
   const [confirmationModalOpen, handleCOnfirmationModal] = useState(false);
@@ -78,7 +81,7 @@ const UserFormModal = ({
           <form>
             <FlexboxGrid>
               <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
-                <span className="text-black text-bolder input-title">
+                <span className="input-title">
                   Nombres
                 </span>
                 <Controller
@@ -101,17 +104,15 @@ const UserFormModal = ({
                 </div>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
-                <span className="text-black text-bolder input-title">
+                <span className="input-title">
                   Apellidos
                 </span>
-                <Controller
+                <Input
+                  size="lg"
+                  placeholder="Fernandez"
                   name="lastNames"
-                  control={control}
-                  rules={{ required: true }}
+                  inputRef={register({ required: true })}
                   defaultValue={!isUpdateUser ? "" : selectedUser.lastNames}
-                  render={(field) => (
-                    <Input {...field} size="lg" placeholder="Fernandez" />
-                  )}
                 />
                 <div
                   style={{
@@ -126,24 +127,18 @@ const UserFormModal = ({
                 </div>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
-                <span className="text-black text-bolder input-title">
+                <span className="input-title">
                   Correo Electrónico
                 </span>
-                <Controller
+                <Input
+                  size="lg"
+                  placeholder="example@example.com"
                   name="email"
-                  control={control}
-                  rules={{
+                  inputRef={register({
                     required: true,
                     pattern: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-                  }}
+                  })}
                   defaultValue={!isUpdateUser ? "" : selectedUser.email}
-                  render={(field) => (
-                    <Input
-                      {...field}
-                      size="lg"
-                      placeholder="example@example.com"
-                    />
-                  )}
                 />
                 <div
                   style={{
@@ -165,23 +160,17 @@ const UserFormModal = ({
                 </div>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
-                <span className="text-black text-bolder input-title">
+                <span className="input-title">
                   Contraseña
                 </span>
                 <InputGroup inside>
-                  <Controller
+                  <Input
+                    size="lg"
+                    placeholder="Contraseña"
                     name="password"
-                    control={control}
-                    rules={{ required: true }}
-                    defaultValue=""
-                    render={(field) => (
-                      <Input
-                        {...field}
-                        size="lg"
-                        placeholder="Contraseña"
-                        type={!showContent ? "password" : "text"}
-                      />
-                    )}
+                    type={!showContent ? "password" : "text"}
+                    inputRef={register({ required: true })}
+                    defaultValue={decryptedPassword}
                   />
                   <InputGroup.Button
                     style={{
@@ -208,28 +197,22 @@ const UserFormModal = ({
                 </div>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
-                <span className="text-black text-bolder input-title">
+                <span className="input-title">
                   Repita Contraseña
                 </span>
                 <InputGroup inside>
-                  <Controller
+                  <Input
+                    size="lg"
                     name="repeatPassword"
-                    control={control}
-                    rules={{
+                    placeholder="Repita Contraseña"
+                    type={!showRepeatContent ? "password" : "text"}
+                    rules={register({
                       required: true,
                       validate: (value) =>
                         value === password.current ||
                         "Las contraseñas no coinciden",
-                    }}
+                    })}
                     defaultValue=""
-                    render={(field) => (
-                      <Input
-                        {...field}
-                        size="lg"
-                        placeholder="Repita Contraseña"
-                        type={!showRepeatContent ? "password" : "text"}
-                      />
-                    )}
                   />
                   <InputGroup.Button
                     style={{
@@ -256,7 +239,7 @@ const UserFormModal = ({
                 </div>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
-                <span className="text-black text-bolder input-title">
+                <span className="input-title">
                   Rol de Usuario
                 </span>
                 <Controller
@@ -274,10 +257,10 @@ const UserFormModal = ({
                       data={roles}
                       cleanable={false}
                       searchable={false}
-                      renderMenuItem={(label, item) => {
+                      renderMenuItem={(label) => {
                         return <div>{i18n.t(`roles.${label}`)}</div>;
                       }}
-                      renderValue={(value, item) => {
+                      renderValue={(value) => {
                         return <div>{i18n.t(`roles.${value}`)}</div>;
                       }}
                     />
