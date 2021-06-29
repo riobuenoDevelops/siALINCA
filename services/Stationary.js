@@ -38,7 +38,7 @@ class StationaryService {
 
 		await ItemService.deleteItem({ id: stationary.itemId });
 
-		return await this.updateStationary({ id, stationary: { deleted: true } });
+		return await this.updateStationary({ id, stationary: { isDeleted: true } });
 	}
 }
 
