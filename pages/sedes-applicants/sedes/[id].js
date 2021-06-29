@@ -1,63 +1,61 @@
 import { useEffect } from "react";
 import { parseCookies } from "../../../lib/parseCookies";
-import SedeService from "../../../services/Sede";
 import { useRouter } from "next/router";
+import { FlexboxGrid } from "rsuite";
 import Crc from "country-state-city";
-import { FlexboxGrid, Icon, IconButton, Tooltip, Whisper } from "rsuite";
 
 import "../../../styles/custom-theme.less";
+import {useNotesBySede, useSede} from "../../../hooks";
+import LoadingScreen from "../../../components/layouts/LoadingScreen";
+import BackButton from "../../../components/common/BackButton";
+import BasicActionsButtonGroup from "../../../components/customComponents/BasicActionsButtonGroup";
+import NotesTable from "../../../components/tables/NotesTable";
 
-const SedeDetailPage = ({sede, isError, user, handleUser, handleLogged}) => {
+export default function SedeDetailPage({isError, user, handleUser, handleLogged}) {
   const router = useRouter();
+  const { id } = router.query;
+  const { sede, isLoading: sedeLoading } = useSede(user.token, id);
+  const { sedeNotes, isLoading: notesLoading } = useNotesBySede(id, user.token);
   
   useEffect(() => {
     if (isError) {
-      router.push("/500");
+      handleLogged(false);
+    } else {
+      handleLogged(true);
+      handleUser(user);
     }
-    handleLogged(true);
-    handleUser(user);
-  })
-  
-  const onBack = () => {
-    router.push("/sedes-applicants");
-  }
+  }, []);
+
+  if(sedeLoading || notesLoading) return <LoadingScreen />
   
   return (
     <FlexboxGrid>
       <FlexboxGrid.Item colspan={1} style={{padding: "0.3rem 0"}}>
-        <Whisper placement="bottom" trigger="hover" speaker={<Tooltip>A Sedes y Applicantes</Tooltip>}>
-          <IconButton appearance="primary" onClick={onBack} className="bg-color-secundary" circle size="md"
-                      icon={<Icon icon="angle-left" size="lg" className="text-white"/>}/>
-        </Whisper>
+        <BackButton route="/sedes-applicants" placeholder="A Sedes y Aplicantes" />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={20}>
-        <h2 className="text-bolder">{sede.name}</h2>
+        <h2 className="text-bolder">{`Sede ${sede?.name}`}</h2>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={3} style={{display: "flex", justifyContent: "flex-end"}}>
-        <IconButton appearence="primary" style={{marginRight: "0.5rem"}} className="bg-default"
-                    icon={<Icon icon="edit"/>} circle/>
-        <IconButton appearence="primary" style={{marginRight: "0.5rem"}} className="bg-default"
-                    icon={<Icon icon={sede.disabled ? "circle" : "circle-o"}/>} circle/>
-        <IconButton appearence="primary" className="bg-default" icon={<Icon icon="trash"/>} circle/>
+        <BasicActionsButtonGroup
+          token={user.token}
+          disabled={sede?.disabled}
+          onDelete={null}
+          onEdit={null}
+        />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={24} style={{marginTop: "2rem"}}>
         <FlexboxGrid>
           <FlexboxGrid.Item colspan={12} className="info-box shadow">
             <h4 className="text-color-primary text-bolder">Información General</h4>
-            <FlexboxGrid className="info">
+            <FlexboxGrid className="info" justify="space-between">
               <FlexboxGrid.Item>
                 <span>Código</span>
-                <p>{sede._id}</p>
+                <p>{sede?._id}</p>
               </FlexboxGrid.Item>
-              <FlexboxGrid.Item colspan={1}/>
-              <FlexboxGrid.Item>
-                <span>Número de Departamentos</span>
-                <p>{sede.departments.length}</p>
-              </FlexboxGrid.Item>
-              <FlexboxGrid.Item colspan={1}/>
               <FlexboxGrid.Item>
                 <span>Estado</span>
-                <p>{sede.disabled ? "Inactivo" : "Activo"}</p>
+                <p>{sede?.disabled ? "Inactivo" : "Activo"}</p>
               </FlexboxGrid.Item>
             </FlexboxGrid>
           </FlexboxGrid.Item>
@@ -67,63 +65,60 @@ const SedeDetailPage = ({sede, isError, user, handleUser, handleLogged}) => {
             <FlexboxGrid className="info">
               <FlexboxGrid.Item>
                 <span>Dirección</span>
-                <p>{sede.addressLine}</p>
+                <p>{sede?.addressLine}</p>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={1}/>
               <FlexboxGrid.Item>
                 <span>Ciudad</span>
-                <p>{sede.addressCity}</p>
+                <p>{sede?.addressCity}</p>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={1}/>
               <FlexboxGrid.Item>
                 <span>Código Postal</span>
-                <p>{sede.addressZipcode}</p>
+                <p>{sede?.addressZipcode}</p>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={1}/>
               <FlexboxGrid.Item>
                 <span>Estado</span>
-                <p>{Crc.getStatesOfCountry(sede.addressCountry).filter((item) => item.isoCode === sede.addressState)[0].name}</p>
+                <p>{Crc.getStatesOfCountry(sede?.addressCountry).filter((item) => item.isoCode === sede.addressState)[0].name}</p>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={1}/>
               <FlexboxGrid.Item>
                 <span>País</span>
-                <p>{Crc.getCountryByCode(sede.addressCountry).name}</p>
+                <p>{Crc.getCountryByCode(sede?.addressCountry).name}</p>
               </FlexboxGrid.Item>
             </FlexboxGrid>
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </FlexboxGrid.Item>
+      <FlexboxGrid.Item colspan={24}>
+        <h4 style={{ margin: "1rem 0" }} className="text-bolder">Notas de Entrega</h4>
+        <NotesTable
+          token={user.token}
+          notes={sedeNotes}
+          searchInputValue=""
+          readOnly
+          withoutResponsable
+        />
+      </FlexboxGrid.Item>
     </FlexboxGrid>
   )
 }
 
-export async function getServerSideProps({req, params}) {
-  let user, sede;
+export async function getServerSideProps({req}) {
+  let user;
   const userCookie = parseCookies(req);
   if (userCookie && userCookie.sialincaUser) {
-    
-    try {
+
       user = JSON.parse(userCookie.sialincaUser);
-      
-      sede = await SedeService.getSede({id: params.id});
       
       return {
         props: {
-          sede: sede ? {...sede, _id: sede._id.toString()} : {},
           user,
           isError: false,
         }
       }
-    } catch (err) {
-      return {
-        props: {
-          sede: sede ? {...sede, _id: sede._id.toString()} : {},
-          user,
-          isError: true,
-        }
-      }
     }
-  }
   
   return {
     redirect: {
@@ -132,6 +127,4 @@ export async function getServerSideProps({req, params}) {
     },
     props: {},
   }
-}
-
-export default SedeDetailPage;
+};

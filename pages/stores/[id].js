@@ -10,13 +10,8 @@ import {
   Tooltip,
   Whisper,
   Notification,
-  Nav
 } from "rsuite";
 import {useForm, Controller} from "react-hook-form";
-import { parseCookies } from "../../lib/parseCookies";
-import StoreService from "../../services/Store";
-import ItemsService from "../../services/Item"
-import AxiosService from "../../services/Axios"
 import routes from "../../config/routes";
 import Crc from "country-state-city";
 
@@ -24,30 +19,31 @@ import Crc from "country-state-city";
 import StoreItemsTable from "../../components/tables/StoreItemsTable";
 import StoreFormModal from "../../components/modals/StoreFormModal";
 import BasicActionsButtonGroup from "../../components/customComponents/BasicActionsButtonGroup";
+import BackButton from "../../components/common/BackButton";
+import LoadingScreen from "../../components/layouts/LoadingScreen";
+
+import { parseCookies } from "../../lib/parseCookies";
+import AxiosService from "../../services/Axios"
+
+import { useStore, useStoreItems } from "../../hooks";
 
 import "../../styles/custom-theme.less";
 import "../../styles/forms.less";
 
-const StoreDetailPage = ({handleUser, handleLogged, user, store, items, isError}) => {
+const StoreDetailPage = ({handleUser, handleLogged, user}) => {
   const router = useRouter();
   const storeItemForm = useForm();
   const [isAdding, handleAdding] = useState(false);
   const [isEditingItem, handleEditingItem] = useState(false);
-  const [isEditingStore, handleEditingStore] = useState(false);
   const [isModalOpen, handleIsModalOpen] = useState(false);
   const [isLoading, handleLoading] = useState(false);
+  const { loading: itemLoading, items, isError: itemsError } = useStoreItems(router.query.id, user.token);
+  const { store, isLoading: storeLoading, isError: storeError } = useStore(router.query.id, user.token);
   
   useEffect(() => {
-    if(isError){
-      router.push("/500");
-    }
     handleUser(user);
     handleLogged(true);
   }, [])
-  
-  const onBack = () => {
-    router.push("/stores");
-  }
   
   const onAdd = () => {
     handleAdding(true);
@@ -105,19 +101,47 @@ const StoreDetailPage = ({handleUser, handleLogged, user, store, items, isError}
     }
     handleEditingItem(false);
   }
-  
+
+  const onEnableDisable = async () => {
+    try {
+      await AxiosService.instance.put(
+        `${routes.getStores}/${store._id}`,
+        { disabled: !store.disabled },
+        {
+          headers: {
+            Authorization: user.token
+          }
+        });
+      router.push(router.asPath);
+    }catch (err) {
+      Notification.error({
+        title: "Error",
+        description: err.message,
+        duration: 9000,
+        placement: "bottomStart"
+      })
+    }
+  }
+
+  if (itemsError || storeError) return <span className="text-bolder">There's an error</span>
+  if (itemLoading && storeLoading) return <LoadingScreen />;
+
   return <>
     <FlexboxGrid>
       <FlexboxGrid.Item colspan={1}>
-        <Whisper placement="bottom" trigger="hover" speaker={<Tooltip>A Almacenes</Tooltip>}>
-          <IconButton style={{margin: "0.3rem 0"}} size="sm" icon={<Icon className="text-white" icon="angle-left" />} appearance="primary" className="bg-color-secundary" circle onClick={onBack} />
-        </Whisper>
+        <BackButton route="stores" placeholder="Almacenes" />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={20}>
         <h2 className="text-bolder">{store.name}</h2>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={3} className="responsive-box">
-        <BasicActionsButtonGroup disabled={store.disabled} onEdit={onEdit} onDelete={null} onEnableDisable={null} />
+        <BasicActionsButtonGroup
+          disabled={store.disabled}
+          onEdit={onEdit}
+          onDelete={null}
+          token={user.token}
+          route={`/stores/${store._id}`}
+        />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={24} style={{marginTop: "2rem"}}>
         <div className="info-box shadow">
@@ -127,30 +151,25 @@ const StoreDetailPage = ({handleUser, handleLogged, user, store, items, isError}
               <span>Dirección</span>
               <p>{store.addressLine}</p>
             </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={1} />
             <FlexboxGrid.Item>
               <span>Ciudad</span>
               <p>{store.addressCity}</p>
             </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={1} />
             <FlexboxGrid.Item>
               <span>Estado</span>
-              <p>{Crc.getStatesOfCountry(store.addressCountry).filter(state => state.isoCode === store.addressState)[0].name}</p>
+              <p>{Crc.getStatesOfCountry(store.addressCountry).filter(state => state.isoCode === store.addressState)[0]?.name}</p>
             </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={1} />
             <FlexboxGrid.Item>
               <span>Pais</span>
-              <p>{Crc.getCountryByCode(store.addressCountry).name}</p>
+              <p>{Crc.getCountryByCode(store.addressCountry)?.name}</p>
             </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={1} />
             <FlexboxGrid.Item>
               <span>Código Postal</span>
               <p>{store.addressZipcode}</p>
             </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={1} />
             <FlexboxGrid.Item>
               <span>Estado</span>
-              <p>{store.disabled ? "Inactivo" : "Activo"}</p>
+              <p style={{ color: store.disabled ? "red" : "green" }}>{store.disabled ? "Inactivo" : "Activo"}</p>
             </FlexboxGrid.Item>
           </FlexboxGrid>
         </div>
@@ -186,7 +205,7 @@ const StoreDetailPage = ({handleUser, handleLogged, user, store, items, isError}
             </FlexboxGrid>
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={24}>
-            <StoreItemsTable items={store.items} />
+            <StoreItemsTable items={items} />
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </FlexboxGrid.Item>
@@ -198,45 +217,19 @@ const StoreDetailPage = ({handleUser, handleLogged, user, store, items, isError}
   </>
 }
 
-export async function getServerSideProps({req, params}){
-  let user, store = {}, storeItems = [], items = [];
+export async function getServerSideProps({ req }){
+  let user;
   const cookie = parseCookies(req);
   
   if(cookie && cookie.sialincaUser){
     user = JSON.parse(cookie.sialincaUser);
-    
-    try {
-      store = await StoreService.getStore({id: params.id});
-      storeItems = await StoreService.getStoreItems({ids: store.items.map(item => item.itemId)});
-      
-      store = {...store, _id: store._id.toString(), items: storeItems.map((item) => ({...item, _id: item._id.toString()})) };
-  
-      items = await ItemsService.getItems({disabled: false});
-      items = items.map(item => ({...item, _id: item._id.toString()})).filter((item) => {
-        if(!store.items.some((storeItem) => storeItem._id === item._id)){
-          return item;
-        }
-      });
       
       return {
         props: {
           user,
           isError: false,
-          store,
-          items
         }
       }
-      
-    }catch (err) {
-      return {
-        props: {
-          user,
-          isError: true,
-          store,
-          items
-        }
-      }
-    }
   }
   
   return {
