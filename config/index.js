@@ -9,6 +9,7 @@ const config = {
   dbUser: process.env.DB_USER,
   dbPassword: process.env.DB_PASSWORD,
   authJwtSecret: process.env.AUTH_JWT_SECRET,
+  passwordSecret: process.env.NEXT_PUBLIC_PASSWORD_SECRET,
   apiUrl: `${this.url}/${process.env.API_URL}`,
 };
 
