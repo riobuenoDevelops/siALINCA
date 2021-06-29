@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Grid, Row, Col, FlexboxGrid, Message, Button } from "rsuite";
-import AxiosService from "../services/Axios";
+import { Grid, Row, Col, Message} from "rsuite";
 import cookieCutter from "cookie-cutter";
-import routes from "../config/routes";
-import logo from "../public/img/logo.png";
-import inventoryImage from "../public/img/inventoryLogo.jpg";
+import PubNub from "pubnub";
 
 import LoginForm from "../components/forms/LoginForm";
 
-const LoginPage = ({ handleLogged }) => {
+import inventoryImage from "../public/img/inventoryLogo.jpg";
+import logo from "../public/img/logo.png";
+
+import routes from "../config/routes";
+
+import AxiosService from "../services/Axios";
+
+const LoginPage = ({ handleLogged, pubNub }) => {
   const history = useRouter();
   const [errorMessage, handleErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,7 +24,7 @@ const LoginPage = ({ handleLogged }) => {
       handleLogged(true);
       history.push("/items");
     }
-  });
+  }, []);
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -37,6 +41,12 @@ const LoginPage = ({ handleLogged }) => {
       cookieCutter.set("sialincaUser", JSON.stringify(userData.data), {
         expires: new Date(auxDate.getTime() + nextDay * 24 * 60 * 60 * 1000),
       });
+
+      pubNub[1](new PubNub({
+        publishLey: process.env.NEXT_PUBLIC_PUBLISH_KEY,
+        subscribeKey: process.env.NEXT_PUBLIC_SUBSCRIBE_KEY,
+        uuid: userData.data.email
+      }))
 
       setLoading(false);
       history.push("/items");

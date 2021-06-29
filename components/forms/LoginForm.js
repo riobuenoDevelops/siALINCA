@@ -1,17 +1,16 @@
+import { useState } from "react";
 import {
   Button,
-  Checkbox,
   FlexboxGrid,
   Icon,
   Input,
   InputGroup,
 } from "rsuite";
-import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
 import { useForm } from "react-hook-form";
 
-import "../../styles/forms.less";
-import { useState } from "react";
 import FormErrorMessage from "../common/FormErrorMessage";
+
+import "../../styles/forms.less";
 
 const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
   const { handleSubmit, register, errors } = useForm();
@@ -29,10 +28,10 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
         className="text-center full-height"
         style={{ padding: "5em 7em 5em 7em" }}
       >
-        <FlexboxGridItem colspan={24}>
+        <FlexboxGrid.Item colspan={24}>
           <h3 className="text-color-primary text-bolder">Iniciar Sesión</h3>
-        </FlexboxGridItem>
-        <FlexboxGridItem colspan={24}>
+        </FlexboxGrid.Item>
+        <FlexboxGrid.Item colspan={24}>
           <Input
             type="input"
             size="lg"
@@ -45,8 +44,8 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
           />
           {errors.email?.type === "required" && <FormErrorMessage message="El campo es requerido" />}
           {errors.email?.type === "pattern" && <FormErrorMessage message="El correo no es valido" />}
-        </FlexboxGridItem>
-        <FlexboxGridItem colspan={24}>
+        </FlexboxGrid.Item>
+        <FlexboxGrid.Item colspan={24}>
           <InputGroup inside>
             <Input
               type={!showContent ? "password" : "text"}
@@ -69,8 +68,8 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
               />
             </InputGroup.Button>
           </InputGroup>
-        </FlexboxGridItem>
-        <FlexboxGridItem
+        </FlexboxGrid.Item>
+        <FlexboxGrid.Item
           className="text-left"
           colspan={24}
           style={{
@@ -79,13 +78,8 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
           }}
         >
           <div style={{ color: "red" }}>El campo es requerido</div>
-        </FlexboxGridItem>
-        <FlexboxGridItem colspan={7} style={{ textAlign: "start" }}>
-          <Checkbox name="rememberme" title="Recuérdame" inputRef={register()}>
-            Recuérdame
-          </Checkbox>
-        </FlexboxGridItem>
-        <FlexboxGridItem colspan={17}>
+        </FlexboxGrid.Item>
+        <FlexboxGrid.Item colspan={17}>
           <Button
             style={{ paddingRight: 0, textAlign: "end" }}
             block
@@ -95,8 +89,8 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
           >
             ¿Olvidaste tu Contraseña?
           </Button>
-        </FlexboxGridItem>
-        <FlexboxGridItem colspan={24}>
+        </FlexboxGrid.Item>
+        <FlexboxGrid.Item colspan={24}>
           <Button
             onClick={handleSubmit(onSubmit)}
             block
@@ -107,8 +101,8 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
           >
             Iniciar Sesión
           </Button>
-        </FlexboxGridItem>
-        <FlexboxGridItem colspan={24}>
+        </FlexboxGrid.Item>
+        <FlexboxGrid.Item colspan={24}>
           <Button
             appearance="link"
             className="text-color-dark-gray"
@@ -116,7 +110,7 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
           >
             Entrar como invitado
           </Button>
-        </FlexboxGridItem>
+        </FlexboxGrid.Item>
       </FlexboxGrid>
     </form>
   );
