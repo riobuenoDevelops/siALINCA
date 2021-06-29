@@ -10,12 +10,12 @@ import CancelConfirmationModal from "../../components/modals/CancelConfirmationM
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
 import {parseCookies} from "../../lib/parseCookies";
-import {useApplicants, useSedes, useStores} from "../../swr";
+import {useApplicants, useSedes, useStores} from "../../hooks";
 
 import "../../styles/forms.less";
 
 export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) {
-  const router = useRouter();
+  const history = useRouter();
   const { handleSubmit, errors, control, watch, setError } = useForm();
   const { isLoading: storeLoading, stores } = useStores(user.token);
   const { isLoading: applicantLoading, applicants } = useApplicants(user.token);
@@ -42,7 +42,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
   };
 
   const onConfirmCancel = () => {
-    router.push("/notes");
+    history.push("/notes");
   };
 
   const onSubmit = async (data) => {
@@ -86,12 +86,18 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
       selectedStoreItems[0].map(async (item) => {
         const store = stores.filter(store => store._id === item.storeId)[0];
         const savedItemInStore = store.items.filter(savedItem => savedItem.itemId === item.itemId)[0];
+
         await AxiosService.instance.put(
           `${routes.getStores}/${item.storeId}/items` ,
-          {
-            itemId: item.itemId,
-            quantity: savedItemInStore.quantity - item.quantity
-          },
+          store.items.map(savedItem => {
+            if(savedItem.itemId === item.itemId) {
+              return {
+                quantity: savedItemInStore.quantity - item.quantity,
+                itemId: item.itemId
+              }
+            }
+            return savedItem;
+          }),
           {
             headers: {
               Authorization: user.token,
@@ -122,7 +128,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
     } catch (err){
       Notification.error({
         title: "Error",
-        description: err?.response?.data,
+        description: err?.message,
         placement: "bottomStart",
         duration: 9000,
       });
