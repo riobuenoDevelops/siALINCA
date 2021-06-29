@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { Button, FlexboxGrid, Input, Modal, SelectPicker, Table } from "rsuite";
+import { Button, FlexboxGrid, Input, Modal, SelectPicker } from "rsuite";
 import Crc from "country-state-city";
 
 import "../../styles/forms.less";
-import NewSedeDepartmentTable from "../tables/NewSedeDepartmentTable";
 
 const SedeFormModal = ({
   isOpen,
@@ -14,11 +12,8 @@ const SedeFormModal = ({
   sedeLoading,
   isUpdateSede,
   selectedSede,
-  sedeDepartments,
-  handleSedeDepartments,
 }) => {
-  const { handleSubmit, errors, register, control } = useForm();
-  const form2 = useForm();
+  const { handleSubmit, control } = useForm();
   const [confirmationModalOpen, handleCOnfirmationModal] = useState(false);
   const [selectedCountry, setCountry] = useState(
     selectedSede?.addressCountry || ""
@@ -36,16 +31,6 @@ const SedeFormModal = ({
   const onHandleCloseConfirmationModal = () => {
     handleCOnfirmationModal(false);
     handleIsClose();
-  };
-
-  const onAddDepartment = (data) => {
-    handleSedeDepartments([
-      ...sedeDepartments,
-      {
-        department: data.department,
-        index: sedeDepartments.length,
-      },
-    ]);
   };
 
   return (
@@ -113,7 +98,7 @@ const SedeFormModal = ({
                         data={Crc.getAllCountries()}
                         labelKey="name"
                         valueKey="isoCode"
-                        onSelect={(value, item) => {
+                        onSelect={(value) => {
                           setCountry(value);
                         }}
                       />
@@ -137,7 +122,7 @@ const SedeFormModal = ({
                         data={Crc.getStatesOfCountry(selectedCountry)}
                         labelKey="name"
                         valueKey="isoCode"
-                        onSelect={(value, item) => {
+                        onSelect={(value) => {
                           setState(value);
                         }}
                       />
@@ -187,36 +172,6 @@ const SedeFormModal = ({
                     render={(field) => (
                       <Input {...field} size="lg" placeholder="8050" />
                     )}
-                  />
-                </FlexboxGrid.Item>
-              </FlexboxGrid>
-            </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
-              <h5 className="text-black text-bolder">Departamentos</h5>
-              <FlexboxGrid>
-                <FlexboxGrid.Item colspan={17} style={{ margin: "1rem 0" }}>
-                  <Input
-                    size="lg"
-                    name="department"
-                    placeholder="RRHH"
-                    inputRef={form2.register({ required: true })}
-                  />
-                </FlexboxGrid.Item>
-                <FlexboxGrid.Item colspan={1} />
-                <FlexboxGrid.Item colspan={6} style={{ margin: "1rem 0" }}>
-                  <Button
-                    appearance="primary"
-                    block
-                    className="button shadow bg-color-dark-secundary text-white text-medium"
-                    onClick={form2.handleSubmit(onAddDepartment)}
-                  >
-                    Agregar
-                  </Button>
-                </FlexboxGrid.Item>
-                <FlexboxGrid.Item colspan={24}>
-                  <NewSedeDepartmentTable
-                    handleData={handleSedeDepartments}
-                    data={sedeDepartments}
                   />
                 </FlexboxGrid.Item>
               </FlexboxGrid>
