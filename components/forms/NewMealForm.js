@@ -7,7 +7,7 @@ import StoreItemForm from "./common/StoreItemForm";
 import FormDropdownFooter from "./common/FormDropdownFooter";
 import FormErrorMessage from "../common/FormErrorMessage";
 
-import {useItem} from "../../swr";
+import {useItem} from "../../hooks";
 
 import currencyData from "../../public/staticData/Common-Currency.json";
 

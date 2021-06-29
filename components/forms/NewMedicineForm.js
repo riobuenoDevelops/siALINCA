@@ -11,7 +11,7 @@ import { Controller, useForm } from "react-hook-form";
 import StoreItemForm from "./common/StoreItemForm";
 import FormDropdownFooter from "./common/FormDropdownFooter";
 import currencyData from "../../public/staticData/Common-Currency.json";
-import {useItem} from "../../swr";
+import {useItem} from "../../hooks";
 import {useRouter} from "next/router";
 import FormErrorMessage from "../common/FormErrorMessage";
 import LoadingScreen from "../layouts/LoadingScreen";

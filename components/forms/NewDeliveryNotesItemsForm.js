@@ -1,7 +1,7 @@
 import {useState} from "react";
 import {Controller, useForm} from "react-hook-form";
 import {Button, FlexboxGrid, Input, InputGroup, SelectPicker} from "rsuite";
-import {useStoreItems} from "../../swr";
+import {useStoreItems} from "../../hooks";
 import DeliveryNoteItemsTable from "../tables/DeliveryNoteItemsTable";
 import FormErrorMessage from "../common/FormErrorMessage";
 

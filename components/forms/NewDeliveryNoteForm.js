@@ -67,7 +67,7 @@ export default function NewDeliveryNoteForm({
           <Controller
             name="returnStamp"
             control={control}
-            rules={{ required: true, validate: (value) => (value.getTime() >= watch("createStamp").getTime())}}
+            rules={{ required: type === "CR", validate: type === "CR" ? (value) => (value.getTime() >= watch("createStamp").getTime()) : () => {}}}
             render={(field) => (
               <DatePicker
                 {...field}
