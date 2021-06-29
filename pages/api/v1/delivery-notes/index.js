@@ -7,38 +7,21 @@ import DeliveryNoteService from "../../../../services/DeliveryNote";
 
 async function postMethodHandler(req, res) {
   try {
+    const createdNote = await DeliveryNoteService.createDeliveryNote({ deliveryNote: req.body });
+
     res
       .status(200)
-      .json(
-        await DeliveryNoteService.createDeliveryNote({ deliveryNote: req.body })
-      );
+      .json(createdNote);
   } catch (err) {
     errorHandler(boom.internal(err), req, res);
   }
 }
 
 async function getMethodHandler(req, res) {
-  const {
-    query: {
-      createStamp,
-      returnStamp,
-      noteType,
-      applicantType,
-      applicantId,
-      disabled,
-    },
-  } = req;
   try {
-    res.status(200).json(
-      await DeliveryNoteService.getDeliveryNotes({
-        createStamp,
-        returnStamp,
-        noteType,
-        applicantType,
-        applicantId,
-        disabled,
-      })
-    );
+
+    const notes = await DeliveryNoteService.getDeliveryNotes({ ...req.query })
+    res.status(200).json(notes);
   } catch (err) {
     errorHandler(boom.internal(err), req, res);
   }
