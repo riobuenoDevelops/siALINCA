@@ -1,16 +1,14 @@
 import React, { useState } from "react";
-import {useTranslation} from "react-i18next";
+import { useTranslation } from "react-i18next";
+import { useRouter } from "next/router"
 import {
-  Dropdown,
-  Icon,
-  IconButton,
-  Popover,
-  Table,
-  Whisper,
+  Table
 } from "rsuite";
 
-import "../../styles/custom-theme.less";
 import StatusCell from "./customCells/StatusCell";
+import ItemActionCell from "./customCells/ItemActionCell";
+
+import "../../styles/custom-theme.less";
 
 const TypeCell = ({ rowData, rowKey, dataKey, ...props }) => {
   const { t } = useTranslation();
@@ -22,66 +20,9 @@ const TypeCell = ({ rowData, rowKey, dataKey, ...props }) => {
   )
 }
 
-const ActionCell = ({ tableRef, rowData, rowKey, ...props }) => {
-  const Menu = ({ onSelect }) => (
-    <Dropdown.Menu onSelect={onSelect}>
-      <Dropdown.Item eventKey={3}>Editar</Dropdown.Item>
-      <Dropdown.Menu title="Realizar Orden" pullLeft>
-        <Dropdown.Item eventKey={4}>Con Retorno</Dropdown.Item>
-        <Dropdown.Item eventKey={4}>Sin Retorno</Dropdown.Item>
-      </Dropdown.Menu>
-      <Dropdown.Item eventKey={5}>Dehabilitar</Dropdown.Item>
-      <Dropdown.Item divider />
-      <Dropdown.Item eventKey={7}>Eliminar</Dropdown.Item>
-    </Dropdown.Menu>
-  );
-
-  const MenuPopover = ({ onSelect, ...rest }) => (
-    <Popover {...rest} full>
-      <Menu onSelect={onSelect} />
-    </Popover>
-  );
-
-  const CustomWhisper = ({ tableRef, children }) => {
-    let trigger = React.createRef();
-    const handleSelectMenu = (eventKey, event) => {
-      console.log(eventKey);
-      trigger.hide();
-    };
-
-    return (
-      <Whisper
-        placement="autoVerticalEnd"
-        trigger="click"
-        triggerRef={(ref) => {
-          trigger = ref;
-        }}
-        container={() => {
-          return tableRef;
-        }}
-        speaker={<MenuPopover onSelect={handleSelectMenu} />}
-      >
-        {children}
-      </Whisper>
-    );
-  };
-
-  return (
-    <Table.Cell {...props}>
-      <CustomWhisper tableRef={tableRef}>
-        <IconButton
-          circle
-          appearance="default"
-          className="bg-color-white"
-          icon={<Icon icon="more" />}
-        />
-      </CustomWhisper>
-    </Table.Cell>
-  );
-};
-
-const ItemsTable = ({ items, handleItems, searchInputValue }) => {
+export default function ItemsTable({ items, searchInputValue }) {
   let tableBody;
+  const router = useRouter();
   const { Column, Cell, HeaderCell, Pagination } = Table;
   const [page, handlePage] = useState(1);
   const [displayLength, handleDisplayLength] = useState(10);
@@ -119,10 +60,17 @@ const ItemsTable = ({ items, handleItems, searchInputValue }) => {
         autoHeight
         headerHeight={50}
         rowHeight={60}
-        onRowClick={(row) => console.log(row)}
         className="header-table shadow"
         bodyRef={(ref) => {
           tableBody = ref;
+        }}
+        onRowClick={(row, event) => {
+          if (
+            event.target.localName !== "a" &&
+            event.target.localName !== "i"
+          ) {
+            router.push(router.asPath + `/${row.itemId}`);
+          }
         }}
       >
         <Column
@@ -172,7 +120,7 @@ const ItemsTable = ({ items, handleItems, searchInputValue }) => {
           style={{ paddingRight: "1.5em" }}
         >
           <HeaderCell>{""}</HeaderCell>
-          <ActionCell tableRef={tableBody} />
+          <ItemActionCell tableRef={tableBody} />
         </Column>
       </Table>
       <Pagination
@@ -200,4 +148,3 @@ const ItemsTable = ({ items, handleItems, searchInputValue }) => {
     </>
   );
 };
-export default ItemsTable;
