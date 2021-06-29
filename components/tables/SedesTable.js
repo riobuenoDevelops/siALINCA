@@ -1,19 +1,14 @@
 import React, { useState } from "react";
 import {
-  Divider,
-  Dropdown,
-  Icon,
-  IconButton,
-  Popover,
-  Table,
-  Whisper,
+  Table
 } from "rsuite";
+import { useRouter } from "next/router";
+import Crc from "country-state-city";
 
-import "../../styles/custom-theme.less";
 import StatusCell from "./customCells/StatusCell";
 import SedeActionCell from "./customCells/SedeActionCell";
-import Crc from "country-state-city";
-import { useRouter } from "next/router";
+
+import "../../styles/custom-theme.less";
 
 const NameCell = ({ rowData, dataKey, ...props }) => {
   return (
@@ -29,22 +24,12 @@ const NameCell = ({ rowData, dataKey, ...props }) => {
   );
 };
 
-const DepartmentCell = ({ rowData, dataKey, ...props }) => {
-  return (
-    <Table.Cell {...props}>
-      <span>{rowData.departments.length}</span>
-    </Table.Cell>
-  );
-};
-
 const SedesTable = ({
   items,
-  handleItems,
   searchInputValue,
   handleSelectedSede,
   handleUpdateSede,
   handleSedeModalOpen,
-  handleSedeDepartments,
 }) => {
   let tableBody;
   const router = useRouter();
@@ -117,12 +102,6 @@ const SedesTable = ({
           </HeaderCell>
           <NameCell />
         </Column>
-        <Column verticalAlign="middle" align="center" flexGrow={2}>
-          <HeaderCell>
-            <h6 className="text-black text-bold"># de Departamentos</h6>
-          </HeaderCell>
-          <DepartmentCell />
-        </Column>
         <Column verticalAlign="middle" flexGrow={1}>
           <HeaderCell>
             <h6 className="text-black text-bold">Estado</h6>
@@ -140,7 +119,6 @@ const SedesTable = ({
             handleSelectedSede={handleSelectedSede}
             handleUpdateSede={handleUpdateSede}
             handleModalOpen={handleSedeModalOpen}
-            handleSedeDepartments={handleSedeDepartments}
           />
         </Column>
       </Table>

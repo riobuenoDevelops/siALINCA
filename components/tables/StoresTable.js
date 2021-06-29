@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import {
-  Divider,
-  Dropdown,
-  Icon,
-  IconButton,
-  Popover,
-  Table,
-  Whisper,
+  Table
 } from "rsuite";
 import Crc from "country-state-city";
 
