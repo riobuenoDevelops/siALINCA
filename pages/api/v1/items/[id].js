@@ -20,11 +20,11 @@ async function getMethodHandler(req, res) {
 
 async function updateMethodHandler(req, res) {
   const {
-    query: { id },
+    query: { id, email },
   } = req;
 
   try {
-    const updatedItemId = await ItemService.updateItem({ id, item: req.body });
+    const updatedItemId = await ItemService.updateItem({ id, item: req.body, email });
     res.status(200).json(updatedItemId);
   } catch (err) {
     errorHandler(boom.internal(err), req, res);
