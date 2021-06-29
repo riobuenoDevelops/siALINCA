@@ -1,31 +1,32 @@
 import { useState, useEffect } from "react";
-import { parseCookies } from "../../lib/parseCookies";
-import { FlexboxGrid, Notification } from "rsuite";
-import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
-import SearchInput from "../../components/Search/SearchInput";
 import { useRouter } from "next/router";
 import { useTranslation } from "react-i18next";
+import { FlexboxGrid, Notification } from "rsuite";
+import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
+
+import SearchInput from "../../components/Search/SearchInput";
 import StoresTable from "../../components/tables/StoresTable";
-import AxiosService from "../../services/Axios";
-import StoreService from "../../services/Store";
-import ItemsService from "../../services/Item";
-import routes from "../../config/routes";
 import StoreFormModal from "../../components/modals/StoreFormModal";
 import StoreItemsFormModal from "../../components/modals/StoreItemsFormModal";
 
+import { parseCookies } from "../../lib/parseCookies";
+import AxiosService from "../../services/Axios";
+import routes from "../../config/routes";
+import {useItems, useStores} from "../../hooks";
+import LoadingScreen from "../../components/layouts/LoadingScreen";
+
 const StorePage = ({
-  isLogged,
   handleLogged,
   handleUser,
   user,
-  stores,
-  items,
   storeModalIsOpen,
   handleStoreModalOpen,
   isError,
 }) => {
   const history = useRouter();
   const { i18n } = useTranslation();
+  const { stores, isLoading: storesLoading } = useStores(user.token);
+  const { items, isLoading: itemsLoading } = useItems(user.token);
   const [inputValue, handleInputValue] = useState("");
   const [storeLoading, handleStoreLoading] = useState(false);
   const [isUpdateStore, handleUpdateStore] = useState(false);
@@ -33,9 +34,8 @@ const StorePage = ({
   const [selectedStore, handleSelectedStore] = useState({});
 
   useEffect(() => {
-    if (isError && !user) {
+    if (isError) {
       handleLogged(false);
-      history.push("/login");
     } else {
       handleLogged(true);
       handleUser(user);
@@ -93,6 +93,8 @@ const StorePage = ({
   const onHandleInputValue = (value) => {
     handleInputValue(value);
   };
+
+  if(storesLoading || itemsLoading) return <LoadingScreen />;
 
   return (
     <>
@@ -164,39 +166,17 @@ const StorePage = ({
 };
 
 export async function getServerSideProps({ req }) {
-  let user = null,
-    stores,
-    items;
+  let user = null;
   const cookies = parseCookies(req);
   if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
+    user = JSON.parse(cookies.sialincaUser);
 
-      stores = await StoreService.getStores({});
-
-      stores = stores.map((store) => ({ ...store, _id: store._id.toString() }));
-
-      items = await ItemsService.getItems({ disabled: false });
-      items = items.map((item) => ({ ...item, _id: item._id.toString() }));
-
-      return {
-        props: {
-          user,
-          stores: stores || [],
-          items: items || [],
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          stores: stores || [],
-          items: items || [],
-          isError: true,
-        },
-      };
-    }
+    return {
+      props: {
+        user,
+        isError: false,
+      },
+    };
   }
 
   return {

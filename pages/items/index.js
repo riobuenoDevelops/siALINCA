@@ -7,11 +7,11 @@ import SearchInput from "../../components/Search/SearchInput";
 import ItemsTable from "../../components/tables/ItemsTable";
 
 import { parseCookies } from "../../lib/parseCookies";
-import { useItems } from "../../swr";
+import { useItems } from "../../hooks";
 
-export default function ItemsPage({ handleLogged, handleUser, user }) {
+export default function ItemsPage({ handleLogged, handleUser, user}) {
   const { i18n } = useTranslation();
-  const { items, isLoading, isError } = useItems(user.token);
+  const { items, isLoading } = useItems(user.token);
   const [searchInputValue, handleSearchInputValue] = useState("");
 
   useEffect(() => {

@@ -1,39 +1,39 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { parseCookies } from "../../lib/parseCookies";
 import { useTranslation } from "react-i18next";
-import routes from "../../config/routes";
-import AxiosService from "../../services/Axios";
-import UserService from "../../services/User";
-import RoleService from "../../services/Role";
 import { FlexboxGrid, Notification } from "rsuite";
-import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
 
 import SearchInput from "../../components/Search/SearchInput";
 import UserFormModal from "../../components/modals/UserFormModal";
 import UsersTable from "../../components/tables/UsersTable";
 
+import routes from "../../config/routes";
+import { parseCookies } from "../../lib/parseCookies";
+import AxiosService from "../../services/Axios";
+
+import { useUsers, useRoles } from "../../hooks";
+import LoadingScreen from "../../components/layouts/LoadingScreen";
+
 const UsersPage = ({
-                     handleLogged,
-                     handleUser,
-                     user,
-                     userModalIsOpen,
-                     handleUserModalOpen,
-                     users,
-                     roles,
-                   }) => {
+  handleLogged,
+  handleUser,
+  user,
+  userModalIsOpen,
+  handleUserModalOpen,
+}) => {
   const history = useRouter();
-  const {i18n} = useTranslation();
+  const { i18n } = useTranslation();
   const [userLoading, handleUserLoading] = useState(false);
   const [isUpdateUser, handleUpdateUser] = useState(false);
   const [selectedUser, handleSelectedUser] = useState({});
   const [inputValue, handleInputValue] = useState("");
   const [roleName, handleRoleName] = useState("");
+  const { users, isLoading: usersLoading } = useUsers(user.token);
+  const { roles, isLoading: rolesLoading } = useRoles(user.token);
   
   useEffect(() => {
     if (!user) {
       handleLogged(false);
-      history.push("/login");
     } else {
       handleLogged(true);
       handleUser(user);
@@ -89,27 +89,29 @@ const UsersPage = ({
       console.log(err);
     }
   };
-  
+
+  if(usersLoading || rolesLoading) return <LoadingScreen />
+
   return (
     <>
       <FlexboxGrid align="middle">
         <FlexboxGrid.Item colspan={24}>
           <FlexboxGrid align="middle" style={{marginBottom: "2em"}}>
-            <FlexboxGridItem colspan={16}>
+            <FlexboxGrid.Item colspan={16}>
               <h2 className="text-black text-bolder">
                 Usuarios ({i18n.t(`roles.${user?.user?.roleName}`)})
               </h2>
-            </FlexboxGridItem>
-            <FlexboxGridItem colspan={8}>
+            </FlexboxGrid.Item>
+            <FlexboxGrid.Item colspan={8}>
               <SearchInput
                 placehoderLabel="Usuario"
                 value={inputValue}
                 handleValue={onHandleInputValue}
               />
-            </FlexboxGridItem>
+            </FlexboxGrid.Item>
           </FlexboxGrid>
         </FlexboxGrid.Item>
-        <FlexboxGridItem colspan={24}>
+        <FlexboxGrid.Item colspan={24}>
           <UsersTable
             items={users}
             searchInputValue={inputValue}
@@ -117,23 +119,7 @@ const UsersPage = ({
             handleUpdateUser={handleUpdateUser}
             handleUserModalOpen={handleUserModalOpen}
           />
-          {/*<CustomTable
-            items={users.filter((user) => {
-              return !inputValue
-                ? true
-                : user.names.toLowerCase().includes(inputValue.toLowerCase()) ||
-                    user.lastNames
-                      .toLowerCase()
-                      .includes(inputValue.toLowerCase()) ||
-                    user.email.toLowerCase().includes(inputValue.toLowerCase());
-            })}
-            columns={["_id", "names", "lastNames", "email", ""]}
-            colAlign={["start", "start", "start", "start", "center"]}
-            columnType={["string", "string", "string", "string", "action"]}
-            colFlexGrow={[2, 2, 2, 2, 1]}
-            actionMenuOptions={tableDropdownActionItems}
-          />*/}
-        </FlexboxGridItem>
+        </FlexboxGrid.Item>
       </FlexboxGrid>
       <UserFormModal
         onSubmit={onSubmitUpdateUser}
@@ -151,38 +137,17 @@ const UsersPage = ({
 };
 
 export async function getServerSideProps({req, res}) {
-  let user = null,
-    users,
-    roles;
+  let user = null;
   const cookies = parseCookies(req);
   if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
-      
-      users = await UserService.getUsers({});
-      users = users.map(user => ({...user, _id: user._id.toString(), roleId: user.roleId.toString()}));
-      
-      roles = await RoleService.getRoles();
-      roles = roles.map(role => ({...role, _id: role._id.toString()}));
-      
-      return {
-        props: {
-          roles: roles || [],
-          users: users || [],
-          user,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          roles: roles || [],
-          users: users || [],
-          isError: true,
-        },
-      };
-    }
+    user = JSON.parse(cookies.sialincaUser);
+
+    return {
+      props: {
+        user,
+        isError: false,
+      },
+    };
   }
   return {
     redirect: {

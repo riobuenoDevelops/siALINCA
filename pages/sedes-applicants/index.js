@@ -1,31 +1,30 @@
 import { useEffect, useState } from "react";
-import { parseCookies } from "../../lib/parseCookies";
 import { useRouter } from "next/router";
 import { useTranslation } from "react-i18next";
 import { FlexboxGrid, Nav, Notification } from "rsuite";
-import routes from "../../config/routes";
-import AxiosService from "../../services/Axios";
-import SedeServices from "../../services/Sede";
-import ApplicantService from "../../services/Applicant";
 
 import SearchInput from "../../components/Search/SearchInput";
 import SedesTable from "../../components/tables/SedesTable";
 import SedeFormModal from "../../components/modals/SedeFormModal";
 import ApplicantFormModal from "../../components/modals/ApplicantFormModal";
 import ApplicantsTable from "../../components/tables/ApplicantsTable";
+import LoadingScreen from "../../components/layouts/LoadingScreen";
+
+import routes from "../../config/routes";
+import AxiosService from "../../services/Axios";
+import { parseCookies } from "../../lib/parseCookies";
+import { useApplicants, useSedes } from "../../hooks";
 
 const SedesApplicantsPage = ({
-                               handleLogged,
-                               handleUser,
-                               user,
-                               sedes,
-                               applicants,
-                               isError,
-                               handleSedeModalOpen,
-                               handleApplicantModalOpen,
-                               sedeModalIsOpen,
-                               applicantModalIsOpen,
-                             }) => {
+  handleLogged,
+  handleUser,
+  user,
+  isError,
+  handleSedeModalOpen,
+  handleApplicantModalOpen,
+  sedeModalIsOpen,
+  applicantModalIsOpen,
+}) => {
   const history = useRouter();
   const {i18n} = useTranslation();
   const [searchSedeInputValue, handleSearchSedeInputValue] = useState("");
@@ -39,12 +38,12 @@ const SedesApplicantsPage = ({
   const [applicantLoading, handleApplicantLoading] = useState(false);
   const [selectedSede, handleSelectedSede] = useState({});
   const [selectedApplicant, handleSelectedApplicant] = useState({});
-  const [sedeDepartments, handleSedeDepartments] = useState([]);
+  const { sedes, isLoading: sedesLoading } = useSedes(user.token);
+  const { applicants, isLoading: applicantsLoading } = useApplicants(user.token);
   
   useEffect(() => {
-    if (isError && !user) {
+    if (isError) {
       handleLogged(false);
-      history.push("/login");
     } else {
       handleLogged(true);
       handleUser(user);
@@ -64,8 +63,7 @@ const SedesApplicantsPage = ({
       addressState: data.addressState,
       addressCountry: data.addressCountry,
       addressCity: data.addressCity,
-      addressZipcode: data.addressZipcode,
-      departments: sedeDepartments.map((item) => item.department),
+      addressZipcode: data.addressZipcode
     };
     
     try {
@@ -147,7 +145,9 @@ const SedesApplicantsPage = ({
     handleApplicantModalOpen(false);
     handleUpdateApplicant(false);
   };
-  
+
+  if(sedesLoading || applicantsLoading) return <LoadingScreen />
+
   return (
     <>
       <FlexboxGrid>
@@ -159,7 +159,7 @@ const SedesApplicantsPage = ({
         <FlexboxGrid.Item colspan={8}>
           <SearchInput
             placehoderLabel={tabActive === "sedes" ? "sede" : "solicitante"}
-            data={[]}
+            data={tabActive === "sedes" ? sedes : applicants}
             handleValue={
               tabActive === "sedes"
                 ? handleSearchSedeInputValue
@@ -200,10 +200,10 @@ const SedesApplicantsPage = ({
               items={sedes}
               searchInputValue={searchSedeInputValue}
               handleSedeModalOpen={handleSedeModalOpen}
-              handleSedeDepartments={handleSedeDepartments}
             />
           ) : (
-            <ApplicantsTable searchInputValue={searchApplicantInputValue}
+            <ApplicantsTable
+              searchInputValue={searchApplicantInputValue}
               items={applicants}
               handleApplicantModalOpen={handleApplicantModalOpen}
               handleSelectedApplicant={handleSelectedApplicant}
@@ -219,10 +219,15 @@ const SedesApplicantsPage = ({
         isUpdateSede={isUpdateSede}
         sedeLoading={sedeLoading}
         selectedSede={selectedSede}
-        sedeDepartments={sedeDepartments}
-        handleSedeDepartments={handleSedeDepartments}
       />
-      <ApplicantFormModal onSubmit={onSubmitUpdateApplicant} isOpen={applicantModalIsOpen} handleOpen={handleApplicantModalOpen} applicantLoading={applicantLoading} isUpdateApplicant={isUpdateApplicant} selectedApplicant={selectedApplicant} />
+      <ApplicantFormModal
+        onSubmit={onSubmitUpdateApplicant}
+        isOpen={applicantModalIsOpen}
+        handleOpen={handleApplicantModalOpen}
+        applicantLoading={applicantLoading}
+        isUpdateApplicant={isUpdateApplicant}
+        selectedApplicant={selectedApplicant}
+      />
     </>
   );
 };
@@ -231,38 +236,21 @@ export async function getServerSideProps({req, res}) {
   const cookies = parseCookies(req);
   let user, sedes, applicants;
   if (cookies && cookies.sialincaUser) {
-    try {
       user = JSON.parse(cookies.sialincaUser);
-      
-      sedes = await SedeServices.getSedes({});
-      sedes = sedes.map((sede) => ({...sede, _id: sede._id.toString()}));
-      
-      applicants = await ApplicantService.getApplicants({});
-      applicants = applicants.map((app) => ({...app, _id: app._id.toString()}));
       
       return {
         props: {
           user,
-          sedes: sedes || [],
-          applicants: applicants || [],
           isError: false,
         },
       };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          sedes: sedes || [],
-          applicants: applicants || [],
-          isError: true,
-        },
-      };
-    }
   } else {
     return {
-      props: {
-        isError: true,
-      },
+      props: {},
+      redirect: {
+        permanent: false,
+        to: "/login"
+      }
     };
   }
 }

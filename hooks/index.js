@@ -153,6 +153,16 @@ export function useStoreItems(id, token){
   }
 }
 
+export function useUsers(token) {
+  const { data, error } = useSWR([`/users`, token]);
+
+  return {
+    isLoading: !data && !error,
+    isError: error,
+    users: data || []
+  }
+}
+
 export function useUser(id, token) {
   const { data, error } = useSWR([`/users/${id}`, token]);
 
@@ -160,6 +170,16 @@ export function useUser(id, token) {
     isLoading: !data && !error,
     isError: error,
     user: data || {}
+  }
+}
+
+export function useRoles(token) {
+  const { data, error } = useSWR([`/users`, token]);
+
+  return {
+    isLoading: !data && !error,
+    isError: error,
+    user: data || []
   }
 }
 
