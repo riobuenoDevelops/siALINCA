@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import Cryptr from "cryptr";
+import StringCrypto from "string-crypto";
 
 export function useSedes(token) {
   const { data, error } = useSWR(['/sedes', token]);
@@ -185,7 +185,7 @@ export function useRoles(token) {
 
 export function useDecrypt(text) {
   const { NEXT_PUBLIC_PASSWORD_SECRET } = process.env;
-  const cryptr = new Cryptr(NEXT_PUBLIC_PASSWORD_SECRET);
+  const { decryptString } = new StringCrypto();
 
-  return cryptr.decrypt(text);
+  return decryptString(text, NEXT_PUBLIC_PASSWORD_SECRET);
 }

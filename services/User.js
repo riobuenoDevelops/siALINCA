@@ -1,12 +1,12 @@
 const MongoLib = require("../lib/db");
 const { config } = require("../config/index");
 const RoleService = require("./Role");
-const Cryptr = require("cryptr");
+const StringCrypto = require("string-crypto");
 
 class UserService {
   static MongoDB = new MongoLib();
   static collection = "users";
-  static cryptrInstance = new Cryptr(config.passwordSecret);
+  static stringCryptoInstance = new StringCrypto;
 
   static async getUsers({ email, roleId, isDeleted, disabled, createdAt, startDate, endDate }) {
     let query = { email, roleId, isDeleted, disabled, createdAt };
@@ -39,7 +39,7 @@ class UserService {
       name: userData.roleName,
     });
 
-    const hashedPassword = this.cryptrInstance.encrypt(userData.password);
+    const hashedPassword = this.stringCryptoInstance.encryptString(userData.password, config.passwordSecret);
 
     const user = {
       ...userData,

@@ -1,12 +1,16 @@
-const Cryptr = require("cryptr");
+const StringCrypto = require("string-crypto");
 const jwt = require("jsonwebtoken");
 const { config } = require("../config/index");
 const UserService = require("./User");
 const RoleService = require("./Role");
+const PubnubService = require("./PubNub");
 
 class AuthService {
   static async login({ email, password }) {
-    const cryptr = new Cryptr(config.passwordSecret);
+    debugger;
+    const {
+      decryptString
+    } = new StringCrypto();
     if (!email || password === undefined) {
       throw new Error("Email and password required");
     }
@@ -21,9 +25,9 @@ class AuthService {
       );
     }
 
-    const unhashedPassword = cryptr.decrypt(user[0].password);
+    const unhashedPassword = decryptString(user[0].password, config.passwordSecret);
 
-    if (password === unhashedPassword) {
+    if (unhashedPassword === password) {
       const {
         _id: id,
         names,
@@ -32,6 +36,11 @@ class AuthService {
         roleId,
         config: userConfig,
       } = user[0];
+
+      if(!PubnubService.channel) {
+        PubnubService.initialize(email, 'notifications');
+        PubnubService.subscribe();
+      }
 
       const role = await RoleService.getRole({ id: roleId });
 
