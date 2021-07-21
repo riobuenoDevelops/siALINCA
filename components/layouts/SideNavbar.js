@@ -25,10 +25,6 @@ const SideNavbar = ({ expanded, router, roleName }) => {
       case "5":
         if (router.pathname !== "/notes") router.push("/notes");
         break;
-      case "6":
-        if (router.pathname !== "/purchase-orders")
-          router.push("/purchase-orders");
-        break;
       case "7":
         if (router.pathname !== "/reports") router.push("/reports");
         break;
@@ -41,7 +37,6 @@ const SideNavbar = ({ expanded, router, roleName }) => {
     if (router.pathname.includes("/stores")) return "3";
     if (router.pathname.includes("/sedes-applicants")) return "4";
     if (router.pathname.includes("/notes")) return "5";
-    if (router.pathname.includes("/purchase-orders")) return "6";
     if (router.pathname.includes("/reports")) return "7";
   };
 
@@ -100,17 +95,6 @@ const SideNavbar = ({ expanded, router, roleName }) => {
               icon={<Icon icon="file-text" />}
             >
               Notas de Entrega
-            </Nav.Item>
-          )}
-          {roleName !== "guest" && (
-            <Nav.Item
-              className={`sidenavbar-item ${
-                onActiveKey() === "6" ? "sidenavbar-item-active" : ""
-              }`}
-              eventKey="6"
-              icon={<Icon icon="shopping-cart" />}
-            >
-              Órdenes de Compra
             </Nav.Item>
           )}
           {roleName !== "guest" && roleName !== "employee" && (
