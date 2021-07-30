@@ -66,7 +66,9 @@ class UserService {
       throw new Error(`User ${id} is not found`);
     }
 
-    hashedPassword = this.cryptrInstance.encrypt(user.password);
+    if (user.password) {
+      hashedPassword = this.stringCryptoInstance.encryptString(user.password, config.passwordSecret);
+    }
 
     const role = await RoleService.getRoleByName({ name: user.roleName });
 
@@ -78,7 +80,7 @@ class UserService {
 
     return await this.MongoDB.update(this.collection, id, {
       ...user,
-      password: hashedPassword,
+      password: !user.password ? hashedPassword : existentUser.password,
       roleId: roleId ? roleId : existentUser.roleId,
     });
   }
