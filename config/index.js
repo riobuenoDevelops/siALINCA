@@ -10,6 +10,7 @@ const config = {
   dbPassword: process.env.DB_PASSWORD,
   authJwtSecret: process.env.AUTH_JWT_SECRET,
   passwordSecret: process.env.NEXT_PUBLIC_PASSWORD_SECRET,
+  ablyApiKey: process.env.NEXT_ABLY_PRIVATE_API_KEY,
   apiUrl: `${this.url}/${process.env.API_URL}`,
 };
 
