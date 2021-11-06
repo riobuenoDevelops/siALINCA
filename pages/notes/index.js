@@ -11,7 +11,7 @@ import { useNotes } from "../../hooks"
 
 const NotesPage = ({handleLogged, handleUser, user}) => {
   const { t } = useTranslation();
-  const { notes, isLoading, isError } = useNotes(user.token, {});
+  const { notes, isLoading } = useNotes(user.token, {});
   const [searchInput, setSearchInput] = useState("");
 
 
@@ -29,7 +29,6 @@ const NotesPage = ({handleLogged, handleUser, user}) => {
     <FlexboxGrid.Item colspan={8} style={{marginBottom: "2rem"}}>
       <SearchInput
         value={searchInput}
-        data={notes}
         handleValue={setSearchInput}
         placehoderLabel="Nota"
       />

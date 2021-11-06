@@ -1,18 +1,14 @@
-import { Input, Icon, InputGroup, AutoComplete } from "rsuite";
+import { Input, Icon, InputGroup } from "rsuite";
 
-const SearchInput = ({ placehoderLabel, value, handleValue, data }) => {
-  const onHandleValue = (value) => {
-    handleValue(value);
-  };
+const SearchInput = ({ placehoderLabel, value, handleValue }) => {
 
   return (
     <InputGroup inside>
-      <AutoComplete
-        data={data}
-        className="with-addon-p"
+      <Input
+        size="lg"
         placeholder={`Buscar ${placehoderLabel}`}
         value={value}
-        onChange={onHandleValue}
+        onChange={handleValue}
       />
       <InputGroup.Addon className="addon">
         <Icon icon="search" style={{ color: "#a8a8a8" }} />

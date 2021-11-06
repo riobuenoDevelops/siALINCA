@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
 import { useTranslation } from "react-i18next";
 import { FlexboxGrid, Nav, Notification } from "rsuite";
 
@@ -25,7 +24,6 @@ const SedesApplicantsPage = ({
   sedeModalIsOpen,
   applicantModalIsOpen,
 }) => {
-  const history = useRouter();
   const {i18n} = useTranslation();
   const [searchSedeInputValue, handleSearchSedeInputValue] = useState("");
   const [searchApplicantInputValue, handleSearchApplicantInputValue] = useState(
@@ -38,8 +36,8 @@ const SedesApplicantsPage = ({
   const [applicantLoading, handleApplicantLoading] = useState(false);
   const [selectedSede, handleSelectedSede] = useState({});
   const [selectedApplicant, handleSelectedApplicant] = useState({});
-  const { sedes, isLoading: sedesLoading } = useSedes(user.token);
-  const { applicants, isLoading: applicantsLoading } = useApplicants(user.token);
+  const { sedes, isLoading: sedesLoading, mutate: applicantMutate } = useSedes(user.token);
+  const { applicants, isLoading: applicantsLoading, mutate } = useApplicants(user.token);
   
   useEffect(() => {
     if (isError) {
@@ -92,7 +90,9 @@ const SedesApplicantsPage = ({
         duration: 9000,
         placement: "bottomStart",
       });
-      history.replace(history.asPath);
+
+      await mutate();
+
     } catch (err) {
       console.error(err.response.data.message);
     }
@@ -129,6 +129,9 @@ const SedesApplicantsPage = ({
           },
         });
       }
+
+      await  applicantMutate()
+
       Notification.success({
         title: !isUpdateApplicant ? "Nuevo Solicitante" : "Solicitante Actualizado",
         description: !isUpdateApplicant
@@ -137,7 +140,6 @@ const SedesApplicantsPage = ({
         duration: 9000,
         placement: "bottomStart",
       });
-      history.replace(history.asPath);
     } catch (err) {
       console.error(err.response.data.message);
     }
@@ -159,7 +161,6 @@ const SedesApplicantsPage = ({
         <FlexboxGrid.Item colspan={8}>
           <SearchInput
             placehoderLabel={tabActive === "sedes" ? "sede" : "solicitante"}
-            data={tabActive === "sedes" ? sedes : applicants}
             handleValue={
               tabActive === "sedes"
                 ? handleSearchSedeInputValue
@@ -195,6 +196,7 @@ const SedesApplicantsPage = ({
           </Nav>
           {tabActive === "sedes" ? (
             <SedesTable
+              mutate={mutate}
               handleUpdateSede={handleUpdateSede}
               handleSelectedSede={handleSelectedSede}
               items={sedes}
@@ -203,6 +205,7 @@ const SedesApplicantsPage = ({
             />
           ) : (
             <ApplicantsTable
+              mutate={applicantMutate}
               searchInputValue={searchApplicantInputValue}
               items={applicants}
               handleApplicantModalOpen={handleApplicantModalOpen}
@@ -234,7 +237,7 @@ const SedesApplicantsPage = ({
 
 export async function getServerSideProps({req, res}) {
   const cookies = parseCookies(req);
-  let user, sedes, applicants;
+  let user;
   if (cookies && cookies.sialincaUser) {
       user = JSON.parse(cookies.sialincaUser);
       

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlexboxGrid } from "rsuite";
+import Ably from "ably/promises";
 
 import LoadingScreen from "../../components/layouts/LoadingScreen";
 import SearchInput from "../../components/Search/SearchInput";
@@ -9,14 +10,18 @@ import ItemsTable from "../../components/tables/ItemsTable";
 import { parseCookies } from "../../lib/parseCookies";
 import { useItems } from "../../hooks";
 
-export default function ItemsPage({ handleLogged, handleUser, user}) {
+export default function ItemsPage({ handleLogged, handleUser, user, ablyClient, subscribeAbly }) {
   const { i18n } = useTranslation();
-  const { items, isLoading } = useItems(user.token);
+  const { items, isLoading, mutate } = useItems(user.token);
   const [searchInputValue, handleSearchInputValue] = useState("");
 
   useEffect(() => {
     handleLogged(true);
     handleUser(user);
+
+    if(!ablyClient.connection) {
+      subscribeAbly(new Ably.Realtime({ token: user.ablyToken }) , user.user.email);
+    }
   }, []);
 
   if (isLoading) return <LoadingScreen />
@@ -31,17 +36,16 @@ export default function ItemsPage({ handleLogged, handleUser, user}) {
       <FlexboxGrid.Item colspan={8}>
         <SearchInput
           placehoderLabel="insumo"
-          data={items}
           handleValue={handleSearchInputValue}
           value={searchInputValue}
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={24}>
-        <ItemsTable items={items} searchInputValue={searchInputValue} />
+        <ItemsTable items={items} searchInputValue={searchInputValue} mutate={mutate} />
       </FlexboxGrid.Item>
     </FlexboxGrid>
   );
-};
+}
 
 export async function getServerSideProps({ req }) {
   let user = {};
