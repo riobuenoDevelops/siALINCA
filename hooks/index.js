@@ -12,7 +12,7 @@ export function useSedes(token) {
 }
 
 export function useSede(token, id) {
-  const { data, error } = useSWR([`/sedes/${id}`, token]);
+  const { data, error } = useSWR([id ? `/sedes/${id}` : null, token]);
 
   return {
     isLoading: !data && !error,
@@ -32,7 +32,7 @@ export function useApplicants(token) {
 }
 
 export function useApplicant(token, id) {
-  const { data, error } = useSWR([`/applicants/${id}`, token]);
+  const { data, error } = useSWR([id ? `/applicants/${id}` : null, token]);
 
   return {
     isLoading: !data && !error,
@@ -52,8 +52,9 @@ export function useItems(token){
 }
 
 export function useItem(token, id){
-  const { data, error } = useSWR([`/items/${id}?withChild=true`, token])
-  const { data: itemStores, error: storeError } = useSWR([`/stores/items/${id}`, token])
+  console.log(id);
+  const { data, error } = useSWR([id ? `/items/${id}?withChild=true` : null, token])
+  const { data: itemStores, error: storeError } = useSWR([id ? `/stores/items/${id}` : null, token])
 
   return {
     isLoading: !data && !error,
@@ -104,7 +105,7 @@ export function useNotes(token, {
 }
 
 export function useNotesByItem(id, token) {
-  const { data, error } = useSWR([`/delivery-notes/items/${id}`, token]);
+  const { data, error } = useSWR([id ? `/delivery-notes/items/${id}` : null, token]);
 
   return {
     isLoading: !data && !error,
@@ -114,7 +115,7 @@ export function useNotesByItem(id, token) {
 }
 
 export function useNotesBySede(id, token) {
-  const { data, error } = useSWR([`/delivery-notes/sedes/${id}`, token]);
+  const { data, error } = useSWR([id ? `/delivery-notes/sedes/${id}` : null, token]);
 
   return {
     isLoading: !data && !error,
@@ -134,17 +135,19 @@ export function useStores(token) {
 }
 
 export function useStore(id, token) {
-  const { data, error } = useSWR([`/stores/${id}`, token]);
+  console.log("storeId", id);
+  const { data, error, mutate } = useSWR([id ? `/stores/${id}` : null, token]);
 
   return {
     isLoading: !data && !error,
     isError: error,
-    store: data || []
+    store: data || [],
+    mutate
   }
 }
 
 export function useStoreItems(id, token){
-  const { data, error } = useSWR([`/stores/${id}/items`, token]);
+  const { data, error } = useSWR([id ? `/stores/${id}/items` : null, token]);
 
   return {
     isLoading: !data && !error,
@@ -154,17 +157,18 @@ export function useStoreItems(id, token){
 }
 
 export function useUsers(token) {
-  const { data, error } = useSWR([`/users`, token]);
+  const { data, error, mutate } = useSWR([`/users`, token]);
 
   return {
     isLoading: !data && !error,
     isError: error,
-    users: data || []
+    users: data || [],
+    mutate
   }
 }
 
 export function useUser(id, token) {
-  const { data, error } = useSWR([`/users/${id}`, token]);
+  const { data, error } = useSWR([id ? `/users/${id}`: null, token]);
 
   return {
     isLoading: !data && !error,
@@ -184,8 +188,11 @@ export function useRoles(token) {
 }
 
 export function useDecrypt(text) {
+  console.log(text);
   const { NEXT_PUBLIC_PASSWORD_SECRET } = process.env;
   const { decryptString } = new StringCrypto();
-
-  return decryptString(text, NEXT_PUBLIC_PASSWORD_SECRET);
+  if(text) {
+    return decryptString(text, NEXT_PUBLIC_PASSWORD_SECRET);
+  }
+  return '';
 }

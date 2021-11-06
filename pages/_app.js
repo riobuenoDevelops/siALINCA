@@ -44,18 +44,23 @@ export default function MyApp({ Component, pageProps }) {
           <SWRConfig
             value={{
               refreshInterval: 10000,
-              fetcher: (url, token, query) => query
-                ? AxiosService.instance.get(url, {
-                headers: {
-                  Authorization: token
-                },
-                params: query
-              }).then(res => res.data)
-                : AxiosService.instance.get(url, {
-                  headers: {
-                    Authorization: token
-                  },
-                }).then(res => res.data)
+              fetcher: (url, token, query) => {
+                if(!url) {
+                  return false;
+                }
+                return query
+                  ? AxiosService.instance.get(url, {
+                    headers: {
+                      Authorization: token
+                    },
+                    params: query
+                  }).then(res => res.data)
+                  : AxiosService.instance.get(url, {
+                    headers: {
+                      Authorization: token
+                    },
+                  }).then(res => res.data)
+              }
             }}
           >
             <LoggedLayout
