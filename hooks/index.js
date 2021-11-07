@@ -2,12 +2,13 @@ import useSWR from "swr";
 import StringCrypto from "string-crypto";
 
 export function useSedes(token) {
-  const { data, error } = useSWR(['/sedes', token]);
+  const { data, error, mutate } = useSWR(['/sedes', token]);
 
   return {
     isLoading: !data && !error,
     isError: error,
-    sedes: data
+    sedes: data,
+    mutate
   }
 }
 
@@ -22,12 +23,13 @@ export function useSede(token, id) {
 }
 
 export function useApplicants(token) {
-  const { data, error } = useSWR(['/applicants', token]);
+  const { data, error, mutate } = useSWR(['/applicants', token]);
 
   return {
     isLoading: !data && !error,
     isError: error,
-    applicants: data
+    applicants: data,
+    mutate
   }
 }
 
@@ -42,25 +44,27 @@ export function useApplicant(token, id) {
 }
 
 export function useItems(token){
-  const { data, error } = useSWR(['/items', token])
+  const { data, error, mutate } = useSWR(['/items', token])
 
   return {
     isLoading: !data && !error,
     isError: error,
-    items: data || []
+    items: data || [],
+    mutate
   }
 }
 
 export function useItem(token, id){
-  console.log(id);
-  const { data, error } = useSWR([id ? `/items/${id}?withChild=true` : null, token])
+  console.log("Item Id", id);
+  const { data, error, mutate } = useSWR([id ? `/items/${id}?withChild=true` : null, token])
   const { data: itemStores, error: storeError } = useSWR([id ? `/stores/items/${id}` : null, token])
 
   return {
     isLoading: !data && !error,
     isError: error || storeError,
     item: data,
-    itemStores
+    itemStores,
+    itemMutate: mutate
   }
 }
 
@@ -125,12 +129,13 @@ export function useNotesBySede(id, token) {
 }
 
 export function useStores(token) {
-  const { data, error } = useSWR(['/stores', token]);
+  const { data, error, mutate } = useSWR(['/stores', token]);
 
   return {
     isLoading: !data && !error,
     isError: error,
-    stores: data || []
+    stores: data || [],
+    mutate
   }
 }
 
@@ -147,12 +152,13 @@ export function useStore(id, token) {
 }
 
 export function useStoreItems(id, token){
-  const { data, error } = useSWR([id ? `/stores/${id}/items` : null, token]);
+  const { data, error, mutate } = useSWR([id ? `/stores/${id}/items` : null, token]);
 
   return {
     isLoading: !data && !error,
     isError: error,
-    items: data || []
+    items: data || [],
+    mutate
   }
 }
 
