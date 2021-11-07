@@ -17,7 +17,6 @@ import routes from "../../config/routes";
 import "../../styles/forms.less";
 
 export default function NewMedicinePage({
-  serverItemData,
   handleLogged,
   handleUser,
   user,

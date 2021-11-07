@@ -1,22 +1,23 @@
-import {useEffect, useState} from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import {
-  ErrorMessage,
   DatePicker,
   FlexboxGrid,
   Input,
   SelectPicker,
 } from "rsuite";
-import { Controller, useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
 import StoreItemForm from "./common/StoreItemForm";
 import FormDropdownFooter from "./common/FormDropdownFooter";
-import currencyData from "../../public/staticData/Common-Currency.json";
-import {useItem} from "../../hooks";
-import {useRouter} from "next/router";
 import FormErrorMessage from "../common/FormErrorMessage";
-import LoadingScreen from "../layouts/LoadingScreen";
+
+import currencyData from "../../public/staticData/Common-Currency.json";
+
+import { useItem } from "../../hooks";
 
 const NewMedicineForm = ({
+  item,
   control,
   register,
   errors,
@@ -32,11 +33,11 @@ const NewMedicineForm = ({
   const quantityData = useState('');
   const [isAddingMark, setAddingMark] = useState(false);
   const [isAddingPresentation, setAddingPresentation] = useState(false);
-  const { item, itemStores = [], isLoading } = useItem(token, id ? id : '');
+  const { itemStores = [], isLoading } = useItem(token, id ? id : '');
 
   useEffect(() => {
     if(id && item && itemStores) {
-      quantityData[1](item?.quantity || 0);
+      quantityData[1](item.quantity);
       storeData[1](
         itemStores.map((itemStore, index) => (
           {
@@ -48,9 +49,7 @@ const NewMedicineForm = ({
         ))
       );
     }
-  }, [id]);
-
-  if(isLoading) return <LoadingScreen />
+  }, []);
 
   return (
     <FlexboxGrid justify="space-between">
@@ -216,7 +215,6 @@ const NewMedicineForm = ({
         <span className="input-title">Cantidad</span>
         <Input
           name="quantity"
-          defaultValue={item?.quantity || ""}
           value={quantityData[0]}
           onChange={(e) => quantityData[1](parseInt(e))}
           inputRef={register({
