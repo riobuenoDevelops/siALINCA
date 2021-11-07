@@ -246,7 +246,7 @@ const UserFormModal = ({
                   name="roleName"
                   control={control}
                   rules={{ required: true }}
-                  defaultValue={!isUpdateUser ? null : roles.filter((role) => role._id === selectedUser.roleId)[0].name}
+                  defaultValue={!isUpdateUser ? null : roles?.filter((role) => role._id === selectedUser.roleId)[0].name}
                   render={(field) => (
                     <SelectPicker
                       {...field}
