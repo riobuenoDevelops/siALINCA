@@ -1,20 +1,29 @@
 import { Dropdown, Icon } from "rsuite";
 
-const CustomDropdownMenu = ({ onSelect, rowData }) => (
+const CustomDropdownMenu = ({ onSelect, rowData, hasDeleted }) => (
   <Dropdown.Menu>
     <Dropdown.Item eventKey={1} onSelect={onSelect}>
       <Icon icon="edit" /> Editar
     </Dropdown.Item>
-    <Dropdown.Item divider />
+    {!hasDeleted && <Dropdown.Item divider />}
     <Dropdown.Item eventKey={2} onSelect={onSelect}>
       <Icon
-        style={{ color: rowData.disabled ? "inherit" : "red" }}
         icon={rowData.disabled ? "circle" : "circle-o"}
       />
-      <span style={{ color: rowData.disabled ? "inherit" : "red" }}>
-          {rowData.disabled ? "Habilitar" : "Deshabilitar"}
-        </span>
+      <span>{rowData.disabled ? "Habilitar" : "Deshabilitar"}</span>
     </Dropdown.Item>
+    {hasDeleted &&
+      <>
+        <Dropdown.Item divider />
+        <Dropdown.Item eventKey={3} onSelect={onSelect}>
+          <Icon
+            style={{ color: "red" }}
+            icon="trash"
+          />
+          <span style={{ color: "red" }}>Eliminar</span>
+        </Dropdown.Item>
+      </>
+    }
   </Dropdown.Menu>
 );
 
