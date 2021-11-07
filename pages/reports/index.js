@@ -2,13 +2,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { parseCookies } from "../../lib/parseCookies";
 
-const ReportsPage = ({ isLogged, handleLogged, handleUser, user, isError }) => {
+const ReportsPage = ({ handleLogged, handleUser, user, isError }) => {
   const history = useRouter();
 
   useEffect(() => {
-    if (isError || !user) {
+    if (isError) {
       handleLogged(false);
-      history.push("/login");
     } else {
       handleLogged(true);
       handleUser(user);
@@ -21,28 +20,22 @@ const ReportsPage = ({ isLogged, handleLogged, handleUser, user, isError }) => {
 export async function getServerSideProps({ req, res }) {
   const cookies = parseCookies(req);
   if (cookies && cookies.sialincaUser) {
-    try {
-      const user = JSON.parse(cookies.sialincaUser);
+    const user = JSON.parse(cookies.sialincaUser);
 
-      return {
-        props: {
-          user,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          isError: true,
-        },
-      };
-    }
-  } else {
     return {
       props: {
-        isError: true,
+        user,
+        isError: false,
       },
     };
+  }
+
+  return {
+    props: {},
+    redirect: {
+      permanent: false,
+      to: "/login"
+    }
   }
 }
 
