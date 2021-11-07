@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Grid, Row, Col, Message} from "rsuite";
 import cookieCutter from "cookie-cutter";
-import PubNub from "pubnub";
+import Ably from "ably/promises";
 
 import LoginForm from "../components/forms/LoginForm";
 
@@ -13,7 +13,7 @@ import routes from "../config/routes";
 
 import AxiosService from "../services/Axios";
 
-const LoginPage = ({ handleLogged, pubNub }) => {
+const LoginPage = ({ handleLogged, ablyClient, subscribeAbly }) => {
   const history = useRouter();
   const [errorMessage, handleErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,11 +42,9 @@ const LoginPage = ({ handleLogged, pubNub }) => {
         expires: new Date(auxDate.getTime() + nextDay * 24 * 60 * 60 * 1000),
       });
 
-      pubNub[1](new PubNub({
-        publishLey: process.env.NEXT_PUBLIC_PUBLISH_KEY,
-        subscribeKey: process.env.NEXT_PUBLIC_SUBSCRIBE_KEY,
-        uuid: userData.data.email
-      }))
+      if(!ablyClient.connection) {
+        subscribeAbly(new Ably.Realtime({ token: userData.data.ablyToken }) , userData.data.user.email);
+      }
 
       setLoading(false);
       history.push("/items");
