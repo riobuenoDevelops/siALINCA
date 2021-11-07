@@ -21,6 +21,7 @@ const NameCell = ({rowData, rowKey, ...props}) => {
 
 const UsersTable = ({
   items,
+  mutate,
   handleItems,
   searchInputValue,
   handleSelectedUser,
@@ -113,6 +114,7 @@ const UsersTable = ({
           <HeaderCell>{""}</HeaderCell>
           <UserActionCell
             tableRef={tableBody}
+            mutate={mutate}
             handleSelectedUser={handleSelectedUser}
             handleUpdateUser={handleUpdateUser}
             handleModalOpen={handleUserModalOpen}

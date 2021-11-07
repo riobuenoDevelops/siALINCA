@@ -10,6 +10,7 @@ import AxiosService from "../../../services/Axios";
 import routes from "../../../config/routes";
 
 export default function NoteActionCell({
+  mutate,
   tableRef,
   rowData,
   rowKey,

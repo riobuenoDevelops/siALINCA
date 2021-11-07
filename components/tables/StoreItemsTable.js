@@ -60,7 +60,6 @@ export default function StoreItemsTable({
         <Column
           width={250}
           verticalAlign="middle"
-          style={{paddingLeft: "1.5em"}}
         >
           <HeaderCell
             className="header-table-primary">
@@ -85,19 +84,6 @@ export default function StoreItemsTable({
             <h6 className="text-black text-bold">Cantidad</h6>
           </HeaderCell>
           <Cell dataKey="quantity"/>
-        </Column>
-        <Column
-          verticalAlign="middle"
-          width={60}
-          align="end"
-          style={{paddingRight: "1.5em"}}
-        >
-          <HeaderCell className="header-table-primary">{""}</HeaderCell>
-          <StoreActionCell
-            tableRef={tableBody}
-            handleSelectedStore={handleSelectedStore}
-            handleUpdateStore={handleUpdateStore}
-          />
         </Column>
       </Table>
       <Pagination

@@ -31,8 +31,6 @@ export default function NewEnamelwarePage({
   const [storeItemData, setStoreItemData] = useState([]);
 
   useEffect(() => {
-    if (isError) {
-    }
     handleLogged(true);
     handleUser(user);
   });
@@ -128,13 +126,23 @@ export default function NewEnamelwarePage({
           },
         });
 
-        await AxiosService.instance.post(
+        const enamelwareId = await AxiosService.instance.post(
           routes.items + "/enamelware",
           { ...enamelwareData, itemId: item.data },
           {
             headers: {
               Authorization: user.token,
             },
+          }
+        );
+
+        await AxiosService.instance.put(
+          `${routes.items}/${item.data}`,
+          { itemChildId: enamelwareId.data },
+          {
+            headers: {
+              Authorization: user.token
+            }
           }
         );
 

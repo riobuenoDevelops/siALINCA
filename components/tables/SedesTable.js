@@ -25,6 +25,7 @@ const NameCell = ({ rowData, dataKey, ...props }) => {
 };
 
 const SedesTable = ({
+  mutate,
   items,
   searchInputValue,
   handleSelectedSede,
@@ -115,6 +116,7 @@ const SedesTable = ({
         >
           <HeaderCell>{""}</HeaderCell>
           <SedeActionCell
+            mutate={mutate}
             tableRef={tableBody}
             handleSelectedSede={handleSelectedSede}
             handleUpdateSede={handleUpdateSede}

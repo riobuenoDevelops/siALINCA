@@ -1,12 +1,14 @@
 import React from "react";
 import { Dropdown, Icon, IconButton, Table, Notification } from "rsuite";
-import { CustomWhisper } from "../common/MenuWrapper";
-import { useRouter } from "next/router";
-import AxiosService from "../../../services/Axios";
 import cookiesCutter from "cookie-cutter";
+
 import routes from "../../../config/routes";
+import AxiosService from "../../../services/Axios";
+
+import { CustomWhisper } from "../common/MenuWrapper";
 
 const StoreActionCell = ({
+  mutate,
   tableRef,
   rowData,
   rowKey,
@@ -16,35 +18,24 @@ const StoreActionCell = ({
   handleAddingItems,
   ...props
 }) => {
-  const router = useRouter();
 
-  const onChangeStore = async () => {
+  const onEnableDisableStore = async () => {
     const userCookie = cookiesCutter.get("sialincaUser");
     try {
       const user = JSON.parse(userCookie);
 
-      if (rowData?.disabled) {
-        await AxiosService.instance.put(
-          routes.getStores + `/${rowData._id}`,
-          {
-            disabled: false,
+      await AxiosService.instance.put(
+        routes.getStores + `/${rowData._id}`,
+        {
+          disabled: !rowData.disabled,
+        },
+        {
+          headers: {
+            Authorization: user.token,
           },
-          {
-            headers: {
-              Authorization: user.token,
-            },
-          }
-        );
-      } else {
-        await AxiosService.instance.delete(
-          routes.getStores + `/${rowData._id}`,
-          {
-            headers: {
-              Authorization: user.token,
-            },
-          }
-        );
-      }
+        }
+      );
+      await mutate();
 
       Notification.success({
         title: rowData?.disabled
@@ -56,14 +47,12 @@ const StoreActionCell = ({
         duration: 9000,
         placement: "bottomStart",
       });
-      router.replace(router.asPath);
     } catch (err) {
       console.error(err);
     }
   };
 
   const handleSelectMenu = (eventKey, event) => {
-    console.log(eventKey);
     switch (eventKey) {
       case 1:
         handleUpdateStore(true);
@@ -75,7 +64,7 @@ const StoreActionCell = ({
         handleAddingItems(true);
         break;
       case 3:
-        onChangeStore();
+        onEnableDisableStore();
         break;
     }
   };

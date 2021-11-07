@@ -120,7 +120,7 @@ export default function NewPropertyPage({
         );
 
         storeItemData.map(async (store) => {
-          const storeItems = stores.filter(myStore => myStore._id === store.storeId)[0].items;
+          const storeItems = stores.filter(myStore => myStore.id === store.storeId)[0].items;
           await AxiosService.instance.put(
             routes.getStores + `/${store.storeId}/items`,
             storeItems.map(storeItem => storeItem.itemId !== id ? { itemId: id, quantity: store.quantity } : storeItem),
@@ -256,7 +256,14 @@ export async function getServerSideProps({ req, params }) {
       user = JSON.parse(cookies.sialincaUser);
 
       stores = await StoreService.getStores({});
-      stores = stores.map((store) => ({ ...store, _id: store._id.toString() }));
+      /*stores = stores.map((store) => {
+        console.log(store);
+        return {
+          ...store,
+          id: store._id.toString(),
+          createdAt: new Date(store.createdAt.toString())
+        }
+      });*/
 
       measures = await MeasureService.getMeasures({});
       measures.map((measure) => {

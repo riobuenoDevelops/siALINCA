@@ -25,12 +25,14 @@ const NameCell = ({ rowData, dataKey, ...props }) => {
 };
 
 const StoresTable = ({
+  mutate,
   items,
   searchInputValue,
   handleModalOpen,
   handleSelectedStore,
   handleUpdateStore,
   handleAddingItems,
+  hideActionCell
 }) => {
   let tableBody;
   const router = useRouter();
@@ -72,10 +74,7 @@ const StoresTable = ({
         headerHeight={50}
         rowHeight={60}
         onRowClick={(row, event) => {
-          if (
-            event.target.localName !== "a" &&
-            event.target.localName !== "i"
-          ) {
+          if (event.target.className === "rs-table-cell-wrap") {
             router.push(router.asPath + `/${row._id}`);
           }
         }}
@@ -112,21 +111,24 @@ const StoresTable = ({
           </HeaderCell>
           <StatusCell />
         </Column>
-        <Column
-          verticalAlign="middle"
-          width={60}
-          align="end"
-          style={{ paddingRight: "1.5em" }}
-        >
-          <HeaderCell>{""}</HeaderCell>
-          <StoreActionCell
-            tableRef={tableBody}
-            handleModalOpen={handleModalOpen}
-            handleSelectedStore={handleSelectedStore}
-            handleUpdateStore={handleUpdateStore}
-            handleAddingItems={handleAddingItems}
-          />
-        </Column>
+        {hideActionCell &&
+            <Column
+              verticalAlign="middle"
+              width={60}
+              align="end"
+              style={{ paddingRight: "1.5em" }}
+            >
+              <HeaderCell>{""}</HeaderCell>
+              <StoreActionCell
+                mutate={mutate}
+                tableRef={tableBody}
+                handleModalOpen={handleModalOpen}
+                handleSelectedStore={handleSelectedStore}
+                handleUpdateStore={handleUpdateStore}
+                handleAddingItems={handleAddingItems}
+              />
+            </Column>
+        }
       </Table>
       <Pagination
         lengthMenu={[

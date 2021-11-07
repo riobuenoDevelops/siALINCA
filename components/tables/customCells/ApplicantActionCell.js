@@ -8,6 +8,7 @@ import routes from "../../../config/routes";
 import CustomDropdownMenu from "../common/CustomDropdownMenu";
 
 const ApplicantActionCell = ({
+  mutate,
   tableRef,
   rowData,
   rowKey,
@@ -16,32 +17,24 @@ const ApplicantActionCell = ({
   handleUpdateApplicant,
   ...props
 }) => {
-  const router = useRouter();
   
-  const onChangeApplicant = async () => {
+  const onEnableDisableApplicant = async () => {
     try {
       const userCookie = cookiesCutter.get("sialincaUser");
       const user = JSON.parse(userCookie);
-      
-      if (rowData?.disabled) {
-        await AxiosService.instance.put(
-          routes.applicants + `/${rowData._id}`,
-          {
-            disabled: false,
-          },
-          {
-            headers: {
-              Authorization: user.token,
-            },
-          }
-        );
-      } else {
-        await AxiosService.instance.delete(routes.applicants + `/${rowData._id}`, {
+
+      await AxiosService.instance.put(
+        routes.applicants + `/${rowData._id}`,
+        {
+          disabled: !rowData.disabled,
+        },
+        {
           headers: {
             Authorization: user.token,
           },
-        });
-      }
+        }
+      );
+      await mutate();
       
       Notification.success({
         title: rowData?.disabled ? "Solicitante habilitado" : "Solicitante deshabilitado",
@@ -51,7 +44,6 @@ const ApplicantActionCell = ({
         duration: 9000,
         placement: "bottomStart",
       });
-      router.replace(router.asPath);
     } catch (err) {
       console.error(err);
     }
@@ -65,7 +57,7 @@ const ApplicantActionCell = ({
         handleApplicantModalOpen(true);
         break;
       case 2:
-        onChangeApplicant();
+        onEnableDisableApplicant();
         break;
     }
   };

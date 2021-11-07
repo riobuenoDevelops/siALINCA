@@ -16,7 +16,7 @@ import "../../styles/forms.less";
 
 export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) {
   const history = useRouter();
-  const { handleSubmit, errors, control, watch, setError } = useForm();
+  const { handleSubmit, errors, control, register, watch, setError } = useForm();
   const { isLoading: storeLoading, stores } = useStores(user.token);
   const { isLoading: applicantLoading, applicants } = useApplicants(user.token);
   const { isLoading: sedeLoading, sedes } = useSedes(user.token);
@@ -64,12 +64,12 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
       noteType: data.noteType,
       applicantType: data.applicantType,
       applicantId: data.applicantId,
-      disabled: false,
       items: selectedStoreItems[0].map(item => ({
         storeId: item.storeId,
         itemId: item.itemId,
         quantity: item.quantity
-      }))
+      })),
+      generatePDF: data.generatePDF
     }
 
     try {
@@ -150,6 +150,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
             stores={stores}
             sedes={sedes}
             control={control}
+            register={register}
             errors={errors}
             watch={watch}
             token={user.token}

@@ -42,7 +42,7 @@ const ApplicantCell = ({ rowData, rowKey, applicantData, ...props }) => {
   )
 }
 
-export default function NotesTable({ notes, searchInputValue, token, readOnly, withoutResponsable }) {
+export default function NotesTable({ notes, searchInputValue, token, readOnly, withoutResponsable, mutate }) {
   let tableBody;
   const { applicants = [] } = useApplicants(token);
   const { sedes = [] } = useSedes(token);
@@ -138,7 +138,7 @@ export default function NotesTable({ notes, searchInputValue, token, readOnly, w
             style={{ paddingRight: "1.5em" }}
           >
             <HeaderCell>{""}</HeaderCell>
-            <NoteActionCell />
+            <NoteActionCell mutate={mutate} />
           </Column>
         }
       </Table>

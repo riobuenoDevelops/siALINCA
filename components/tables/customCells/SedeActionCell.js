@@ -10,6 +10,7 @@ import AxiosService from "../../../services/Axios";
 import routes from "../../../config/routes";
 
 const SedeActionCell = ({
+  mutate,
   tableRef,
   rowData,
   rowKey,
@@ -19,32 +20,25 @@ const SedeActionCell = ({
   handleSedeDepartments,
   ...props
 }) => {
-  const router = useRouter();
 
-  const onChangeSede = async () => {
+  const onEnableDisableSede = async () => {
     try {
       const userCookie = cookiesCutter.get("sialincaUser");
       const user = JSON.parse(userCookie);
 
-      if (rowData?.disabled) {
-        await AxiosService.instance.put(
-          routes.sedes + `/${rowData._id}`,
-          {
-            disabled: false,
-          },
-          {
-            headers: {
-              Authorization: user.token,
-            },
-          }
-        );
-      } else {
-        await AxiosService.instance.delete(routes.sedes + `/${rowData._id}`, {
+      await AxiosService.instance.put(
+        routes.sedes + `/${rowData._id}`,
+        {
+          disabled: !rowData.disabled,
+        },
+        {
           headers: {
             Authorization: user.token,
           },
-        });
-      }
+        }
+      );
+
+      await mutate();
 
       Notification.success({
         title: rowData?.disabled ? "Sede habilitada" : "Sede deshabilitada",
@@ -54,7 +48,6 @@ const SedeActionCell = ({
         duration: 9000,
         placement: "bottomStart",
       });
-      router.replace(router.asPath);
     } catch (err) {
       console.error(err);
     }
@@ -74,7 +67,7 @@ const SedeActionCell = ({
         handleModalOpen(true);
         break;
       case 2:
-        onChangeSede();
+        onEnableDisableSede();
         break;
     }
   };

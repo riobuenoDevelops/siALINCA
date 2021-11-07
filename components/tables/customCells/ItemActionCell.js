@@ -1,7 +1,7 @@
 import React from "react";
 import cookiesCutter from "cookie-cutter";
 import { useRouter } from "next/router";
-import { Icon, IconButton, Table, Notification } from "rsuite";
+import {Icon, IconButton, Notification, Table} from "rsuite";
 
 import { CustomWhisper } from "../common/MenuWrapper";
 import CustomDropdownMenu from "../common/CustomDropdownMenu";
@@ -10,6 +10,7 @@ import AxiosService from "../../../services/Axios";
 import routes from "../../../config/routes";
 
 export default function ItemActionCell({
+  mutate,
   tableRef,
   rowData,
   rowKey,
@@ -23,8 +24,8 @@ export default function ItemActionCell({
         router.push({
           pathname: '/items/new-medicine',
           query: {
-            id: rowData.itemId,
-            childId: rowData._id
+            id: rowData._id,
+            childId: rowData.itemChildId
           }
         });
         break;
@@ -32,8 +33,8 @@ export default function ItemActionCell({
         router.push({
           pathname: '/items/new-meal',
           query: {
-            id: rowData.itemId,
-            childId: rowData._id
+            id: rowData._id,
+            childId: rowData.itemChildId
           }
         });
         break;
@@ -41,8 +42,8 @@ export default function ItemActionCell({
         router.push({
           pathname: '/items/new-enamelware',
           query: {
-            id: rowData.itemId,
-            childId: rowData._id
+            id: rowData._id,
+            childId: rowData.itemChildId
           }
         });
         break;
@@ -50,8 +51,8 @@ export default function ItemActionCell({
         router.push({
           pathname: '/items/new-electro-device',
           query: {
-            id: rowData.itemId,
-            childId: rowData._id
+            id: rowData._id,
+            childId: rowData.itemChildId
           }
         });
         break;
@@ -59,8 +60,8 @@ export default function ItemActionCell({
         router.push({
           pathname: '/items/new-stationary',
           query: {
-            id: rowData.itemId,
-            childId: rowData._id
+            id: rowData._id,
+            childId: rowData.itemChildId
           }
         });
         break;
@@ -68,8 +69,8 @@ export default function ItemActionCell({
         router.push({
           pathname: '/items/new-property',
           query: {
-            id: rowData.itemId,
-            childId: rowData._id
+            id: rowData._id,
+            childId: rowData.itemChildId
           }
         });
         break;
@@ -81,14 +82,23 @@ export default function ItemActionCell({
       const userCookie = cookiesCutter.get("sialincaUser");
       const user = JSON.parse(userCookie);
 
-      await AxiosService.instance.put(`${routes.items}/${rowData.itemId}`,
+      await AxiosService.instance.put(`${routes.items}/${rowData._id}`,
         { disabled: !rowData.disabled }, {
           headers: {
             Authorization: user.token
           }
         })
 
-      router.push(router.asPath);
+      await mutate();
+
+      Notification.success({
+        title: rowData?.disabled ? "Item habilitado" : "Item deshabilitado",
+        description: `Se ha ${
+          rowData?.disabled ? "habilitado" : "deshabilitado"
+        } el item "${rowData.name}"  con exito`,
+        duration: 9000,
+        placement: "bottomStart",
+      });
     } catch (err) {
 
     }
@@ -97,7 +107,7 @@ export default function ItemActionCell({
   const handleSelectMenu = (eventKey, event) => {
     switch (eventKey) {
       case 1:
-        onEdit()
+        onEdit();
         break;
       case 2:
         onEnableDisable();

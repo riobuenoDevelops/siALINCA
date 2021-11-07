@@ -20,7 +20,7 @@ const TypeCell = ({ rowData, rowKey, dataKey, ...props }) => {
   )
 }
 
-export default function ItemsTable({ items, searchInputValue }) {
+export default function ItemsTable({ items, searchInputValue, mutate }) {
   let tableBody;
   const router = useRouter();
   const { Column, Cell, HeaderCell, Pagination } = Table;
@@ -65,11 +65,8 @@ export default function ItemsTable({ items, searchInputValue }) {
           tableBody = ref;
         }}
         onRowClick={(row, event) => {
-          if (
-            event.target.localName !== "a" &&
-            event.target.localName !== "i"
-          ) {
-            router.push(router.asPath + `/${row.itemId}`);
+          if (event.target.className === "rs-table-cell-wrap") {
+            router.push(router.asPath + `/${row._id}`);
           }
         }}
       >
@@ -120,7 +117,7 @@ export default function ItemsTable({ items, searchInputValue }) {
           style={{ paddingRight: "1.5em" }}
         >
           <HeaderCell>{""}</HeaderCell>
-          <ItemActionCell tableRef={tableBody} />
+          <ItemActionCell tableRef={tableBody} mutate={mutate} />
         </Column>
       </Table>
       <Pagination

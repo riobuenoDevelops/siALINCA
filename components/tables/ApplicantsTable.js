@@ -14,6 +14,7 @@ const NameCell = ({ rowData, rowKey, ...props }) => {
 };
 
 const ApplicantsTable = ({
+  mutate,
   items,
   handleItems,
   searchInputValue,
@@ -109,6 +110,7 @@ const ApplicantsTable = ({
         >
           <HeaderCell>{""}</HeaderCell>
           <ApplicantActionCell
+            mutate={mutate}
             tableRef={tableBody}
             handleSelectedApplicant={handleSelectedApplicant}
             handleUpdateApplicant={handleUpdateApplicant}

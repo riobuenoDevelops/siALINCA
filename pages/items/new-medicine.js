@@ -3,20 +3,21 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { parseCookies } from "../../lib/parseCookies";
-import AxiosService from "../../services/Axios";
-import MeasureService from "../../services/Measure";
-import routes from "../../config/routes";
 
 import NewMedicineForm from "../../components/forms/NewMedicineForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 import FormErrorMessage from "../../components/common/FormErrorMessage";
 import LoadingScreen from "../../components/layouts/LoadingScreen";
 
-import { useStores } from "../../hooks";
+import { useItem, useStores } from "../../hooks";
+import AxiosService from "../../services/Axios";
+import MeasureService from "../../services/Measure";
+import routes from "../../config/routes";
 
 import "../../styles/forms.less";
 
 export default function NewMedicinePage({
+  serverItemData,
   handleLogged,
   handleUser,
   user,
@@ -34,6 +35,7 @@ export default function NewMedicinePage({
   const [isOpen, handleOpen] = useState(false);
   const [isLoading, handleLoading] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
+  const { item, isLoading: itemLoading } = useItem(user.token, id ? id : null);
 
   useEffect(() => {
     if (isError) {
@@ -96,7 +98,7 @@ export default function NewMedicinePage({
         });
 
         await AxiosService.instance.put(
-          routes.items + "/medicines/" + childId,
+          `${routes.items}/medicines/${childId}`,
           medicineData,
           {
             headers: {
@@ -124,7 +126,7 @@ export default function NewMedicinePage({
           },
         });
 
-        await AxiosService.instance.post(
+        const medicineId = await AxiosService.instance.post(
           routes.items + "/medicines",
           { ...medicineData, itemId: item.data },
           {
@@ -132,6 +134,16 @@ export default function NewMedicinePage({
               Authorization: user.token,
             },
           }
+        );
+
+        await AxiosService.instance.put(
+            `${routes.items}/${item.data}`,
+            { itemChildId: medicineId.data },
+            {
+              headers: {
+                Authorization: user.token
+              }
+            }
         );
 
         storeItemData.map(async (store) => {
@@ -158,11 +170,11 @@ export default function NewMedicinePage({
     } catch (err) {
       Notification.error({
         title: "Error",
-        description: err.response.data,
+        description: "Ha ocurrido un error",
         placement: "bottomStart",
         duration: 9000,
       });
-      console.error(err.response.data);
+      console.error(err);
       handleLoading(false);
     }
   };
@@ -198,6 +210,7 @@ export default function NewMedicinePage({
             contentMeasures={contentMeasures}
             presentations={presentations}
             token={user.token}
+            item={item}
           />
           {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
           {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
@@ -235,7 +248,7 @@ export default function NewMedicinePage({
   );
 };
 
-export async function getServerSideProps({ req}) {
+export async function getServerSideProps({ req }) {
   let user = null,
     measures = [],
     contentMeasures = [],
