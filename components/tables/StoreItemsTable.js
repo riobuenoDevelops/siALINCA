@@ -12,10 +12,16 @@ const TypeCell = ({ dataKey, rowKey, rowData, ...props }) => {
   );
 }
 
+const QuantityCell = ({ dataKey, rowKey, rowData, store, ...props }) => {
+
+  return (
+    <Table.Cell {...props}>{store.items[store.items.findIndex(item => item.itemId === rowData._id)].quantity}</Table.Cell>
+  )
+}
+
 export default function StoreItemsTable({
- items,
- handleSelectedStore,
- handleUpdateStore,
+  items,
+  store
 }) {
   let tableBody;
   const router = useRouter();
@@ -83,7 +89,7 @@ export default function StoreItemsTable({
           <HeaderCell className="header-table-primary">
             <h6 className="text-black text-bold">Cantidad</h6>
           </HeaderCell>
-          <Cell dataKey="quantity"/>
+          <QuantityCell dataKey="quantity" store={store} />
         </Column>
       </Table>
       <Pagination

@@ -9,7 +9,6 @@ import routes from "../../config/routes";
 import "../../styles/forms.less";
 
 const StoreItemsFormModal = ({ isOpen, handleOpen, store, items, token }) => {
-  console.log(items);
   const { handleSubmit, control, register } = useForm();
   const [storeItemsData, handleStoreItems] = useState([]);
   const [confirmationModalOpen, handleConfirmationModal] = useState(false);
