@@ -2,31 +2,25 @@ const Ably = require("ably");
 const { config } = require("../config/index");
 
 class AblyService {
-  constructor() {
-    this.ably = new Ably.Realtime(config.ablyApiKey);
-    this.ably.connection.on("connected", () => console.log("Connected to Ably"));
-  }
+  static ablyClient = {};
 
-  getChannels() {
+  static getChannels() {
     return {
       NOTIFICATION: "notifications"
     };
   }
 
-  suscribe(channel, subChannel) {
-    const ablyChannel = this.ably.channels.get(channel);
-    ablyChannel.suscribe(subChannel, (message) => {
-      console.log(`Received a notification message in realtime: ${message.data}`)
-    });
+  static createClient() {
+    this.ablyClient = new Ably.Realtime(config.ablyApiKey);
   }
 
-  unsuscribe() {
-    this.ably.connection.close();
-    this.ably.connection.on("closed", () => console.log("Closed the connection to Ably."));
+  static unsubscribe() {
+    this.ablyClient.connection.close();
+    this.ablyClient.connection.on("closed", () => console.log("Closed the connection to Ably."));
   }
 
-  publish(channel, subChannel, message) {
-    const ablyChannel = this.ably.channels.get(channel);
+  static publish(channel, subChannel, message) {
+    const ablyChannel = this.ablyClient.channels.get(channel);
     ablyChannel.publish(subChannel, message);
   }
 }
