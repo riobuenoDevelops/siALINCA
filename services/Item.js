@@ -5,8 +5,8 @@ const ElectroDeviceService = require("./ElectroDevice");
 const EnamelwareService = require("./Enamelware");
 const PropertyService = require("./Property");
 const StationaryService = require("./Stationary");
-const PubNubService = require("./PubNub")
 const UserService = require("./User");
+const AblyService = require("./Ably")
 
 class ItemService {
   static MongoDB = new MongoLib();
@@ -22,6 +22,10 @@ class ItemService {
     startDate,
     endDate
   }) {
+    if (!AblyService.ablyClient.connection) {
+      AblyService.createClient();
+    }
+
     let itemsWithChild = [];
     let query = {
       quantity,
@@ -103,10 +107,6 @@ class ItemService {
   }
 
   static async updateItem({ id, item, email }) {
-    if(!PubNubService.channel) {
-      PubNubService.initialize(email, 'notifications');
-      PubNubService.subscribe();
-    }
 
     const existentItem = await this.getItem({ id, withChild: false });
     const user = await UserService.getUsers({email});
@@ -116,12 +116,19 @@ class ItemService {
     }
 
     const updatedId = await this.MongoDB.update(this.collection, id, item);
-
+    console.log("UPDATE ITEM");
     if(item.quantity <= user[0].config.nivelInventario) {
-      PubNubService.publish(`El item ${item.name} ha alcanzado el nivel mínimo de inventario`);
+      console.log("INITIALIZE ABLY");
+      if(!AblyService.ablyClient) {
+        AblyService.createClient();
+      }
+      AblyService.publish(
+          AblyService.getChannels().NOTIFICATION,
+          user[0].email,
+          `Nnivel de inventario crítico para item "${item.name}"`)
     }
 
-    return updatedId
+    return updatedId;
   }
 
   static async deleteItem({ id }) {
