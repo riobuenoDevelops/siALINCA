@@ -31,7 +31,7 @@ const deliveryNoteSchema = {
 		"applicantId",
 		"items"
 	],
-	additionalProperties: false,
+	additionalProperties: true,
 };
 
 const updatedDeliveryNoteSchema = {

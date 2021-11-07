@@ -7,6 +7,8 @@ export default function DeliveryNoteDetailModal({ noteData, applicants, token, i
 
   return (
     <Modal
+      full
+      backdrop="static"
       loading={storesLoading || itemsLoading}
       show={isOpen}
       onHide={onHide}
@@ -17,10 +19,10 @@ export default function DeliveryNoteDetailModal({ noteData, applicants, token, i
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <FlexboxGrid justify="space-between">
+        <FlexboxGrid className="full-width" justify="space-between">
           <FlexboxGrid.Item colspan={12}>
             <span className="text-bolder text-black">Fecha de Salida</span>
-            <span className="text-bolder text-black">Fecha de Salida</span>
+            <span>{noteData?.createdAt?.toString()}</span>
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </Modal.Body>

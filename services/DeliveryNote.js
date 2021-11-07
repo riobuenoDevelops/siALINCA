@@ -1,4 +1,9 @@
 const MongoLib = require("../lib/db");
+const PdfService = require("./Pdf");
+const ItemService = require("./Item");
+const UserService = require("./User");
+const SedeService = require("./Sede");
+const ApplicantService = require("./Applicant");
 
 class DeliveryNoteService {
   static MongoDB = new MongoLib();
@@ -101,12 +106,40 @@ class DeliveryNoteService {
   }
 
   static async createDeliveryNote({ deliveryNote }) {
-    return await this.MongoDB.create(this.collection, {
+    console.log(deliveryNote);
+    const noteId =  await this.MongoDB.create(this.collection, {
       ...deliveryNote,
       disabled: false,
       isDeleted: false,
       createdAt: new Date(Date.now())
     });
+
+   /* if(deliveryNote.generatePDF) {
+      await this.generatePDF({deliveryNote});
+    }*/
+
+    return noteId;
+  }
+
+  static async generatePDF({ deliveryNote }) {
+    const items = await ItemService.getItems({});
+    const user = await UserService.getUser({ id: deliveryNote.userId });
+    const applicant = deliveryNote.applicantType === "sede" ? await SedeService.getSede({ id: deliveryNote.applicantId }) : await ApplicantService.getApplicant({ id: deliveryNote.applicantId });
+
+    const info = {
+      user,
+      applicant: applicant.names || applicant.name,
+      cedula: applicant.cedula || "",
+      createStamp: new Date(deliveryNote.createStamp).toDateString(),
+      returnStamp: deliveryNote.returnStamp !== undefined ? new Date(deliveryNote.returnStamp).toDateString() : ""
+    }
+
+    const data = deliveryNote.items.map((row) => {
+      const wholeItem = items.filter(item => item._id === row.itemId);
+
+      return [wholeItem['type'], wholeItem['name'], wholeItem['quantity'], '']
+    });
+    PdfService.createDeliveryNotePDF(info, data, ".", "Nota de Entrega");
   }
 
   static async updateDeliveryNote({ id, deliveryNote }) {
