@@ -44,7 +44,7 @@ class StoreService {
       }
     }
 
-    return (await this.MongoDB.getAll(this.collection, query)) || [];
+    return (await this.MongoDB.getAll(this.collection, query)).map((store) => ({...store, id: store._id.toString(), createdAt: store.createdAt.toString()})) || [];
   }
 
   static async getStore({ id }) {
@@ -105,6 +105,59 @@ class StoreService {
     }
 
     return itemStores;
+  }
+
+  static async transferItemfromStoreToStore({ originStoreId, itemId, quantity, destinationStoreId }) {
+    let originNewItems = [];
+    let destinationNewItems = [];
+    try {
+      const originStore = await this.getStore({ id: originStoreId });
+      const destinationStore = await this.getStore({ id: destinationStoreId });
+
+      if(!originStore._id || !destinationStore._id) {
+        throw new Error("Los almacenes seleccionados no existen o estan deshabilitados");
+      }
+
+      const storedItem = originStore.items.filter(item => item.itemId === itemId)[0];
+
+      if((storedItem - quantity) === 0) {
+        originNewItems = originStore.items.filter(item => item.itemId !== itemId);
+      } else {
+        originNewItems = originStore.items.map(item => {
+          if (item.itemId === itemId){
+            return {
+              ...item,
+              quantity: item.quantity - quantity
+            };
+          }
+          return item;
+        })
+      }
+
+      if(!destinationStore.items.some(item => item.itemId === itemId)) {
+        destinationNewItems = destinationStore.items;
+        destinationNewItems.push({ itemId, quantity });
+      } else {
+        destinationNewItems = destinationStore.items.map(item => {
+          if (item.itemId === itemId) {
+            return {
+              ...item,
+              quantity: item.quantity + quantity
+            }
+          }
+          return item;
+        })
+      }
+
+      console.log(originNewItems);
+      console.log(destinationNewItems);
+
+      await this.updateStoreItems({ id: originStoreId, items: originNewItems });
+      await this.updateStoreItems({ id: destinationStoreId, items: destinationNewItems })
+
+    }catch (err) {
+      throw new Error(err)
+    }
   }
 
   static async createStore({ storeData }) {
