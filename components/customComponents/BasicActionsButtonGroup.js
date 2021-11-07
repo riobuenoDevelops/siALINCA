@@ -1,10 +1,8 @@
-import {useRouter} from "next/router";
 import { Icon, IconButton, Tooltip, Whisper, Notification } from "rsuite";
 
 import AxiosService from "../../services/Axios";
 
-export default function BasicActionsButtonGroup({disabled, onEdit, onDelete, route, token}) {
-  const router = useRouter();
+export default function BasicActionsButtonGroup({disabled, onEdit, onDelete, route, token, itemMutate}) {
 
   const onEnableDisable = async () => {
     try {
@@ -15,11 +13,11 @@ export default function BasicActionsButtonGroup({disabled, onEdit, onDelete, rou
           Authorization: token
         }
       })
-      router.push(router.asPath);
+      await itemMutate();
     }catch (err) {
       Notification.error({
         title: "Error",
-        description: err.response.data,
+        description: err?.response?.data?.message,
         duration: 9000,
         placement: "bottomStart"
       })
