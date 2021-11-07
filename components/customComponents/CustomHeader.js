@@ -1,16 +1,16 @@
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {
   Avatar,
   Button,
   Dropdown,
   FlexboxGrid,
   Icon,
-  Notification
 } from "rsuite";
-import PubNub from "pubnub";
 import cookieCutter from "cookie-cutter";
 
 import AboutModal from "../modals/AboutModal";
+import UserConfigurationModal from '../modals/UserConfigurationModal';
+
 import SedesApplicantsMenu from "../Header/SedesApplicantsMenu";
 import ItemsMenu from "../Header/ItemsMenu";
 import NotesMenu from "../Header/NotesMenu";
@@ -23,31 +23,15 @@ const CustomHeader = ({
   expanded,
   handleLogged,
   user,
+  handleUser,
+  ablyClient,
   handleUserModalOpen,
   handleStoreModalOpen,
   handleApplicantModalOpen,
   handleSedeModalOpen,
 }) => {
   const [showAboutModal, handleAboutModal] = useState(false);
-  const [channels] = useState(['notifications']);
-  const pubNub = new PubNub({
-    publishKey: process.env.NEXT_PUBLIC_PUBLISH_KEY,
-    subscribeKey: process.env.NEXT_PUBLIC_SUBSCRIBE_KEY,
-    uuid: user?.user?.email
-  });
-
-  const handleNotification = event => {
-    const message = event.message;
-    if (typeof message === 'string' || message.hasOwnProperty('text')) {
-      const text = message.text || message;
-      Notification.warning({
-        placement: "bottomEnd",
-        title: "Nivel de Inventario Critico",
-        description: text,
-        duration: 9000,
-      })
-    }
-  }
+  const [configurationModalOpen, setConfigurationModalOpen] = useState(false);
 
   const onOpenAboutModal = () => {
     handleAboutModal(true);
@@ -74,16 +58,20 @@ const CustomHeader = ({
   };
 
   const logout = () => {
+    const channel = ablyClient.channels.get("notifications");
+    channel.unsubscribe();
+    ablyClient.connection.close();
+
     cookieCutter.set("sialincaUser", "", { expires: new Date(0) });
     handleLogged(false);
     router.push("/login");
   };
 
   const renderCustomMenu = () => {
-    if (user?.roleName !== "guest") {
+    if (user?.user?.roleName !== "guest") {
       switch (router.pathname) {
         case "/items":
-          return <ItemsMenu router={router} user={user} />;
+          return <ItemsMenu router={router} user={user?.user} />;
         case "/users":
           return (
             <Button
@@ -124,11 +112,6 @@ const CustomHeader = ({
     return null;
   };
 
-  useEffect(() => {
-    pubNub.addListener({ message: handleNotification });
-    pubNub.subscribe({ channels });
-  }, [channels])
-
   return (
     <>
       <FlexboxGrid className="custom-header">
@@ -141,12 +124,16 @@ const CustomHeader = ({
           </Avatar>
           <Dropdown
             placement="bottomEnd"
-            title={`Hola, ${user?.names ? user.names.split(" ")[0] : "Invitado"} ${user?.lastNames ? user.lastNames.charAt(
+            title={`Hola, ${user?.user?.names ? user?.user?.names.split(" ")[0] : "Invitado"} ${user?.user?.lastNames ? user?.user?.lastNames.charAt(
               0
             ) : ""}.`}
             className="user-dropdown"
           >
-            <Dropdown.Item className="dropdown-item" icon={<Icon icon="cog" />}>
+            <Dropdown.Item
+              className="dropdown-item"
+              onSelect={() => setConfigurationModalOpen(true)}
+              icon={<Icon icon="cog" />}
+            >
               Configuración
             </Dropdown.Item>
             <Dropdown.Item
@@ -170,6 +157,12 @@ const CustomHeader = ({
       <AboutModal
         showAboutModal={showAboutModal}
         onCloseAboutModal={onCloseAboutModal}
+      />
+      <UserConfigurationModal
+        isOpen={configurationModalOpen}
+        onClose={() => setConfigurationModalOpen(false)}
+        user={user}
+        handleUser={handleUser}
       />
     </>
   );
