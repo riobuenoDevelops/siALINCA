@@ -6,6 +6,7 @@ import schemaValidator from "../../../../utils/middleware/validationHandlers/sch
 import ItemService from "../../../../services/Item";
 
 async function getMethodHandler(req, res) {
+  debugger;
   const {
     query: { id, withChild },
   } = req;

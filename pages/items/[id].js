@@ -20,17 +20,17 @@ import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
 import { useItem, useStores, useUser, useNotesByItem } from "../../hooks";
 import NotesTable from "../../components/tables/NotesTable";
+import ErrorPage from "../../components/common/ErrorPage";
 
 export default function ItemDetailPage({ id, user, handleLogged, handleUser }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const { item, itemStores, isLoading, isError } = useItem(user.token, id);
+  const { item, itemStores, isLoading, isError, itemMutate } = useItem(user.token, id ? id : null);
   const { stores, isLoading: storeLoading } = useStores(user.token);
-  const { user :{ names, lastNames }, isLoading: userLoading } = useUser(item?.userId, user.token);
-  const { itemNotes, isLoading: noteLoading } = useNotesByItem(id, user.token);
+  const { user: { names, lastNames }, isLoading: userLoading } = useUser(item?.userId, user.token);
+  const { itemNotes, isLoading: noteLoading } = useNotesByItem(id ? id : null, user.token);
   const [changesLoading, setLoading] = useState(false);
   const [isOpen, handleOpen] = useState(false);
-
   useEffect(() => {
     if(user) {
       handleUser(user);
@@ -162,7 +162,7 @@ export default function ItemDetailPage({ id, user, handleLogged, handleUser }) {
 
       Notification.success({
         title: "Elemento Eliminado",
-        description: `El item ${item.name} ha sido eliminado exitosamente`,
+        description: `El item ${item?.name} ha sido eliminado exitosamente`,
         duration: 9000,
         placement: "bottomStart"
       })
@@ -177,6 +177,7 @@ export default function ItemDetailPage({ id, user, handleLogged, handleUser }) {
     }
   }
 
+  if(isError) return <ErrorPage />
   if(isLoading || userLoading || changesLoading || storeLoading || noteLoading) return <LoadingScreen />
 
   return (
@@ -190,6 +191,7 @@ export default function ItemDetailPage({ id, user, handleLogged, handleUser }) {
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={3} className="responsive-box">
           <BasicActionsButtonGroup
+            itemMutate={itemMutate}
             disabled={item?.disabled}
             onEdit={() => onEdit(item?.type)}
             onDelete={() => handleOpen(true)}
@@ -207,7 +209,7 @@ export default function ItemDetailPage({ id, user, handleLogged, handleUser }) {
               </FlexboxGrid.Item>
               <FlexboxGrid.Item style={{ marginRight: "1rem" }}>
                 <span>Tipo</span>
-                <p>{t(`categories.${item.type}`)}</p>
+                <p>{t(`categories.${item?.type}`)}</p>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item style={{ marginRight: "1rem" }}>
                 <span>Precio</span>
@@ -215,7 +217,7 @@ export default function ItemDetailPage({ id, user, handleLogged, handleUser }) {
               </FlexboxGrid.Item>
               <FlexboxGrid.Item style={{ marginRight: "1rem" }}>
                 <span>Estado</span>
-                <p style={{ color: item.disabled ? "red" : "green" }}>{item.disabled ? "Inactivo" : "Activo"}</p>
+                <p style={{ color: item?.disabled ? "red" : "green" }}>{item?.disabled ? "Inactivo" : "Activo"}</p>
               </FlexboxGrid.Item>
               {getDetailRow(item?.type)}
             </FlexboxGrid>
@@ -228,8 +230,8 @@ export default function ItemDetailPage({ id, user, handleLogged, handleUser }) {
                 <h4 className="text-bolder text-color-primary">Almacenamiento</h4>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={8} style={{ marginBottom: "1rem" }}>
-                <h5 className="text-bolder text-right">Total: {item.quantity}</h5>
-                <p className="text-bold text-right">Cantidad por unidad: {item.unitQuantity}</p>
+                <h5 className="text-bolder text-right">Total: {item?.quantity}</h5>
+                <p className="text-bold text-right">Cantidad por unidad: {item?.unitQuantity}</p>
               </FlexboxGrid.Item>
               <FlexboxGrid.Item colspan={24}>
                 <ItemStoreTable data={itemStores} />

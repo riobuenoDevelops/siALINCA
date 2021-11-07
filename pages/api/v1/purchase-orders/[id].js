@@ -1,8 +1,8 @@
 import boom from "@hapi/boom";
-import { errorHandler } from "../../../../../utils/handlers";
-import authenticated from "../../../../../utils/middleware/auth/authenticatedWrapper";
-import scopeValidator from "../../../../../utils/middleware/validationHandlers/scopeValidationMiddleware";
-import schemaValidator from "../../../../../utils/middleware/validationHandlers/schemaValidationMiddleware";
+import { errorHandler } from "../../../../utils/handlers";
+import authenticated from "../../../../utils/middleware/auth/authenticatedWrapper";
+import scopeValidator from "../../../../utils/middleware/validationHandlers/scopeValidationMiddleware";
+import schemaValidator from "../../../../utils/middleware/validationHandlers/schemaValidationMiddleware";
 import PurchaseOrderService from "../../../../services/PurchaseOrder";
 
 async function getMethodHandler(req, res) {
