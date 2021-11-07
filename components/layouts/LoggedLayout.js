@@ -14,13 +14,14 @@ import SideNavbar from "./SideNavbar";
 
 //Styles
 import "../../styles/logged-layout.less";
+import AblyWrapper from '../common/AblyWrapper';
 
 const LoggedLayout = ({
   isLogged,
   handleLogged,
   children,
   user,
-  handleUser,
+  handleUser
 }) => {
   const router = useRouter();
   const [expanded, handleExpanded] = useState(true);
@@ -28,6 +29,7 @@ const LoggedLayout = ({
   const [storeModalIsOpen, handleStoreModalOpen] = useState(false);
   const [sedeModalIsOpen, handleSedeModalOpen] = useState(false);
   const [applicantModalIsOpen, handleApplicantModalOpen] = useState(false);
+  const [ablyClient, setAblyClient] = useState({});
 
   const onHandleExpanded = () => {
     handleExpanded(!expanded);
@@ -74,10 +76,12 @@ const LoggedLayout = ({
             handleStoreModalOpen={handleStoreModalOpen}
             handleSedeModalOpen={handleSedeModalOpen}
             handleApplicantModalOpen={handleApplicantModalOpen}
-            user={user?.user}
+            user={user}
+            handleUser={handleUser}
             router={router}
             expanded={expanded}
             handleLogged={handleLogged}
+            ablyClient={ablyClient}
           />
         </Header>
         <Content
@@ -87,19 +91,21 @@ const LoggedLayout = ({
               : "logged-layout-content-container"
           }
         >
-          {React.cloneElement(children, {
-            isLogged,
-            handleLogged,
-            handleUser,
-            handleUserModalOpen,
-            handleStoreModalOpen,
-            handleSedeModalOpen,
-            handleApplicantModalOpen,
-            userModalIsOpen,
-            storeModalIsOpen,
-            sedeModalIsOpen,
-            applicantModalIsOpen,
-          })}
+          <AblyWrapper setParentClient={setAblyClient}>
+            {React.cloneElement(children, {
+              isLogged,
+              handleLogged,
+              handleUser,
+              handleUserModalOpen,
+              handleStoreModalOpen,
+              handleSedeModalOpen,
+              handleApplicantModalOpen,
+              userModalIsOpen,
+              storeModalIsOpen,
+              sedeModalIsOpen,
+              applicantModalIsOpen,
+            })}
+          </AblyWrapper>
         </Content>
       </Container>
     </Container>
