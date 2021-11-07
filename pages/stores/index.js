@@ -25,7 +25,7 @@ const StorePage = ({
 }) => {
   const history = useRouter();
   const { i18n } = useTranslation();
-  const { stores, isLoading: storesLoading } = useStores(user.token);
+  const { stores, isLoading: storesLoading, mutate } = useStores(user.token);
   const { items, isLoading: itemsLoading } = useItems(user.token);
   const [inputValue, handleInputValue] = useState("");
   const [storeLoading, handleStoreLoading] = useState(false);
@@ -73,6 +73,8 @@ const StorePage = ({
           }
         );
       }
+      await mutate();
+
       Notification.success({
         title: isUpdateStore ? "Almacen Actualizado" : "Nuevo Almacén",
         description: `Se ha ${
@@ -81,7 +83,6 @@ const StorePage = ({
         duration: 9000,
         placement: "bottomStart",
       });
-      history.replace(history.asPath);
     } catch (err) {
       console.log(err);
     }
@@ -117,6 +118,7 @@ const StorePage = ({
         </FlexboxGrid.Item>
         <FlexboxGridItem colspan={24}>
           <StoresTable
+            mutate={mutate}
             searchInputValue={inputValue}
             items={stores.filter((store) => {
               return !inputValue

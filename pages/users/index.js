@@ -28,7 +28,7 @@ const UsersPage = ({
   const [selectedUser, handleSelectedUser] = useState({});
   const [inputValue, handleInputValue] = useState("");
   const [roleName, handleRoleName] = useState("");
-  const { users, isLoading: usersLoading } = useUsers(user.token);
+  const { users, isLoading: usersLoading, mutate } = useUsers(user.token);
   const { roles, isLoading: rolesLoading } = useRoles(user.token);
   
   useEffect(() => {
@@ -113,7 +113,8 @@ const UsersPage = ({
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <UsersTable
-            items={users}
+            items={users.filter(userData => userData.email !== user.user.email)}
+            mutate={mutate}
             searchInputValue={inputValue}
             handleSelectedUser={handleSelectedUser}
             handleUpdateUser={handleUpdateUser}
