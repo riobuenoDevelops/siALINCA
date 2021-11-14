@@ -12,7 +12,7 @@ import FormErrorMessage from "../common/FormErrorMessage";
 
 import "../../styles/forms.less";
 
-const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
+const LoginForm = ({ onSubmit, onSubmitAsGuest, loading, onhandleMessage }) => {
   const { handleSubmit, register, errors } = useForm();
   const [showContent, handleContent] = useState(false);
 
@@ -79,12 +79,16 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
         >
           <div style={{ color: "red" }}>El campo es requerido</div>
         </FlexboxGrid.Item>
-        <FlexboxGrid.Item colspan={17}>
+        <FlexboxGrid.Item colspan={24}>
           <Button
             style={{ paddingRight: 0, textAlign: "end" }}
-            block
-            type="submit"
             appearance="link"
+            onClick={() => {
+              onhandleMessage(true);
+              setTimeout(() => {
+                onhandleMessage(false);
+              }, 5000);
+            }}
             className="text-bold text-color-dark-primary"
           >
             ¿Olvidaste tu Contraseña?
@@ -94,6 +98,7 @@ const LoginForm = ({ onSubmit, onSubmitAsGuest, loading }) => {
           <Button
             onClick={handleSubmit(onSubmit)}
             block
+            type="submit"
             appearance="primary"
             className="bg-color-secundary text-bold"
             style={{ padding: "1em 0.7em" }}
