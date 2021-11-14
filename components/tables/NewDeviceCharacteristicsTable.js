@@ -14,7 +14,7 @@ const DeleteCell = ({ handleData, data, rowData, dataKey, ...props }) => {
   );
 };
 
-export default function NewDeviceCharacteristicsTable({ data, handleData }) {
+export default function NewDeviceCharacteristicsTable({ withoutAction, data, handleData }) {
   const { HeaderCell, Cell, Column } = Table;
 
   return (
@@ -38,12 +38,14 @@ export default function NewDeviceCharacteristicsTable({ data, handleData }) {
         </HeaderCell>
         <Cell dataKey="value" />
       </Column>
-      <Column flexGrow={1} verticalAlign="middle">
-        <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>
-          <h6 className="text-black text-bold">Acciones</h6>
-        </HeaderCell>
-        <DeleteCell dataKey="index" handleData={handleData} data={data} />
-      </Column>
+      {!withoutAction &&
+        <Column flexGrow={1} verticalAlign="middle">
+          <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>
+            <h6 className="text-black text-bold">Acciones</h6>
+          </HeaderCell>
+          <DeleteCell dataKey="index" handleData={handleData} data={data} />
+        </Column>
+      }
     </Table>
   );
 }
