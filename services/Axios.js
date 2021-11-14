@@ -2,7 +2,7 @@ const Axios = require("axios");
 
 class AxiosService {
   static instance = Axios.create({
-    baseURL: `http://localhost:3000/api/v1`,
+    baseURL: "http://localhost:3000/api/v1",
     headers: { Authorization: "" },
   });
 
