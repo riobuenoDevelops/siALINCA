@@ -4,6 +4,7 @@ const propertySchema = {
 	properties: {
 		_id: { $ref: "modelId#" },
 		itemId: { $ref: "item#/properties/_id" },
+		isRealState: { type: "boolean" },
 		description: { type: "string" },
 		serial: { type: "string" },
 		model: { type: "string" },
@@ -17,13 +18,9 @@ const propertySchema = {
 	},
 	required: [
 		"itemId",
-		"description",
-		"serial",
-		"model",
-		"mark",
 		"material",
 	],
-	additionalProperties: false,
+	additionalProperties: true,
 };
 
 const updatedPropertySchema = {

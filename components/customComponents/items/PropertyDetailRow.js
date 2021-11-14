@@ -19,7 +19,7 @@ export default function PropertyDetailRow({ data }) {
         <span>Creado por</span>
         <p>{data.userName}</p>
       </FlexboxGrid.Item>
-      {data.addressLine && (
+      {data.isRealState && (
         <>
           <FlexboxGrid.Item style={{ marginRight: "1rem" }}>
             <span>Dirección</span>
