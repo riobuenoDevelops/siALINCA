@@ -1,11 +1,14 @@
-import React, { useState } from "react";
-import {useTranslation} from "react-i18next";
-import { Table} from "rsuite";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Notification, Table } from "rsuite";
+import electron from "electron";
 
 import NoteActionCell from "./customCells/NoteActionCell";
 import DeliveryNoteDetailModal from "../modals/DeliveryNoteDetailModal";
 
 import { useApplicants, useSedes } from "../../hooks";
+import AxiosService from "../../services/Axios";
+import routes from "../../config/routes";
 
 import "../../styles/custom-theme.less";
 
@@ -19,11 +22,15 @@ const TypeCell = ({ rowData, dataKey, ...props }) => {
   )
 }
 
-const DateCell = ({ rowData, rowKey, dataKey, ...props}) => {
+const DateCell = ({ rowData, rowKey, dataKey, ...props }) => {
   return (
     <Table.Cell {...props}>
       {rowData[dataKey] && (
-        <span>{new Intl.DateTimeFormat('es',{month:'2-digit',day:'2-digit', year:'numeric'}).format(new Date(rowData[dataKey]))}</span>
+        <span>{new Intl.DateTimeFormat('es', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric'
+        }).format(new Date(rowData[dataKey]))}</span>
       )}
     </Table.Cell>
   )
@@ -35,14 +42,17 @@ const ApplicantCell = ({ rowData, rowKey, applicantData, ...props }) => {
   return (
     <Table.Cell {...props}>
       {rowData.applicantType === "applicant"
-        ? <span style={{ textDecoration: rowData.deleted ? "line-through" : "unset"}}>{`${actualCellData?.names} ${actualCellData?.lastNames}`}</span>
-        : <span style={{ textDecoration: rowData.deleted ? "line-through" : "unset"}}>{actualCellData?.name}</span>
+        ? <span
+          style={{ textDecoration: rowData.deleted ? "line-through" : "unset" }}>{`${actualCellData?.names} ${actualCellData?.lastNames}`}</span>
+        : <span style={{ textDecoration: rowData.deleted ? "line-through" : "unset" }}>{actualCellData?.name}</span>
       }
     </Table.Cell>
   )
 }
 
-export default function NotesTable({ notes, searchInputValue, token, readOnly, withoutResponsable, mutate }) {
+const ipcRenderer = electron.ipcRenderer || false;
+
+export default function NotesTable({ notes, token, readOnly, withoutResponsable, mutate }) {
   let tableBody;
   const { applicants = [] } = useApplicants(token);
   const { sedes = [] } = useSedes(token);
@@ -51,6 +61,39 @@ export default function NotesTable({ notes, searchInputValue, token, readOnly, w
   const [displayLength, handleDisplayLength] = useState(10);
   const [isOpen, handleOpen] = useState(false);
   const [selectedData, handleData] = useState({});
+
+  useEffect(() => {
+    ipcRenderer.once("openDirDialog", async function (event, eventData) {
+      onGeneratePDF(eventData);
+    });
+  }, [selectedData]);
+
+  const onGeneratePDF = async (path) => {
+    try {
+      await AxiosService.instance.post(`${routes.notes}/${selectedData._id}/pdf`, {
+        path
+      }, {
+        headers: {
+          Authorization: token
+        }
+      });
+
+      Notification.success({
+        title: "Se ha generado el PDF correctamente",
+        description: `El PDF se ha generado en ${path}`,
+        placement: "topStart",
+        duration: 5000
+      });
+
+    } catch (err) {
+      Notification.error({
+        title: "Ha ocurrido un error generando el archivo PDF",
+        placement: "bottomStart",
+        duration: 5000
+      });
+      console.log(err);
+    }
+  }
 
   const handleChangePage = (dataKey) => {
     handlePage(dataKey);
@@ -76,70 +119,66 @@ export default function NotesTable({ notes, searchInputValue, token, readOnly, w
   return (
     <>
       <Table
-        data={data.filter((note) =>
-          !searchInputValue
-            ? true
-            : note.name.toLowerCase().includes(searchInputValue.toLowerCase())
-        )}
         wordWrap
         autoHeight
+        data={data}
         headerHeight={50}
         rowHeight={60}
         className="header-table shadow"
         bodyRef={(ref) => {
           tableBody = ref;
         }}
-        onRowClick={(row) => {
-          handleData(row);
-          handleOpen(true);
+        onRowClick={(row, event) => {
+          if (event.target.className === "rs-table-cell-wrap") {
+            handleData(row);
+            handleOpen(true);
+          }
         }}
       >
         <Column
           verticalAlign="middle"
           flexGrow={2}
-          style={{ paddingLeft: "1.5em" }}
         >
           <HeaderCell>
             <h6 className="text-black text-bold">Código</h6>
           </HeaderCell>
-          <Cell dataKey="_id" />
+          <Cell dataKey="_id"/>
         </Column>
         {!withoutResponsable && (
           <Column verticalAlign="middle" flexGrow={2}>
             <HeaderCell>
               <h6 className="text-black text-bold">Responsable</h6>
             </HeaderCell>
-            <ApplicantCell applicantData={[...applicants, ...sedes]} />
+            <ApplicantCell applicantData={[...applicants, ...sedes]}/>
           </Column>
         )}
         <Column verticalAlign="middle" flexGrow={1}>
           <HeaderCell>
             <h6 className="text-black text-bold">Tipo de Nota</h6>
           </HeaderCell>
-          <TypeCell dataKey="noteType" />
+          <TypeCell dataKey="noteType"/>
         </Column>
         <Column verticalAlign="middle" flexGrow={1}>
           <HeaderCell>
             <h6 className="text-black text-bold">F. Salida</h6>
           </HeaderCell>
-          <DateCell dataKey="createStamp" />
+          <DateCell dataKey="createStamp"/>
         </Column>
         <Column verticalAlign="middle" flexGrow={1}>
           <HeaderCell>
             <h6 className="text-black text-bold">F. Devolución</h6>
           </HeaderCell>
-          <DateCell dataKey="returnStamp" />
+          <DateCell dataKey="returnStamp"/>
         </Column>
         {!readOnly &&
-          <Column
-            verticalAlign="middle"
-            flexGrow={1}
-            align="right"
-            style={{ paddingRight: "1.5em" }}
-          >
-            <HeaderCell>{""}</HeaderCell>
-            <NoteActionCell mutate={mutate} />
-          </Column>
+        <Column
+          verticalAlign="middle"
+          flexGrow={1}
+          align="right"
+        >
+          <HeaderCell>{""}</HeaderCell>
+          <NoteActionCell mutate={mutate} handleSelectedData={handleData} />
+        </Column>
         }
       </Table>
       <Pagination
