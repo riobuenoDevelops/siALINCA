@@ -2,46 +2,42 @@ import { Button, FlexboxGrid, Notification } from "rsuite";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { parseCookies } from "../../lib/parseCookies";
 
 import NewMedicineForm from "../../components/forms/NewMedicineForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 import FormErrorMessage from "../../components/common/FormErrorMessage";
 import LoadingScreen from "../../components/layouts/LoadingScreen";
 
-import { useItem, useStores } from "../../hooks";
+import {useItem, useStores, useCurrentUser, useMeasures} from "../../hooks";
+
 import AxiosService from "../../services/Axios";
-import MeasureService from "../../services/Measure";
 import routes from "../../config/routes";
 
 import "../../styles/forms.less";
 
 export default function NewMedicinePage({
-  handleLogged,
-  handleUser,
   user,
-  contentMeasures,
-  markLabs,
-  presentations,
-  isError,
+  handleLogged
 }) {
   const history = useRouter();
   const { id, childId } = history.query;
   const { handleSubmit, errors, register, control, setError, clearErrors } = useForm({
     mode: "onBlur",
   });
-  const { stores, isLoading: storesLoading } = useStores(user.token);
   const [isOpen, handleOpen] = useState(false);
   const [isLoading, handleLoading] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
-  const { item, isLoading: itemLoading } = useItem(user.token, id ? id : null);
+  const { isEmpty } = useCurrentUser();
+  const { item, isLoading: itemLoading, itemStores } = useItem(user?.token, id);
+  const { stores, isLoading: storesLoading } = useStores(user?.token);
+  const { measures, isLoading: measuresLoading, mutate: measuresMutate } = useMeasures(user?.token);
 
   useEffect(() => {
-    if (isError) {
-      history.push("/500");
+    if (isEmpty) {
+      history.push("/login");
     }
+
     handleLogged(true);
-    handleUser(user);
   }, []);
 
   const onSubmit = async (data) => {
@@ -190,7 +186,7 @@ export default function NewMedicinePage({
     history.push("/items");
   };
 
-  if(storesLoading) return <LoadingScreen />;
+  if(storesLoading || measuresLoading || (id && itemLoading)) return <LoadingScreen />;
 
   return (
     <>
@@ -200,16 +196,37 @@ export default function NewMedicinePage({
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewMedicineForm
+            item={item}
+            itemStores={itemStores}
+            measuresMutate={measuresMutate}
             errors={errors}
             register={register}
             control={control}
-            stores={stores}
+            stores={stores.filter(store => !store.disabled)}
             storeData={[storeItemData, setStoreItemData]}
-            markLabs={markLabs}
-            contentMeasures={contentMeasures}
-            presentations={presentations}
             token={user.token}
-            item={item}
+            markLabs={measures.flatMap(measureItem => {
+              if (measureItem.name === "medicineMarkLabs"){
+                return measureItem.measures;
+              }
+              return [];
+            })}
+            contentMeasures={measures.flatMap(measureItem => {
+              if (measureItem.name === "gramo" ||
+                measureItem.name === "litro" ||
+                measureItem.name === "metro" ||
+                measureItem.name === "superficie" ||
+                measureItem.name === "volumen"){
+                return measureItem.measures;
+              }
+              return [];
+            })}
+            presentations={measures.flatMap(measureItem => {
+              if (measureItem.name === "medicinePresentation"){
+                return measureItem.measures;
+              }
+              return [];
+            })}
           />
           {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
           {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
@@ -245,66 +262,4 @@ export default function NewMedicinePage({
       />
     </>
   );
-};
-
-export async function getServerSideProps({ req }) {
-  let user = null,
-    measures = [],
-    contentMeasures = [],
-    presentations = [],
-    markLabs = [];
-
-  const cookies = parseCookies(req);
-
-  if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
-
-      measures = await MeasureService.getMeasures({});
-
-      measures.map((measureItem) => {
-        if (
-          measureItem.name === "gramo" ||
-          measureItem.name === "litro" ||
-          measureItem.name === "metro" ||
-          measureItem.name === "superficie" ||
-          measureItem.name === "volumen"
-        ) {
-          contentMeasures.push(...measureItem.measures);
-        }
-        if (measureItem.name === "medicineMarkLabs") {
-          markLabs = measureItem.measures;
-        }
-        if (measureItem.name === "medicinePresentation") {
-          presentations = measureItem.measures;
-        }
-      });
-
-      return {
-        props: {
-          markLabs,
-          contentMeasures,
-          presentations,
-          user,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          isError: true,
-        },
-      };
-    }
-  }
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }
-
-

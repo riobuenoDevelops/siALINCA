@@ -1,26 +1,20 @@
 import { useState, useEffect } from "react";
-import {Button, FlexboxGrid, Notification} from "rsuite";
+import { Button, FlexboxGrid, Notification } from "rsuite";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
 import NewMealForm from "../../components/forms/NewMealForm";
+import LoadingScreen from "../../components/layouts/LoadingScreen";
+import FormErrorMessage from "../../components/common/FormErrorMessage";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 
-import { parseCookies } from "../../lib/parseCookies";
-import StoreService from "../../services/Store";
-import MeasureService from "../../services/Measure";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
-import FormErrorMessage from "../../components/common/FormErrorMessage";
+import { useCurrentUser, useItem, useMeasures, useStores } from "../../hooks";
 
 export default function NewMealPage({
   handleLogged,
-  handleUser,
-  user,
-  isError,
-  stores,
-  mealPresentations,
-  contentMeasures,
+  user
 }) {
   const history = useRouter();
   const { id, childId } = history.query;
@@ -28,10 +22,17 @@ export default function NewMealPage({
   const [isOpen, handleIsOpen] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
   const [isLoading, handleLoading] = useState(false);
+  const { isEmpty } = useCurrentUser();
+  const { item, isLoading: itemLoading, itemStores } = useItem(user?.token, id);
+  const { stores, isLoading: storesLoading } = useStores(user?.token);
+  const { measures, isLoading: measuresLoading, mutate: measuresMutate } = useMeasures(user?.token);
 
   useEffect(() => {
+    if (isEmpty) {
+      history.push('/loading');
+    }
+
     handleLogged(true);
-    handleUser(user);
   }, []);
 
   const onHide = () => {
@@ -47,7 +48,7 @@ export default function NewMealPage({
   };
 
   const onSubmit = async (data) => {
-    if(!storeItemData.length) {
+    if (!storeItemData.length) {
       setError("storeData", {
         message: "El item debe estar por lo menos en un almacén"
       })
@@ -62,7 +63,7 @@ export default function NewMealPage({
       return { quantity: accum.quantity + item.quantity }
     })
 
-    if(quantityCheck.quantity !== data.quantity){
+    if (quantityCheck.quantity !== data.quantity) {
       setError("quantityValue", {
         message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
       })
@@ -151,7 +152,7 @@ export default function NewMealPage({
       }
 
       Notification.success({
-        title: id? "Alimento Actualizado" :"Nuevo Alimento",
+        title: id ? "Alimento Actualizado" : "Nuevo Alimento",
         description: id ? "Alimento actualizado con exito" : "Alimento agregado con exito",
         placement: "bottomStart",
         duration: 9000,
@@ -170,30 +171,48 @@ export default function NewMealPage({
     }
   };
 
+  if (storesLoading || measuresLoading || (id && itemLoading)) return <LoadingScreen />
+
   return (
     <>
-      <FlexboxGrid justify="start">
+      <FlexboxGrid justify="start" style={{ marginBottom: '3rem' }}>
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "3em" }}>
           <h3 className="text-black text-bolder">Nuevo Alimento</h3>
-          <span>Paso 1/1</span>
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
           <NewMealForm
+            item={item}
+            itemStores={itemStores}
+            mutate={measuresMutate}
             register={register}
             errors={errors}
             control={control}
-            stores={stores}
-            storeItemData={[storeItemData,setStoreItemData]}
-            mealPresentations={mealPresentations}
-            contentMeasures={contentMeasures}
+            storeItemData={[storeItemData, setStoreItemData]}
             token={user.token}
+            stores={stores.filter(store => !store.disabled)}
+            mealPresentations={measures.flatMap(measure => {
+              if (measure.name === "mealPresentations") {
+                return measure.measures;
+              }
+              return [];
+            })}
+            contentMeasures={measures.flatMap(measureItem => {
+              if (measureItem.name === "gramo" ||
+                measureItem.name === "litro" ||
+                measureItem.name === "metro" ||
+                measureItem.name === "superficie" ||
+                measureItem.name === "volumen") {
+                return measureItem.measures;
+              }
+              return [];
+            })}
           />
-          {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
-          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
+          {errors.storeData && <FormErrorMessage message={errors.storeData.message}/>}
+          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message}/>}
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <FlexboxGrid justify="space-between">
-            <FlexboxGrid.Item colspan={17} />
+            <FlexboxGrid.Item colspan={17}/>
             <FlexboxGrid.Item colspan={3}>
               <Button
                 block
@@ -226,62 +245,4 @@ export default function NewMealPage({
       />
     </>
   );
-};
-
-export async function getServerSideProps({ req }) {
-  let user = {},
-    stores,
-    measures,
-    contentMeasures = [],
-    mealPresentations = [];
-  const cookies = parseCookies(req);
-
-  if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
-
-      stores = await StoreService.getStores({});
-      stores = stores.map((store) => ({ ...store, _id: store._id.toString() }));
-
-      measures = await MeasureService.getMeasures({});
-      measures?.map((measureItem) => {
-        if (measureItem.name === "mealPresentations") {
-          mealPresentations = measureItem.measures;
-        }
-        if (
-          measureItem.name === "gramo" ||
-          measureItem.name === "litro" ||
-          measureItem.name === "metro" ||
-          measureItem.name === "superficie" ||
-          measureItem.name === "volumen"
-        ) {
-          contentMeasures = [...contentMeasures, ...measureItem.measures];
-        }
-      });
-
-      return {
-        props: {
-          user,
-          stores,
-          mealPresentations,
-          contentMeasures,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          isError: true,
-        },
-      };
-    }
-  }
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }

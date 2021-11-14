@@ -1,28 +1,22 @@
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import {Button, FlexboxGrid, Notification} from "rsuite";
+import { Button, FlexboxGrid, Notification } from "rsuite";
 
+import LoadingScreen from "../../components/layouts/LoadingScreen";
 import NewElectronicDeviceForm from "../../components/forms/NewElectronicDeviceForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
+import FormErrorMessage from "../../components/common/FormErrorMessage";
 
-import { parseCookies } from "../../lib/parseCookies";
-import StoreService from "../../services/Store";
-import MeasureService from "../../services/Measure";
+import { useCurrentUser, useItem, useMeasures, useStores } from "../../hooks";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
 
 import "../../styles/forms.less";
-import FormErrorMessage from "../../components/common/FormErrorMessage";
 
 export default function NewElectronicDevicePage({
   handleLogged,
-  handleUser,
-  isError,
-  user,
-  stores,
-  marks,
-  types,
+  user
 }) {
   const history = useRouter();
   const { id, childId } = history.query;
@@ -31,14 +25,20 @@ export default function NewElectronicDevicePage({
   const [isOpen, handleIsOpen] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
   const [deviceCharacteristics, setDeviceCharacteristics] = useState([]);
+  const { isEmpty } = useCurrentUser();
+  const { item, isLoading: itemLoading, itemStores } = useItem(user?.token, id);
+  const { stores, isLoading: storesLoading } = useStores(user?.token);
+  const { measures, isLoading: measuresLoading, mutate: measuresMutate } = useMeasures(user?.token);
+
 
 
   useEffect(() => {
-    if (isError) {
+    if (isEmpty) {
+      history.push('/login');
     }
+
     handleLogged(true);
-    handleUser(user);
-  });
+  }, []);
 
   const onHide = () => {
     handleIsOpen(false);
@@ -53,7 +53,7 @@ export default function NewElectronicDevicePage({
   };
 
   const onSubmit = async (data) => {
-    if(!deviceCharacteristics.length) {
+    if (!deviceCharacteristics.length) {
       setError("characteristics",
         {
           type: "empty",
@@ -66,7 +66,7 @@ export default function NewElectronicDevicePage({
       return;
     }
 
-    if(!storeItemData.length) {
+    if (!storeItemData.length) {
       setError("storeData", {
         message: "El item debe estar por lo menos en un almacén"
       })
@@ -81,13 +81,13 @@ export default function NewElectronicDevicePage({
       return { quantity: accum.quantity + item.quantity }
     })
 
-    if(quantityCheck.quantity !== data.quantity){
+    if (quantityCheck.quantity !== data.quantity) {
       setError("quantityValue", {
         message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
       })
       setTimeout(() => {
         clearErrors("quantityValue")
-      }, 3000);
+      }, 3500);
       return;
     }
 
@@ -98,7 +98,7 @@ export default function NewElectronicDevicePage({
       type: "electroDevice",
       quantity: data.quantity,
       unitQuantity: data.unitQuantity,
-      price: `${data.priceCurrency} ${data.price}`,
+      price: `${data.priceCurrency} ${data.priceText}`,
       userId: user.user._id,
       disabled: false
     };
@@ -111,7 +111,7 @@ export default function NewElectronicDevicePage({
     };
 
     try {
-      if(id) {
+      if (id) {
         await AxiosService.instance.put(routes.items + "/" + id, itemData, {
           headers: {
             Authorization: user.token,
@@ -147,7 +147,7 @@ export default function NewElectronicDevicePage({
           },
         });
 
-        await AxiosService.instance.post(
+        const electroId = await AxiosService.instance.post(
           routes.items + "/electro-devices",
           { ...electroDeviceData, itemId: item.data },
           {
@@ -156,6 +156,13 @@ export default function NewElectronicDevicePage({
             },
           }
         );
+
+        await AxiosService.instance.put(`${routes.items}/${item.data}`,
+          { itemChildId: electroId.data }, {
+            headers: {
+              Authorization: user.token
+            }
+          });
 
         storeItemData.map(async (store) => {
           await AxiosService.instance.post(
@@ -171,8 +178,8 @@ export default function NewElectronicDevicePage({
       }
 
       Notification.success({
-        title: id ? "Dispositivo Actualizado" :"Nuevo Dispositivo Electrónico",
-        description: id ? "Dispositivo actualizado con exito" :"Dispositivo Electrónico agregado con exito",
+        title: id ? "Dispositivo Actualizado" : "Nuevo Dispositivo Electrónico",
+        description: id ? "Dispositivo actualizado con exito" : "Dispositivo Electrónico agregado con exito",
         placement: "bottomStart",
         duration: 9000,
       });
@@ -181,13 +188,15 @@ export default function NewElectronicDevicePage({
     } catch (err) {
       Notification.error({
         title: "Error",
-        description: err?.response?.data,
         placement: "bottomStart",
         duration: 9000,
       });
       handleLoading(false);
     }
   };
+
+  if (storesLoading || measuresLoading || (id && itemLoading)) return <LoadingScreen />
+  console.log(id, childId);
 
   return (
     <>
@@ -198,18 +207,31 @@ export default function NewElectronicDevicePage({
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewElectronicDeviceForm
+            item={item}
+            itemStores={itemStores}
+            mutate={measuresMutate}
             errors={errors}
             register={register}
             control={control}
-            stores={stores}
-            marks={marks}
-            types={types}
             token={user.token}
             storeData={[storeItemData, setStoreItemData]}
             deviceCharacteristics={[deviceCharacteristics, setDeviceCharacteristics]}
+            stores={stores.filter(store => !store.disabled)}
+            marks={measures.flatMap(measure => {
+              if (measure.name === "electroDeviceMarks") {
+                return measure.measures;
+              }
+              return [];
+            })}
+            types={measures.flatMap(measure => {
+              if (measure.name === "electroDeviceTypes") {
+                return measure.measures;
+              }
+              return [];
+            })}
           />
-          {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
-          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
+          {errors.storeData && <FormErrorMessage message={errors.storeData.message}/>}
+          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message}/>}
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
           colspan={15}
@@ -251,56 +273,4 @@ export default function NewElectronicDevicePage({
       />
     </>
   );
-}
-
-export async function getServerSideProps({ req, params }) {
-  let user = {},
-    stores,
-    measures,
-    marks = [],
-    types = [];
-  const cookies = parseCookies(req);
-
-  if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
-
-      stores = await StoreService.getStores({});
-      stores = stores.map((store) => ({ ...store, _id: store._id.toString() }));
-
-      measures = await MeasureService.getMeasures({});
-      measures.map((measure) => {
-        if (measure.name === "electroDeviceMarks") {
-          marks = measure.measures;
-        }
-        if (measure.name === "electroDeviceTypes") {
-          types = measure.measures;
-        }
-      });
-
-      return {
-        props: {
-          user,
-          stores,
-          marks,
-          types,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          isError: true,
-        },
-      };
-    }
-  }
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }

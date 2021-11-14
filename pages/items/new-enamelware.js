@@ -1,39 +1,40 @@
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
-import {Button, FlexboxGrid, Notification} from "rsuite";
+import { useRouter } from "next/router";
+import { Button, FlexboxGrid, Notification } from "rsuite";
 
+import LoadingScreen from "../../components/layouts/LoadingScreen";
 import NewEnamelwareForm from "../../components/forms/NewEnamelwareForm";
+import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 
-import { parseCookies } from "../../lib/parseCookies";
-import MeasureService from "../../services/Measure";
+import { useCurrentUser, useItem, useMeasures, useStores } from "../../hooks";
+import routes from "../../config/routes";
+import AxiosService from "../../services/Axios";
 
 import "../../styles/forms.less";
-import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
-import {useRouter} from "next/router";
-import AxiosService from "../../services/Axios";
-import routes from "../../config/routes";
-import {useStores} from "../../hooks";
 
 export default function NewEnamelwarePage({
   handleLogged,
-  handleUser,
-  isError,
-  user,
-  materials,
-  sizes
+  user
 }) {
   const history = useRouter();
   const { id, childId } = history.query;
   const { handleSubmit, errors, register, control, setError, clearErrors } = useForm();
-  const { stores, isLoading: storesLoading } = useStores(user.token);
   const [isOpen, handleIsOpen] = useState(false);
   const [isLoading, handleLoading] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
+  const { isEmpty } = useCurrentUser();
+  const { item, isLoading: itemLoading, itemStores } = useItem(user?.token, id);
+  const { stores, isLoading: storesLoading } = useStores(user?.token);
+  const { measures, isLoading: measuresLoading, mutate: measuresMutate } = useMeasures(user?.token);
 
   useEffect(() => {
+    if (isEmpty) {
+      history.push('/login');
+    }
+
     handleLogged(true);
-    handleUser(user);
-  });
+  }, []);
 
   const onHide = () => {
     handleIsOpen(false);
@@ -48,7 +49,7 @@ export default function NewEnamelwarePage({
   };
 
   const onSubmit = async (data) => {
-    if(!storeItemData.length) {
+    if (!storeItemData.length) {
       setError("storeData", {
         message: "El item debe estar por lo menos en un almacén"
       })
@@ -63,7 +64,7 @@ export default function NewEnamelwarePage({
       return { quantity: accum.quantity + item.quantity }
     })
 
-    if(quantityCheck.quantity !== data.quantity){
+    if (quantityCheck.quantity !== data.quantity) {
       setError("quantityValue", {
         message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
       })
@@ -160,8 +161,8 @@ export default function NewEnamelwarePage({
       }
 
       Notification.success({
-        title: id ? "Utencilio Actualizado" :"Nuevo Utencilio",
-        description: id ? "Utencilio actualizado con exito" :"Utencilio agregado con exito",
+        title: id ? "Utencilio Actualizado" : "Nuevo Utencilio",
+        description: id ? "Utencilio actualizado con exito" : "Utencilio agregado con exito",
         placement: "bottomStart",
         duration: 9000,
       });
@@ -179,6 +180,8 @@ export default function NewEnamelwarePage({
     }
   };
 
+  if (storesLoading || measuresLoading || (id && itemLoading)) return <LoadingScreen/>
+
   return (
     <>
       <FlexboxGrid className="form" justify="space-between">
@@ -188,14 +191,27 @@ export default function NewEnamelwarePage({
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewEnamelwareForm
+            item={item}
+            itemStores={itemStores}
+            mutate={measuresMutate}
             token={user.token}
             register={register}
             errors={errors}
             control={control}
             storeItemData={[storeItemData, setStoreItemData]}
-            sizes={sizes}
-            stores={stores}
-            materialsData={materials}
+            stores={stores.filter(store => !store.disabled)}
+            sizes={measures.flatMap(measure => {
+              if (measure.name === "enamelwareSizes" || measure.name === "metro") {
+                return measure.measures;
+              }
+              return [];
+            })}
+            materialsData={measures.flatMap(measure => {
+              if (measure.name === "enamelwareMaterials") {
+                return measure.measures;
+              }
+              return [];
+            })}
           />
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
@@ -238,50 +254,4 @@ export default function NewEnamelwarePage({
       />
     </>
   );
-}
-
-export async function getServerSideProps({ req, params }) {
-  let user = {},
-    measures = [], sizes = [], materials = [];
-  const cookies = parseCookies(req);
-
-  if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
-
-      measures = await MeasureService.getMeasures({});
-      measures.map(measure => {
-        if(measure.name === "enamelwareMaterials") {
-          materials = measure.measures;
-        }
-        if(measure.name === "enamelwareSizes" || measure.name === "metro") {
-          sizes.push(...measure.measures);
-        }
-      })
-
-      return {
-        props: {
-          user,
-          materials,
-          sizes,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          materials,
-          isError: true,
-        },
-      };
-    }
-  }
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }

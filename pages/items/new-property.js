@@ -1,29 +1,22 @@
 import { useState, useEffect } from "react";
-import {Button, FlexboxGrid, Notification} from "rsuite";
+import { Button, FlexboxGrid, Notification } from "rsuite";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 
+import LoadingScreen from "../../components/layouts/LoadingScreen";
 import NewPropertyForm from "../../components/forms/NewPropertyForm";
+import FormErrorMessage from "../../components/common/FormErrorMessage";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 
-import { parseCookies } from "../../lib/parseCookies";
-import StoreService from "../../services/Store";
-import MeasureService from "../../services/Measure";
+import { useCurrentUser, useItem, useMeasures, useStores } from "../../hooks";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
 
 import "../../styles/forms.less";
-import FormErrorMessage from "../../components/common/FormErrorMessage";
-
 
 export default function NewPropertyPage({
   handleLogged,
-  handleUser,
-  isError,
-  user,
-  stores,
-  marks,
-  materials,
+  user
 }) {
   const history = useRouter();
   const { id, childId } = history.query;
@@ -31,13 +24,18 @@ export default function NewPropertyPage({
   const [isLoading, handleLoading] = useState();
   const [isOpen, handleIsOpen] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
+  const { isEmpty } = useCurrentUser();
+  const { item, isLoading: itemLoading, itemStores } = useItem(user?.token, id);
+  const { stores, isLoading: storesLoading } = useStores(user?.token);
+  const { measures, isLoading: measuresLoading, mutate: measuresMutate } = useMeasures(user?.token);
 
   useEffect(() => {
-    if (isError) {
+    if (isEmpty) {
+      history.push('/login');
     }
+
     handleLogged(true);
-    handleUser(user);
-  });
+  }, []);
 
   const onHide = () => {
     handleIsOpen(false);
@@ -52,7 +50,7 @@ export default function NewPropertyPage({
   };
 
   const onSubmit = async (data) => {
-    if(!storeItemData.length) {
+    if (!storeItemData.length) {
       setError("storeData", {
         message: "El item debe estar por lo menos en un almacén"
       })
@@ -67,7 +65,7 @@ export default function NewPropertyPage({
       return { quantity: accum.quantity + item.quantity }
     })
 
-    if(quantityCheck.quantity !== data.quantity){
+    if (quantityCheck.quantity !== data.quantity) {
       setError("quantityValue", {
         message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
       })
@@ -89,6 +87,7 @@ export default function NewPropertyPage({
       disabled: false
     };
     const propertyData = {
+      isRealState: data.isRealState,
       description: data.description,
       serial: data.serial,
       model: data.model,
@@ -162,7 +161,7 @@ export default function NewPropertyPage({
       }
 
       Notification.success({
-        title: id ? "Inmueble Actualizado" :"Nueva Inmueble",
+        title: id ? "Inmueble Actualizado" : "Nueva Inmueble",
         description: id ? "Inmueble actualizado con exito" : "Inmueble agregado con exito",
         placement: "bottomStart",
         duration: 9000,
@@ -180,26 +179,42 @@ export default function NewPropertyPage({
     }
   };
 
+  if (storesLoading || measuresLoading || (id && itemLoading)) return <LoadingScreen />
+
   return (
     <>
       <FlexboxGrid justify="space-between">
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "2em" }}>
-          <h3 className="text-bolder">Nuevo Inmueble</h3>
-          <span>Paso 1/1</span>
+          <h3 className="text-bolder">{`${id ? "Actualizar Inmueble" : "Nuevo Inmueble"}`}</h3>
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewPropertyForm
+            item={item}
+            itemStores={itemStores}
+            mutate={measuresMutate}
             errors={errors}
             register={register}
             control={control}
-            stores={stores}
             storeData={[storeItemData, setStoreItemData]}
-            marks={marks}
-            materials={materials}
             token={user.token}
+            stores={stores.filter(store => !store.disabled)}
+            marks={measures.flatMap(measure => {
+              if (measure.name === "propertyMarks") {
+                return measure.measures;
+              }
+
+              return [];
+            })}
+            materials={measures.flatMap(measure => {
+              if (measure.name === "propertyMaterials") {
+                return measure.measures;
+              }
+
+              return [];
+            })}
           />
-          {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
-          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
+          {errors.storeData && <FormErrorMessage message={errors.storeData.message}/>}
+          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message}/>}
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
           colspan={15}
@@ -241,64 +256,4 @@ export default function NewPropertyPage({
       />
     </>
   );
-}
-
-export async function getServerSideProps({ req, params }) {
-  let user = {},
-    stores,
-    measures,
-    marks = [],
-    materials = [];
-  const cookies = parseCookies(req);
-
-  if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
-
-      stores = await StoreService.getStores({});
-      /*stores = stores.map((store) => {
-        console.log(store);
-        return {
-          ...store,
-          id: store._id.toString(),
-          createdAt: new Date(store.createdAt.toString())
-        }
-      });*/
-
-      measures = await MeasureService.getMeasures({});
-      measures.map((measure) => {
-        if (measure.name === "propertyMarks") {
-          marks = measure.measures;
-        }
-        if (measure.name === "propertyMaterials") {
-          materials = measure.measures;
-        }
-      });
-
-      return {
-        props: {
-          user,
-          stores,
-          marks,
-          materials,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          stores,
-          isError: true,
-        },
-      };
-    }
-  }
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }

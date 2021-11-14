@@ -1,28 +1,22 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import {Button, FlexboxGrid, Notification} from "rsuite";
+import { Button, FlexboxGrid, Notification } from "rsuite";
 import { useForm } from "react-hook-form";
 
+import LoadingScreen from "../../components/layouts/LoadingScreen";
 import NewStationaryForm from "../../components/forms/NewStationaryForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 import FormErrorMessage from "../../components/common/FormErrorMessage";
 
-import { parseCookies } from "../../lib/parseCookies";
-import StoreService from "../../services/Store";
-import MeasureService from "../../services/Measure";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
 
 import "../../styles/forms.less";
+import { useCurrentUser, useItem, useMeasures, useStores } from "../../hooks";
 
 export default function NewStationaryPage({
   handleLogged,
-  handleUser,
-  isError,
-  user,
-  stores,
-  marks,
-  presentations,
+  user
 }) {
   const history = useRouter();
   const { id, childId } = history.query;
@@ -30,13 +24,18 @@ export default function NewStationaryPage({
   const [isLoading, handleLoading] = useState();
   const [isOpen, handleIsOpen] = useState(false);
   const [storeItemData, setStoreItemData] = useState([]);
+  const { isEmpty } = useCurrentUser();
+  const { item, isLoading: itemLoading, itemStores } = useItem(user?.token, id);
+  const { stores, isLoading: storesLoading } = useStores(user?.token);
+  const { measures, isLoading: measuresLoading, mutate: measuresMutate } = useMeasures(user?.token);
 
   useEffect(() => {
-    if (isError) {
+    if (isEmpty) {
+      history.push('/login');
     }
+
     handleLogged(true);
-    handleUser(user);
-  });
+  }, []);
 
   const onHide = () => {
     handleIsOpen(false);
@@ -51,7 +50,7 @@ export default function NewStationaryPage({
   };
 
   const onSubmit = async (data) => {
-    if(!storeItemData.length) {
+    if (!storeItemData.length) {
       setError("storeData", {
         message: "El item debe estar por lo menos en un almacén"
       })
@@ -66,7 +65,7 @@ export default function NewStationaryPage({
       return { quantity: accum.quantity + item.quantity }
     })
 
-    if(quantityCheck.quantity !== data.quantity){
+    if (quantityCheck.quantity !== data.quantity) {
       setError("quantityValue", {
         message: "La suma de todos los almacenes agregados debe ser igual al valor en el campo 'Cantidad'"
       })
@@ -93,7 +92,7 @@ export default function NewStationaryPage({
     };
 
     try {
-      if(id) {
+      if (id) {
         await AxiosService.instance.put(routes.items + "/" + id, itemData, {
           headers: {
             Authorization: user.token,
@@ -153,7 +152,7 @@ export default function NewStationaryPage({
       }
 
       Notification.success({
-        title: id ? "Papelería Actualizada" :"Nuevo Papelería",
+        title: id ? "Papelería Actualizada" : "Nuevo Papelería",
         description: id ? "Papelería actualizada con exito" : "Papelería agregado con exito",
         placement: "bottomStart",
         duration: 9000,
@@ -171,26 +170,40 @@ export default function NewStationaryPage({
     }
   };
 
+  if (storesLoading || measuresLoading || (id && itemLoading)) return <LoadingScreen />
+
   return (
     <>
       <FlexboxGrid justify="space-between">
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "2em" }}>
           <h3 className="text-bolder">Nueva Papeleria</h3>
-          <span>Paso 1/1</span>
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewStationaryForm
+            item={item}
+            itemStores={itemStores}
+            mutate={measuresMutate}
             errors={errors}
             register={register}
             control={control}
-            stores={stores}
-            marks={marks}
-            presentations={presentations}
             token={user.token}
             storeData={[storeItemData, setStoreItemData]}
+            stores={stores.filter(store => !store.disabled)}
+            marks={measures.flatMap((measure) => {
+              if (measure.name === "stationaryMarks") {
+                return measure.measures;
+              }
+              return [];
+            })}
+            presentations={measures.flatMap((measure) => {
+              if (measure.name === "stationaryPresentations") {
+                return measure.measures;
+              }
+              return [];
+            })}
           />
-          {errors.storeData && <FormErrorMessage message={errors.storeData.message} />}
-          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message} />}
+          {errors.storeData && <FormErrorMessage message={errors.storeData.message}/>}
+          {errors.quantityValue && <FormErrorMessage message={errors.quantityValue.message}/>}
         </FlexboxGrid.Item>
         <FlexboxGrid.Item
           colspan={15}
@@ -232,56 +245,4 @@ export default function NewStationaryPage({
       />
     </>
   );
-}
-
-export async function getServerSideProps({ req, params }) {
-  let user = {},
-    stores,
-    measures,
-    marks = [],
-    presentations = [];
-  const cookies = parseCookies(req);
-
-  if (cookies && cookies.sialincaUser) {
-    try {
-      user = JSON.parse(cookies.sialincaUser);
-
-      stores = await StoreService.getStores({});
-      stores = stores.map((store) => ({ ...store, _id: store._id.toString() }));
-
-      measures = await MeasureService.getMeasures({});
-      measures.map((measure) => {
-        if (measure.name === "stationaryMarks") {
-          marks = measure.measures;
-        }
-        if (measure.name === "stationaryPresentations") {
-          presentations = measure.measures;
-        }
-      });
-
-      return {
-        props: {
-          user,
-          stores,
-          marks,
-          presentations,
-          isError: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {
-          user,
-          isError: true,
-        },
-      };
-    }
-  }
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }
