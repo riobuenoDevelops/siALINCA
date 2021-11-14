@@ -6,7 +6,6 @@ import {
   FlexboxGrid,
   Icon,
 } from "rsuite";
-import cookieCutter from "cookie-cutter";
 
 import AboutModal from "../modals/AboutModal";
 import UserConfigurationModal from '../modals/UserConfigurationModal';
@@ -17,14 +16,12 @@ import NotesMenu from "../Header/NotesMenu";
 import ReportsMenu from "../Header/ReportsMenu";
 
 import "../../styles/custom-header.less";
+import { useCurrentUser } from "../../hooks";
 
 const CustomHeader = ({
   router,
   expanded,
-  handleLogged,
   user,
-  handleUser,
-  ablyClient,
   handleUserModalOpen,
   handleStoreModalOpen,
   handleApplicantModalOpen,
@@ -32,6 +29,7 @@ const CustomHeader = ({
 }) => {
   const [showAboutModal, handleAboutModal] = useState(false);
   const [configurationModalOpen, setConfigurationModalOpen] = useState(false);
+  const { removeCookie } = useCurrentUser();
 
   const onOpenAboutModal = () => {
     handleAboutModal(true);
@@ -58,12 +56,7 @@ const CustomHeader = ({
   };
 
   const logout = () => {
-    const channel = ablyClient.channels.get("notifications");
-    channel.unsubscribe();
-    ablyClient.connection.close();
-
-    cookieCutter.set("sialincaUser", "", { expires: new Date(0) });
-    handleLogged(false);
+    removeCookie('sialincaUser');
     router.push("/login");
   };
 
@@ -124,9 +117,9 @@ const CustomHeader = ({
           </Avatar>
           <Dropdown
             placement="bottomEnd"
-            title={`Hola, ${user?.user?.names ? user?.user?.names.split(" ")[0] : "Invitado"} ${user?.user?.lastNames ? user?.user?.lastNames.charAt(
+            title={`${user?.user?.names ? "Hola, " + user?.user?.names.split(" ")[0] : "Bienvenido"}${user?.user?.lastNames ? " " + user?.user?.lastNames.charAt(
               0
-            ) : ""}.`}
+            ) + "." : ""}`}
             className="user-dropdown"
           >
             <Dropdown.Item
@@ -162,7 +155,6 @@ const CustomHeader = ({
         isOpen={configurationModalOpen}
         onClose={() => setConfigurationModalOpen(false)}
         user={user}
-        handleUser={handleUser}
       />
     </>
   );
