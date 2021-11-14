@@ -1,19 +1,19 @@
-import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import AxiosService from "../../../services/Axios";
-import routes from "../../../config/routes";
 import { Button, Divider, FlexboxGrid, Input } from "rsuite";
 
+import AxiosService from "../../../services/Axios";
+import routes from "../../../config/routes";
+
 export default function FormDrowpdownFooter({
+  mutate,
   route,
   placeholder,
   isEditing,
   setEditing,
   token,
 }) {
-  const router = useRouter();
-  const { handleSubmit, errors, register } = useForm();
+  const { handleSubmit, register } = useForm();
   const [isLoading, handleLoading] = useState(false);
 
   const onSubmit = async (data) => {
@@ -28,9 +28,11 @@ export default function FormDrowpdownFooter({
           },
         }
       );
-      router.replace(router.asPath);
+
+      await mutate();
+
     } catch (err) {
-      console.error(err.response.data.message);
+      console.error(err);
     }
     handleLoading(false);
     setEditing(false);

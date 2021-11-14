@@ -14,6 +14,7 @@ import currencyData from "../../public/staticData/Common-Currency.json";
 import "../../styles/forms.less";
 
 export default function NewStationaryForm({
+  mutate,
   register,
   control,
   errors,
@@ -22,13 +23,14 @@ export default function NewStationaryForm({
   marks,
   presentations,
   storeData,
+  item,
+  itemStores
 }) {
   const history = useRouter();
   const { id } = history.query;
   const quantityData = useState('');
   const [isAddingMark, handleAddingMark] = useState(false);
   const [isAddingPresentation, handleAddingPresentation] = useState(false);
-  const { item, itemStores = [] } = useItem(token, id ? id : '');
 
   useEffect(() => {
     if(id && item && itemStores) {
@@ -77,6 +79,7 @@ export default function NewStationaryForm({
                 return (
                   <div style={{ padding: "0.5em", width: "100%" }}>
                     <FormDropdownFooter
+                      mutate={mutate}
                       isEditing={isAddingMark}
                       setEditing={handleAddingMark}
                       placeholder="Marca"
@@ -109,6 +112,7 @@ export default function NewStationaryForm({
                 return (
                   <div style={{ padding: "0.5em", width: "100%" }}>
                     <FormDropdownFooter
+                      mutate={mutate}
                       isEditing={isAddingPresentation}
                       setEditing={handleAddingPresentation}
                       placeholder="Presentación"

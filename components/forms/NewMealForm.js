@@ -7,13 +7,12 @@ import StoreItemForm from "./common/StoreItemForm";
 import FormDropdownFooter from "./common/FormDropdownFooter";
 import FormErrorMessage from "../common/FormErrorMessage";
 
-import {useItem} from "../../hooks";
-
 import currencyData from "../../public/staticData/Common-Currency.json";
 
 import "../../styles/forms.less";
 
 const NewMealForm = ({
+  mutate,
   register,
   errors,
   control,
@@ -22,16 +21,17 @@ const NewMealForm = ({
   contentMeasures,
   storeItemData,
   token,
+  item,
+  itemStores
 }) => {
   const history = useRouter();
   const { id } = history.query;
   const quantityData = useState('');
   const [isAddingPresentation, handleAddingPresentation] = useState(false);
-  const { item, itemStores = [] } = useItem(token, id ? id : '');
 
   useEffect(() => {
     if(id && item && itemStores) {
-      quantityData[1](item?.quantity || 0);
+      quantityData[1](item?.quantity);
       storeItemData[1](
         itemStores.map((itemStore, index) => (
           {
@@ -76,6 +76,7 @@ const NewMealForm = ({
                 return (
                   <div style={{ padding: "0.5em", width: "100%" }}>
                     <FormDropdownFooter
+                      mutate={mutate}
                       isEditing={isAddingPresentation}
                       setEditing={handleAddingPresentation}
                       placeholder="Presentación"

@@ -1,20 +1,18 @@
 import {useEffect, useState} from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { FlexboxGrid, Input, SelectPicker } from "rsuite";
-import {useRouter} from "next/router";
 
 import FormDropdownFooter from "./common/FormDropdownFooter";
 import StoreItemForm from "./common/StoreItemForm";
 import DeviceCharacteristicsForm from "./DeviceCharacteristicsForm";
 import FormErrorMessage from "../common/FormErrorMessage";
 
-import {useItem} from "../../hooks";
-
 import currencyData from "../../public/staticData/Common-Currency.json";
 
 import ".././../styles/forms.less";
 
 export default function NewElectronicDeviceForm({
+  mutate,
   register,
   control,
   errors,
@@ -23,18 +21,17 @@ export default function NewElectronicDeviceForm({
   marks,
   types,
   storeData,
-  deviceCharacteristics
+  deviceCharacteristics,
+  item,
+  itemStores
 }) {
-  const history = useRouter();
-  const { id } = history.query;
   const quantityData = useState('');
   const [isAddingMark, handleAddingMark] = useState(false);
   const [isAddingType, handleAddingType] = useState(false);
-  const { item, itemStores = [] } = useItem(token, id ? id : '');
 
   useEffect(() => {
-    if(id && item && itemStores) {
-      quantityData[1](item?.quantity || 0);
+    if(item && itemStores) {
+      quantityData[1](item.quantity);
       storeData[1](
         itemStores.map((itemStore, index) => (
           {
@@ -47,7 +44,7 @@ export default function NewElectronicDeviceForm({
       );
       deviceCharacteristics[1](item.characteristics)
     }
-  }, [id]);
+  }, []);
 
   return (
     <FlexboxGrid className="form" justify="space-between">
@@ -91,6 +88,7 @@ export default function NewElectronicDeviceForm({
                 return (
                   <div style={{ padding: "0.5em", width: "100%" }}>
                     <FormDropdownFooter
+                      mutate={mutate}
                       isEditing={isAddingMark}
                       setEditing={handleAddingMark}
                       placeholder="Marca"
@@ -134,6 +132,7 @@ export default function NewElectronicDeviceForm({
                 return (
                   <div style={{ padding: "0.5em", width: "100%" }}>
                     <FormDropdownFooter
+                      mutate={mutate}
                       isEditing={isAddingType}
                       setEditing={handleAddingType}
                       placeholder="Tipo"
@@ -193,7 +192,6 @@ export default function NewElectronicDeviceForm({
           size="lg"
           placeholder="0"
           type="number"
-          defaultValue={item ? item?.quantity : ""}
           inputRef={register({
             required: true,
             setValueAs: (v) => parseInt(v),

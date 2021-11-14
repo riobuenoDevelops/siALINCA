@@ -17,6 +17,7 @@ import currencyData from "../../public/staticData/Common-Currency.json";
 import { useItem } from "../../hooks";
 
 const NewMedicineForm = ({
+  measuresMutate,
   item,
   control,
   register,
@@ -26,14 +27,14 @@ const NewMedicineForm = ({
   contentMeasures,
   markLabs,
   presentations,
-  token
+  token,
+  itemStores
 }) => {
   const history = useRouter();
   const { id } = history.query;
   const quantityData = useState('');
   const [isAddingMark, setAddingMark] = useState(false);
   const [isAddingPresentation, setAddingPresentation] = useState(false);
-  const { itemStores = [], isLoading } = useItem(token, id ? id : '');
 
   useEffect(() => {
     if(id && item && itemStores) {
@@ -82,6 +83,7 @@ const NewMedicineForm = ({
               searchable={false}
               renderExtraFooter={() => (
                 <FormDropdownFooter
+                  mutate={measuresMutate}
                   placeholder="Marca"
                   token={token}
                   route="medicine/mark-labs"
@@ -200,6 +202,7 @@ const NewMedicineForm = ({
               searchable={false}
               renderExtraFooter={() => (
                 <FormDropdownFooter
+                  mutate={measuresMutate}
                   placeholder="Presentación"
                   route="medicine/presentations"
                   token={token}
