@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/router";
 import { FlexboxGrid, Nav, Notification } from "rsuite";
 
 import SearchInput from "../../components/Search/SearchInput";
@@ -9,21 +10,19 @@ import ApplicantFormModal from "../../components/modals/ApplicantFormModal";
 import ApplicantsTable from "../../components/tables/ApplicantsTable";
 import LoadingScreen from "../../components/layouts/LoadingScreen";
 
+import { useApplicants, useCurrentUser, useSedes } from "../../hooks";
 import routes from "../../config/routes";
 import AxiosService from "../../services/Axios";
-import { parseCookies } from "../../lib/parseCookies";
-import { useApplicants, useSedes } from "../../hooks";
 
-const SedesApplicantsPage = ({
+export default function SedesApplicantsPage ({
   handleLogged,
-  handleUser,
   user,
-  isError,
   handleSedeModalOpen,
   handleApplicantModalOpen,
   sedeModalIsOpen,
   applicantModalIsOpen,
-}) => {
+}) {
+  const router = useRouter();
   const {i18n} = useTranslation();
   const [searchSedeInputValue, handleSearchSedeInputValue] = useState("");
   const [searchApplicantInputValue, handleSearchApplicantInputValue] = useState(
@@ -36,16 +35,16 @@ const SedesApplicantsPage = ({
   const [applicantLoading, handleApplicantLoading] = useState(false);
   const [selectedSede, handleSelectedSede] = useState({});
   const [selectedApplicant, handleSelectedApplicant] = useState({});
-  const { sedes, isLoading: sedesLoading, mutate: applicantMutate } = useSedes(user.token);
-  const { applicants, isLoading: applicantsLoading, mutate } = useApplicants(user.token);
+  const { isEmpty } = useCurrentUser();
+  const { sedes, isLoading: sedesLoading, mutate: sedeMutate } = useSedes(user?.token);
+  const { applicants, isLoading: applicantsLoading, mutate } = useApplicants(user?.token);
   
   useEffect(() => {
-    if (isError) {
-      handleLogged(false);
-    } else {
-      handleLogged(true);
-      handleUser(user);
+    if (isEmpty) {
+      router.push('/login');
     }
+
+    handleLogged(true);
   }, []);
   
   const onSelectActive = (eventeKey) => {
@@ -91,7 +90,7 @@ const SedesApplicantsPage = ({
         placement: "bottomStart",
       });
 
-      await mutate();
+      await sedeMutate();
 
     } catch (err) {
       console.error(err.response.data.message);
@@ -130,7 +129,7 @@ const SedesApplicantsPage = ({
         });
       }
 
-      await  applicantMutate()
+      await mutate()
 
       Notification.success({
         title: !isUpdateApplicant ? "Nuevo Solicitante" : "Solicitante Actualizado",
@@ -141,7 +140,7 @@ const SedesApplicantsPage = ({
         placement: "bottomStart",
       });
     } catch (err) {
-      console.error(err.response.data.message);
+      console.error(err);
     }
     handleApplicantLoading(false);
     handleApplicantModalOpen(false);
@@ -196,7 +195,7 @@ const SedesApplicantsPage = ({
           </Nav>
           {tabActive === "sedes" ? (
             <SedesTable
-              mutate={mutate}
+              mutate={sedeMutate}
               handleUpdateSede={handleUpdateSede}
               handleSelectedSede={handleSelectedSede}
               items={sedes}
@@ -205,7 +204,7 @@ const SedesApplicantsPage = ({
             />
           ) : (
             <ApplicantsTable
-              mutate={applicantMutate}
+              mutate={mutate}
               searchInputValue={searchApplicantInputValue}
               items={applicants}
               handleApplicantModalOpen={handleApplicantModalOpen}
@@ -233,29 +232,4 @@ const SedesApplicantsPage = ({
       />
     </>
   );
-};
-
-export async function getServerSideProps({req, res}) {
-  const cookies = parseCookies(req);
-  let user;
-  if (cookies && cookies.sialincaUser) {
-      user = JSON.parse(cookies.sialincaUser);
-      
-      return {
-        props: {
-          user,
-          isError: false,
-        },
-      };
-  } else {
-    return {
-      props: {},
-      redirect: {
-        permanent: false,
-        to: "/login"
-      }
-    };
-  }
 }
-
-export default SedesApplicantsPage;

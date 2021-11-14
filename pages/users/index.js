@@ -3,24 +3,21 @@ import { useRouter } from "next/router";
 import { useTranslation } from "react-i18next";
 import { FlexboxGrid, Notification } from "rsuite";
 
+import LoadingScreen from "../../components/layouts/LoadingScreen";
 import SearchInput from "../../components/Search/SearchInput";
-import UserFormModal from "../../components/modals/UserFormModal";
 import UsersTable from "../../components/tables/UsersTable";
+import UserFormModal from "../../components/modals/UserFormModal";
 
+import { useUsers, useRoles, useCurrentUser } from "../../hooks";
 import routes from "../../config/routes";
-import { parseCookies } from "../../lib/parseCookies";
 import AxiosService from "../../services/Axios";
 
-import { useUsers, useRoles } from "../../hooks";
-import LoadingScreen from "../../components/layouts/LoadingScreen";
-
-const UsersPage = ({
+export default function UsersPage({
   handleLogged,
-  handleUser,
   user,
   userModalIsOpen,
   handleUserModalOpen,
-}) => {
+}) {
   const history = useRouter();
   const { i18n } = useTranslation();
   const [userLoading, handleUserLoading] = useState(false);
@@ -28,16 +25,15 @@ const UsersPage = ({
   const [selectedUser, handleSelectedUser] = useState({});
   const [inputValue, handleInputValue] = useState("");
   const [roleName, handleRoleName] = useState("");
-  const { users, isLoading: usersLoading, mutate } = useUsers(user.token);
-  const { roles, isLoading: rolesLoading } = useRoles(user.token);
+  const { isEmpty } = useCurrentUser();
+  const { users, isLoading: usersLoading, mutate } = useUsers(user?.token);
   
   useEffect(() => {
-    if (!user) {
-      handleLogged(false);
-    } else {
-      handleLogged(true);
-      handleUser(user);
+    if (isEmpty) {
+      history.push('/login');
     }
+
+    handleLogged(true);
   }, []);
   
   const onHandleInputValue = (value) => {
@@ -76,6 +72,7 @@ const UsersPage = ({
       }
       handleUserLoading(false);
       handleUserModalOpen(false);
+
       Notification.success({
         title: !isUpdateUser ? "Nuevo usuario" : "Usuario Actualizado",
         description: !isUpdateUser
@@ -84,13 +81,14 @@ const UsersPage = ({
         duration: 9000,
         placement: "bottomStart",
       });
-      history.replace(history.asPath);
+
+      await mutate();
     } catch (err) {
       console.log(err);
     }
   };
 
-  if(usersLoading || rolesLoading) return <LoadingScreen />
+  if(usersLoading) return <LoadingScreen />
 
   return (
     <>
@@ -127,7 +125,7 @@ const UsersPage = ({
         handleOpen={handleUserModalOpen}
         isOpen={userModalIsOpen}
         newUserLoading={userLoading}
-        roles={roles}
+        token={user?.token}
         roleName={roleName}
         handleRoleName={handleRoleName}
         isUpdateUser={isUpdateUser}
@@ -135,28 +133,4 @@ const UsersPage = ({
       />
     </>
   );
-};
-
-export async function getServerSideProps({req, res}) {
-  let user = null;
-  const cookies = parseCookies(req);
-  if (cookies && cookies.sialincaUser) {
-    user = JSON.parse(cookies.sialincaUser);
-
-    return {
-      props: {
-        user,
-        isError: false,
-      },
-    };
-  }
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login"
-    },
-    props: {},
-  };
 }
-
-export default UsersPage;

@@ -1,27 +1,29 @@
+import electron from "electron";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlexboxGrid } from "rsuite";
-import Ably from "ably/promises";
+import {useRouter} from "next/router";
 
 import LoadingScreen from "../../components/layouts/LoadingScreen";
 import SearchInput from "../../components/Search/SearchInput";
 import ItemsTable from "../../components/tables/ItemsTable";
 
-import { parseCookies } from "../../lib/parseCookies";
-import { useItems } from "../../hooks";
+import { useItems, useCurrentUser } from "../../hooks";
 
-export default function ItemsPage({ handleLogged, handleUser, user, ablyClient, subscribeAbly }) {
+
+export default function ItemsPage({ handleLogged }) {
+  const router = useRouter();
   const { i18n } = useTranslation();
-  const { items, isLoading, mutate } = useItems(user.token);
+  const { isEmpty, user } = useCurrentUser();
+  const { items, isLoading, mutate } = useItems(user?.token, user?.user.userConfig.nivelInventario);
   const [searchInputValue, handleSearchInputValue] = useState("");
 
   useEffect(() => {
-    handleLogged(true);
-    handleUser(user);
-
-    if(!ablyClient.connection) {
-      subscribeAbly(new Ably.Realtime({ token: user.ablyToken }) , user.user.email);
+    if(isEmpty) {
+      router.push("/login");
     }
+
+    handleLogged(true);
   }, []);
 
   if (isLoading) return <LoadingScreen />
@@ -41,31 +43,12 @@ export default function ItemsPage({ handleLogged, handleUser, user, ablyClient, 
         />
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={24}>
-        <ItemsTable items={items} searchInputValue={searchInputValue} mutate={mutate} />
+        <ItemsTable
+          role={user.user.roleName}
+          items={user.user.roleName !== "guest" ? items : items.filter((item) => !item.isDeleted)}
+          searchInputValue={searchInputValue}
+          mutate={mutate} />
       </FlexboxGrid.Item>
     </FlexboxGrid>
   );
-}
-
-export async function getServerSideProps({ req }) {
-  let user = {};
-  const cookies = parseCookies(req);
-
-  if (cookies && cookies.sialincaUser) {
-    user = JSON.parse(cookies.sialincaUser);
-
-    return {
-      props: {
-        user,
-        isError: false,
-      },
-    };
-  }
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }

@@ -4,42 +4,43 @@ import { useTranslation } from "react-i18next";
 import { FlexboxGrid, Notification } from "rsuite";
 import FlexboxGridItem from "rsuite/lib/FlexboxGrid/FlexboxGridItem";
 
+import LoadingScreen from "../../components/layouts/LoadingScreen";
 import SearchInput from "../../components/Search/SearchInput";
 import StoresTable from "../../components/tables/StoresTable";
 import StoreFormModal from "../../components/modals/StoreFormModal";
 import StoreItemsFormModal from "../../components/modals/StoreItemsFormModal";
+import TransferItemFormModal from "../../components/modals/TransferItemFormModal";
 
-import { parseCookies } from "../../lib/parseCookies";
+import { useCurrentUser, useItems, useStores } from "../../hooks";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
-import {useItems, useStores} from "../../hooks";
-import LoadingScreen from "../../components/layouts/LoadingScreen";
 
-const StorePage = ({
+export default function StorePage({
   handleLogged,
-  handleUser,
   user,
   storeModalIsOpen,
   handleStoreModalOpen,
-  isError,
-}) => {
+}) {
   const history = useRouter();
   const { i18n } = useTranslation();
-  const { stores, isLoading: storesLoading, mutate } = useStores(user.token);
-  const { items, isLoading: itemsLoading } = useItems(user.token);
   const [inputValue, handleInputValue] = useState("");
   const [storeLoading, handleStoreLoading] = useState(false);
   const [isUpdateStore, handleUpdateStore] = useState(false);
   const [isAddingItems, handleAddingItems] = useState(false);
+  const [isTransferItems, handleTransferItems] = useState(false);
+  const [transferLoading, setTransferLoanding] = useState(false);
   const [selectedStore, handleSelectedStore] = useState({});
+  const { isEmpty } = useCurrentUser();
+  const { stores, isLoading: storesLoading, mutate } = useStores(user?.token);
+  const { items, isLoading: itemsLoading, mutate: itemsMutate } = useItems(user?.token, user?.user.userConfig.nivelInventario);
 
   useEffect(() => {
-    if (isError) {
+    if (isEmpty) {
       handleLogged(false);
-    } else {
-      handleLogged(true);
-      handleUser(user);
+      history.push('/login');
     }
+
+    handleLogged(true);
   }, []);
 
   const onSubmitUpdateStore = async (data) => {
@@ -91,11 +92,44 @@ const StorePage = ({
     handleStoreLoading(false);
   };
 
+  const onTransferItem = async (data) => {
+    setTransferLoanding(true);
+    try {
+      await AxiosService.instance.post(
+        `${routes.getStores}/items`, data, {
+          headers: {
+            Authorization: user.token
+          }
+        }
+      );
+
+      await mutate();
+      await itemsMutate();
+
+      Notification.success({
+        title: "Transferencia Exitosa",
+        placement: "bottomStart",
+        duration: 5000
+      });
+
+      setTransferLoanding(false);
+      handleTransferItems(false);
+
+    } catch (err) {
+      Notification.error({
+        title: "Error",
+        description: "Ha ocurride un error al ejecutar la acción",
+        placement: "bottomStart",
+        duration: 5000
+      });
+    }
+  }
+
   const onHandleInputValue = (value) => {
     handleInputValue(value);
   };
 
-  if(storesLoading || itemsLoading) return <LoadingScreen />;
+  if (storesLoading || itemsLoading) return <LoadingScreen/>;
 
   return (
     <>
@@ -124,26 +158,27 @@ const StorePage = ({
               return !inputValue
                 ? true
                 : store.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-                    store.addressLine
-                      .toLowerCase()
-                      .includes(inputValue.toLowerCase()) ||
-                    store.addressCity
-                      .toLowerCase()
-                      .includes(inputValue.toLowerCase()) ||
-                    store.addressState
-                      .toLowerCase()
-                      .includes(inputValue.toLowerCase()) ||
-                    store.addressCountry
-                      .toLowerCase()
-                      .includes(inputValue.toLowerCase()) ||
-                    store.addressZipcode
-                      .toLowerCase()
-                      .includes(inputValue.toLowerCase());
+                store.addressLine
+                  .toLowerCase()
+                  .includes(inputValue.toLowerCase()) ||
+                store.addressCity
+                  .toLowerCase()
+                  .includes(inputValue.toLowerCase()) ||
+                store.addressState
+                  .toLowerCase()
+                  .includes(inputValue.toLowerCase()) ||
+                store.addressCountry
+                  .toLowerCase()
+                  .includes(inputValue.toLowerCase()) ||
+                store.addressZipcode
+                  .toLowerCase()
+                  .includes(inputValue.toLowerCase());
             })}
             handleItems={null}
             handleSelectedStore={handleSelectedStore}
             handleUpdateStore={handleUpdateStore}
             handleModalOpen={handleStoreModalOpen}
+            handleTransferModalOpen={handleTransferItems}
             handleAddingItems={handleAddingItems}
           />
         </FlexboxGridItem>
@@ -163,31 +198,16 @@ const StorePage = ({
         items={items}
         token={user.token}
       />
+      <TransferItemFormModal
+        store={selectedStore}
+        storeId={selectedStore._id}
+        storeItems={items.filter(item => selectedStore?.items?.some((storeItem => storeItem.itemId === item._id)))}
+        stores={stores}
+        isOpen={isTransferItems}
+        handleOpen={handleTransferItems}
+        loading={transferLoading}
+        onSubmit={onTransferItem}
+      />
     </>
   );
-};
-
-export async function getServerSideProps({ req }) {
-  let user = null;
-  const cookies = parseCookies(req);
-  if (cookies && cookies.sialincaUser) {
-    user = JSON.parse(cookies.sialincaUser);
-
-    return {
-      props: {
-        user,
-        isError: false,
-      },
-    };
-  }
-
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }
-
-export default StorePage;
