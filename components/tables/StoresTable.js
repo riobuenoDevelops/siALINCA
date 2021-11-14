@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import {
   Table
 } from "rsuite";
+import { useRouter } from "next/router";
 import Crc from "country-state-city";
 
 import StoreActionCell from "./customCells/StoreActionCell";
 import StatusCell from "./customCells/StatusCell";
 
 import "../../styles/custom-theme.less";
-import { useRouter } from "next/router";
 
 const NameCell = ({ rowData, dataKey, ...props }) => {
   return (
@@ -29,6 +29,7 @@ const StoresTable = ({
   items,
   searchInputValue,
   handleModalOpen,
+  handleTransferModalOpen,
   handleSelectedStore,
   handleUpdateStore,
   handleAddingItems,
@@ -68,6 +69,7 @@ const StoresTable = ({
           !searchInputValue
             ? true
             : item.name.toLowerCase().includes(searchInputValue.toLowerCase())
+            || item.addressLine.toLowerCase().includes(searchInputValue.toLowerCase())
         )}
         wordWrap
         autoHeight
@@ -86,7 +88,6 @@ const StoresTable = ({
         <Column
           width={250}
           verticalAlign="middle"
-          style={{ paddingLeft: "1.5em" }}
         >
           <HeaderCell>
             <h6 className="text-black text-bold">Código</h6>
@@ -111,12 +112,11 @@ const StoresTable = ({
           </HeaderCell>
           <StatusCell />
         </Column>
-        {hideActionCell &&
+        {!hideActionCell &&
             <Column
               verticalAlign="middle"
               width={60}
               align="end"
-              style={{ paddingRight: "1.5em" }}
             >
               <HeaderCell>{""}</HeaderCell>
               <StoreActionCell
@@ -126,6 +126,7 @@ const StoresTable = ({
                 handleSelectedStore={handleSelectedStore}
                 handleUpdateStore={handleUpdateStore}
                 handleAddingItems={handleAddingItems}
+                handleTransferModalOpen={handleTransferModalOpen}
               />
             </Column>
         }

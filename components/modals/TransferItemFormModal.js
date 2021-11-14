@@ -1,6 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
-import {useState} from "react";
-import {Button, FlexboxGrid, Input, InputGroup, Modal, SelectPicker} from "rsuite";
+import { useState } from "react";
+import { Button, FlexboxGrid, Input, InputGroup, Modal, SelectPicker } from "rsuite";
 import CancelConfirmationModal from "./CancelConfirmationModal";
 
 export default function TransferItemFormModal({
@@ -52,7 +52,6 @@ export default function TransferItemFormModal({
                     className="select-dropdown"
                     data={storeItems}
                     onSelect={(value) => {
-                      console.log(storeItems);
                       setQuantity(store.items[store.items.findIndex(item => item.itemId === value)].quantity);
                     }}
                     placeholder="Seleccione Item"
@@ -126,7 +125,7 @@ export default function TransferItemFormModal({
         </Modal.Body>
         <Modal.Footer>
           <FlexboxGrid>
-            <FlexboxGrid.Item colspan={13} />
+            <FlexboxGrid.Item colspan={13}/>
             <FlexboxGrid.Item colspan={4}>
               <Button
                 appearance="default"
@@ -137,7 +136,7 @@ export default function TransferItemFormModal({
                 Cancelar
               </Button>
             </FlexboxGrid.Item>
-            <FlexboxGrid.Item colspan={1} />
+            <FlexboxGrid.Item colspan={1}/>
             <FlexboxGrid.Item colspan={6}>
               <Button
                 appearance="primary"
