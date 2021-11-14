@@ -59,7 +59,7 @@ class UserService {
   }
 
   static async updateUser({ id, user }) {
-    let hashedPassword, roleId;
+    let hashedPassword = "", roleId;
     const existentUser = await this.getUser({ id });
 
     if (!existentUser) {
@@ -80,7 +80,7 @@ class UserService {
 
     return await this.MongoDB.update(this.collection, id, {
       ...user,
-      password: !user.password ? hashedPassword : existentUser.password,
+      password: hashedPassword !== "" ? hashedPassword : existentUser.password,
       roleId: roleId ? roleId : existentUser.roleId,
     });
   }
