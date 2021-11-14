@@ -1,6 +1,4 @@
 import React from "react";
-import cookiesCutter from "cookie-cutter";
-import { useRouter } from "next/router";
 import { Icon, IconButton, Table, Notification } from "rsuite";
 
 import { CustomWhisper } from "../common/MenuWrapper";
@@ -8,6 +6,7 @@ import CustomDropdownMenu from "../common/CustomDropdownMenu";
 
 import AxiosService from "../../../services/Axios";
 import routes from "../../../config/routes";
+import { useCurrentUser } from '../../../hooks';
 
 const SedeActionCell = ({
   mutate,
@@ -21,10 +20,10 @@ const SedeActionCell = ({
   ...props
 }) => {
 
+  const { user } = useCurrentUser();
+
   const onEnableDisableSede = async () => {
     try {
-      const userCookie = cookiesCutter.get("sialincaUser");
-      const user = JSON.parse(userCookie);
 
       await AxiosService.instance.put(
         routes.sedes + `/${rowData._id}`,
@@ -56,7 +55,6 @@ const SedeActionCell = ({
   const handleSelectMenu = (eventKey, event) => {
     switch (eventKey) {
       case 1:
-        console.log(rowData);
         handleUpdateSede(true);
         handleSelectedSede(rowData);
         handleSedeDepartments(

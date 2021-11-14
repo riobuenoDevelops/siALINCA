@@ -1,13 +1,12 @@
 import React from "react";
 import { Icon, IconButton, Table, Notification } from "rsuite";
-import { useRouter } from "next/router";
-import cookiesCutter from "cookie-cutter";
 
 import { CustomWhisper } from "../common/MenuWrapper";
 import CustomDropdownMenu from "../common/CustomDropdownMenu";
 
 import AxiosService from "../../../services/Axios";
 import routes from "../../../config/routes";
+import { useCurrentUser } from '../../../hooks';
 
 const UserActionCell = ({
   mutate,
@@ -19,11 +18,10 @@ const UserActionCell = ({
   handleModalOpen,
   ...props
 }) => {
+  const { user } = useCurrentUser();
 
   const onDeleteUser = async () => {
     try {
-      const userCookie = cookiesCutter.get("sialincaUser");
-      const user = JSON.parse(userCookie);
 
       await AxiosService.instance.delete(
         routes.updateUser + `/${rowData._id}`,
@@ -49,8 +47,6 @@ const UserActionCell = ({
 
   const onEnableDisableUser = async () => {
     try {
-      const userCookie = cookiesCutter.get("sialincaUser");
-      const user = JSON.parse(userCookie);
 
       await AxiosService.instance.put(
         routes.updateUser + `/${rowData._id}`,

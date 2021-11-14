@@ -1,11 +1,12 @@
 import React from "react";
-import { Dropdown, Icon, IconButton, Table, Notification } from "rsuite";
+import { Icon, IconButton, Table, Notification } from "rsuite";
+
 import { CustomWhisper } from "../common/MenuWrapper";
-import { useRouter } from "next/router";
-import AxiosService from "../../../services/Axios";
-import cookiesCutter from "cookie-cutter";
-import routes from "../../../config/routes";
 import CustomDropdownMenu from "../common/CustomDropdownMenu";
+
+import AxiosService from "../../../services/Axios";
+import routes from "../../../config/routes";
+import { useCurrentUser } from '../../../hooks';
 
 const ApplicantActionCell = ({
   mutate,
@@ -17,11 +18,10 @@ const ApplicantActionCell = ({
   handleUpdateApplicant,
   ...props
 }) => {
+  const { user } = useCurrentUser();
   
   const onEnableDisableApplicant = async () => {
     try {
-      const userCookie = cookiesCutter.get("sialincaUser");
-      const user = JSON.parse(userCookie);
 
       await AxiosService.instance.put(
         routes.applicants + `/${rowData._id}`,

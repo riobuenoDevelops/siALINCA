@@ -1,11 +1,11 @@
 import React from "react";
 import { Dropdown, Icon, IconButton, Table, Notification } from "rsuite";
-import cookiesCutter from "cookie-cutter";
 
 import routes from "../../../config/routes";
 import AxiosService from "../../../services/Axios";
 
 import { CustomWhisper } from "../common/MenuWrapper";
+import { useCurrentUser } from '../../../hooks';
 
 const StoreActionCell = ({
   mutate,
@@ -15,14 +15,14 @@ const StoreActionCell = ({
   handleSelectedStore,
   handleUpdateStore,
   handleModalOpen,
+  handleTransferModalOpen,
   handleAddingItems,
   ...props
 }) => {
+  const { user } = useCurrentUser();
 
   const onEnableDisableStore = async () => {
-    const userCookie = cookiesCutter.get("sialincaUser");
     try {
-      const user = JSON.parse(userCookie);
 
       await AxiosService.instance.put(
         routes.getStores + `/${rowData._id}`,
@@ -66,6 +66,10 @@ const StoreActionCell = ({
       case 3:
         onEnableDisableStore();
         break;
+      case 4:
+        handleSelectedStore(rowData);
+        handleTransferModalOpen(true);
+        break;
     }
   };
   const Menu = ({ onSelect }) => (
@@ -75,6 +79,9 @@ const StoreActionCell = ({
       </Dropdown.Item>
       <Dropdown.Item eventKey={2} onSelect={onSelect}>
         <Icon icon="cubes" /> Agregar items
+      </Dropdown.Item>
+      <Dropdown.Item eventKey={4} onSelect={onSelect}>
+        <Icon icon="exchange" /> Transferir items
       </Dropdown.Item>
       <Dropdown.Item divider />
       <Dropdown.Item eventKey={3} onSelect={onSelect}>

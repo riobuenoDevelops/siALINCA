@@ -1,15 +1,15 @@
 import { Button, FlexboxGrid, Input, Modal } from 'rsuite';
 import { useForm } from 'react-hook-form';
-import cookieCutter from 'cookie-cutter';
 
 import AxiosService from '../../services/Axios';
 import Routes from '../../config/routes';
+import { useCurrentUser } from "../../hooks";
 
-export default function UserConfigurationModal({ isOpen, onClose, user, handleUser }) {
+export default function UserConfigurationModal({ isOpen, onClose, user }) {
   const { handleSubmit, register } = useForm();
+  const { removeCookie, setCookie } = useCurrentUser();
 
   const onSave = async (data) => {
-    console.log(data);
 
     const userInfo = {
       config: {
@@ -27,8 +27,8 @@ export default function UserConfigurationModal({ isOpen, onClose, user, handleUs
       const nextDay = 0.33;
       const auxDate = new Date();
 
-      cookieCutter.set('sialincaUser', '', { expires: new Date(0) })
-      cookieCutter.set("sialincaUser", JSON.stringify({
+      removeCookie("sialincaUser");
+      setCookie("sialincaUser", JSON.stringify({
         ...user,
         user: {
           ...user.user,
@@ -40,15 +40,6 @@ export default function UserConfigurationModal({ isOpen, onClose, user, handleUs
         expires: new Date(auxDate.getTime() + nextDay * 24 * 60 * 60 * 1000),
       });
 
-      handleUser({
-        ...user,
-        user: {
-          ...user.user,
-          userConfig: {
-            nivelInventario: data.nivelInventario
-          }
-        }
-      })
       onClose();
     } catch (err) {
       console.log(err);

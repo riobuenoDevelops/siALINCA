@@ -1,5 +1,4 @@
 import React from "react";
-import cookiesCutter from "cookie-cutter";
 import { useRouter } from "next/router";
 import {Icon, IconButton, Notification, Table} from "rsuite";
 
@@ -8,14 +7,17 @@ import CustomDropdownMenu from "../common/CustomDropdownMenu";
 
 import AxiosService from "../../../services/Axios";
 import routes from "../../../config/routes";
+import { useCurrentUser } from '../../../hooks';
 
 export default function ItemActionCell({
   mutate,
+  role,
   tableRef,
   rowData,
   rowKey,
   ...props
 }) {
+  const { user } = useCurrentUser();
   const router = useRouter();
 
   const onEdit = () => {
@@ -79,9 +81,6 @@ export default function ItemActionCell({
 
   const onEnableDisable = async () => {
     try {
-      const userCookie = cookiesCutter.get("sialincaUser");
-      const user = JSON.parse(userCookie);
-
       await AxiosService.instance.put(`${routes.items}/${rowData._id}`,
         { disabled: !rowData.disabled }, {
           headers: {
@@ -119,7 +118,7 @@ export default function ItemActionCell({
     <Table.Cell {...props}>
       <CustomWhisper
         tableRef={tableRef}
-        menuComponent={<CustomDropdownMenu rowData={rowData} onSelect={handleSelectMenu} />}
+        menuComponent={<CustomDropdownMenu isNotAdmin={role !== "admin"} withoutEnable={role !== "admin"} rowData={rowData} onSelect={handleSelectMenu} />}
         menuComponentOnSelect={handleSelectMenu}
       >
         <IconButton
