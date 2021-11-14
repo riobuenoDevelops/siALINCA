@@ -84,7 +84,6 @@ const SedesTable = ({
         <Column
           verticalAlign="middle"
           width={250}
-          style={{ paddingLeft: "1.5em" }}
         >
           <HeaderCell>
             <h6 className="text-black text-bold">Código</h6>
@@ -112,7 +111,6 @@ const SedesTable = ({
         <Column
           verticalAlign="middle"
           align="right"
-          style={{ paddingRight: "1.5em" }}
         >
           <HeaderCell>{""}</HeaderCell>
           <SedeActionCell

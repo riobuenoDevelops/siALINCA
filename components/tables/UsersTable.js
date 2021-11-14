@@ -22,7 +22,6 @@ const NameCell = ({rowData, rowKey, ...props}) => {
 const UsersTable = ({
   items,
   mutate,
-  handleItems,
   searchInputValue,
   handleSelectedUser,
   handleUpdateUser,
@@ -80,7 +79,6 @@ const UsersTable = ({
         <Column
           verticalAlign="middle"
           width={250}
-          style={{ paddingLeft: "1.5em" }}
         >
           <HeaderCell>
             <h6 className="text-black text-bold">Código</h6>
@@ -109,7 +107,6 @@ const UsersTable = ({
           verticalAlign="middle"
           align="right"
           width={60}
-          style={{ paddingRight: "1.5em" }}
         >
           <HeaderCell>{""}</HeaderCell>
           <UserActionCell
