@@ -1,8 +1,24 @@
 const withLess = require("@zeit/next-less");
 const withImages = require("next-images");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = withImages(
   withLess({
+    webpack5: false,
+    webpack: (config, { isServer }) => {
+      if (!isServer) {
+        config.target = 'electron-renderer';
+      }
+
+      config.module.rules.push(
+        {
+          test: /\.mjs$/,
+          include: /node_modules/,
+          type: 'javascript/auto'
+        });
+
+      return config;
+    },
     lessLoaderOptions: {
       lessOptions: {
         javascriptEnabled: true,
@@ -25,6 +41,6 @@ module.exports = withImages(
           permanent: true,
         },
       ];
-    },
-  })
-);
+    }
+  }
+  ));
