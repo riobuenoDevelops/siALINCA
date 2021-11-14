@@ -12,16 +12,38 @@ export default function StoreItemForm({
   const { register, control, setError, errors, reset, handleSubmit } = useForm();
 
   const onAddStoreItem = (data) => {
-    const index = storeData[0].findIndex(
-      (item) => item.storeId === data.storeId
-    );
 
-    if(index < 0) {
-      if(storeData[0].length){
+    if(storeData[0].some(store => store.storeId === data.storeId)) {
+      const array = storeData[0].map((item, i) => {
+        if (item.storeId === data.storeId) {
+          return {
+            index: i,
+            store: stores.filter((store) => store._id === data.storeId)[0].name,
+            storeId: data.storeId,
+            quantity: data.quantity,
+          }
+        }
+        return item;
+      });
+
+      const quantity = array.reduce(function (acumulator, item) {
+        return { quantity: acumulator.quantity + item.quantity }
+      });
+
+      if(quantity.quantity <= quantityData[0]){
+        storeData[1](array);
+      } else {
+        setError("sumQuantity", {
+          message: "La suma de las cantidades de cada almacén no deben superar la cantidad de item introducida."
+        })
+      }
+
+    } else {
+      if (storeData[0].length) {
         const quantity = storeData[0].reduce(function (acumulator, item) {
           return { quantity: acumulator.quantity + item.quantity }
         });
-        if(quantity.quantity + data.quantity <= quantityData[0]){
+        if (quantity.quantity + data.quantity <= quantityData[0]) {
           storeData[1]([...storeData[0], {
             index: storeData[0].length,
             store: stores.filter((store) => store._id === data.storeId)[0].name,
@@ -40,31 +62,6 @@ export default function StoreItemForm({
           storeId: data.storeId,
           quantity: data.quantity,
         }]);
-      }
-    } else {
-      const array = storeData[0].map((item, i) => {
-        if (i === index) {
-          return {
-            index,
-            store: stores.filter((store) => store._id === data.storeId)[0].name,
-            storeId: data.storeId,
-            quantity: data.quantity,
-          }
-        } else {
-          return item
-        }
-      });
-
-      const quantity = array.reduce(function (acumulator, item) {
-        return { quantity: acumulator.quantity + item.quantity }
-      });
-
-      if(quantity.quantity <= quantityData[0]){
-        storeData[1](array);
-      } else {
-        setError("sumQuantity", {
-          message: "La suma de las cantidades de cada almacén no deben superar la cantidad de item introducida."
-        })
       }
     }
     reset({storeId: "", quantity: ""});
