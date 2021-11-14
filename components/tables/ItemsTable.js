@@ -20,7 +20,8 @@ const TypeCell = ({ rowData, rowKey, dataKey, ...props }) => {
   )
 }
 
-export default function ItemsTable({ items, searchInputValue, mutate }) {
+export default function ItemsTable({ items, searchInputValue, mutate, role }) {
+
   let tableBody;
   const router = useRouter();
   const { Column, Cell, HeaderCell, Pagination } = Table;
@@ -73,7 +74,6 @@ export default function ItemsTable({ items, searchInputValue, mutate }) {
         <Column
           verticalAlign="middle"
           flexGrow={2}
-          style={{ paddingLeft: "1.5em" }}
         >
           <HeaderCell>
             <h6 className="text-black text-bold">Código</h6>
@@ -104,21 +104,24 @@ export default function ItemsTable({ items, searchInputValue, mutate }) {
           </HeaderCell>
           <Cell dataKey="price" />
         </Column>
-        <Column verticalAlign="middle" flexGrow={1}>
-          <HeaderCell>
-            <h6 className="text-black text-bold">Status</h6>
-          </HeaderCell>
-          <StatusCell  />
-        </Column>
-        <Column
-          verticalAlign="middle"
-          flexGrow={1}
-          align="right"
-          style={{ paddingRight: "1.5em" }}
-        >
-          <HeaderCell>{""}</HeaderCell>
-          <ItemActionCell tableRef={tableBody} mutate={mutate} />
-        </Column>
+        {role !== "guest" &&
+          <Column verticalAlign="middle" flexGrow={1}>
+            <HeaderCell>
+              <h6 className="text-black text-bold">Status</h6>
+            </HeaderCell>
+            <StatusCell/>
+          </Column>
+        }
+        {role !== "guest" &&
+          <Column
+            verticalAlign="middle"
+            flexGrow={1}
+            align="right"
+          >
+            <HeaderCell>{""}</HeaderCell>
+            <ItemActionCell role={role} tableRef={tableBody} mutate={mutate} />
+          </Column>
+        }
       </Table>
       <Pagination
         lengthMenu={[
