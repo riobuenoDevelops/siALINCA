@@ -10,7 +10,18 @@ export default function DeviceCharacteristicsForm({
   const { register, errors, reset, handleSubmit } = useForm();
 
   const onAddCharacteristics = (data) => {
-    characteristicsData[1]([...characteristicsData[0], { name: data.name, value: data.value }]);
+    if (characteristicsData[0].some(item => item.name === data.name)) {
+      const newArray = characteristicsData[0].map((item) => {
+        if (item.name === data.name) {
+          return data;
+        }
+        return item;
+      });
+      console.log(newArray);
+      characteristicsData[1](newArray);
+    } else {
+      characteristicsData[1]([...characteristicsData[0], { name: data.name, value: data.value }]);
+    }
     reset({ name: "", value: "" })
   }
 
