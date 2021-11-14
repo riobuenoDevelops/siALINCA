@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 
 import CancelConfirmationModal from "./CancelConfirmationModal";
 
-import { useDecrypt } from "../../hooks/index";
+import { useDecrypt, useRoles } from "../../hooks/index";
 
 import "../../styles/forms.less";
 
@@ -22,10 +22,10 @@ const UserFormModal = ({
   handleOpen,
   onSubmit,
   newUserLoading,
-  roles,
   handleRoleName,
   isUpdateUser,
   selectedUser,
+  token
 }) => {
   const decryptedPassword = useDecrypt(!isUpdateUser ? "" : selectedUser.password);
   const { handleSubmit, errors, register, watch, control, reset } = useForm();
@@ -34,6 +34,8 @@ const UserFormModal = ({
   const [showContent, handleContent] = useState(false);
   const [showRepeatContent, handleRepeatContent] = useState(false);
   const password = useRef({});
+  const { roles } = useRoles(token);
+
   password.current = watch("password", "");
 
   const onSelectRoleName = (value) => {
@@ -72,9 +74,9 @@ const UserFormModal = ({
       >
         <Modal.Header>
           <Modal.Title>
-            <h4 className="text-black text-bolder">
+            <span className="text-black text-bolder">
               {isUpdateUser ? "Actualizar" : "Nuevo"} Usuario
-            </h4>
+            </span>
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -206,7 +208,7 @@ const UserFormModal = ({
                     name="repeatPassword"
                     placeholder="Repita Contraseña"
                     type={!showRepeatContent ? "password" : "text"}
-                    rules={register({
+                    inputRef={register({
                       required: true,
                       validate: (value) =>
                         value === password.current ||
