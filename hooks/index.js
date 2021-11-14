@@ -1,8 +1,34 @@
+import electron from "electron";
 import useSWR from "swr";
 import StringCrypto from "string-crypto";
+import { useCookies } from "react-cookie";
+
+const ipcRenderer = electron.ipcRenderer || false;
+
+export function useCurrentUser() {
+  const [cookie, setCookie, removeCookie] = useCookies(["sialincaUser"]);
+
+  return {
+    user: cookie?.sialincaUser,
+    setCookie,
+    removeCookie,
+    isEmpty: cookie.sialincaUser === undefined
+  }
+}
+
+export function useMeasures(token) {
+  const { data, error, mutate } = useSWR([token ? '/measures' : null, token]);
+
+  return {
+    isLoading: !data && !error,
+    isError: error,
+    measures: data,
+    mutate
+  }
+}
 
 export function useSedes(token) {
-  const { data, error, mutate } = useSWR(['/sedes', token]);
+  const { data, error, mutate } = useSWR([token ? '/sedes' : null, token]);
 
   return {
     isLoading: !data && !error,
@@ -13,17 +39,18 @@ export function useSedes(token) {
 }
 
 export function useSede(token, id) {
-  const { data, error } = useSWR([id ? `/sedes/${id}` : null, token]);
+  const { data, error, mutate } = useSWR([id ? `/sedes/${id}` : null, token]);
 
   return {
     isLoading: !data && !error,
     isError: error,
-    sede: data
+    sede: data,
+    mutate
   }
 }
 
 export function useApplicants(token) {
-  const { data, error, mutate } = useSWR(['/applicants', token]);
+  const { data, error, mutate } = useSWR([token ? '/applicants' : null, token]);
 
   return {
     isLoading: !data && !error,
@@ -44,7 +71,14 @@ export function useApplicant(token, id) {
 }
 
 export function useItems(token){
-  const { data, error, mutate } = useSWR(['/items', token])
+  const { data, error, mutate } = useSWR([token ? '/items' : null, token]);
+  const { user, isEmpty } = useCurrentUser();
+
+  if (ipcRenderer && !isEmpty && data) {
+    if(user.user.roleName !== "guest") {
+      ipcRenderer.send("notify-critical-item", { items: data, userLevel: user.user.userConfig.nivelInventario });
+    }
+  }
 
   return {
     isLoading: !data && !error,
@@ -55,12 +89,11 @@ export function useItems(token){
 }
 
 export function useItem(token, id){
-  console.log("Item Id", id);
   const { data, error, mutate } = useSWR([id ? `/items/${id}?withChild=true` : null, token])
   const { data: itemStores, error: storeError } = useSWR([id ? `/stores/items/${id}` : null, token])
 
   return {
-    isLoading: !data && !error,
+    isLoading: !data && !itemStores && !error,
     isError: error || storeError,
     item: data,
     itemStores,
@@ -127,6 +160,16 @@ export function useNotesBySede(id, token) {
     sedeNotes: data || []
   }
 }
+export function useNotesByStore(id, token){
+  const { data, error, mutate } = useSWR([id ? `/delivery-notes/stores/${id}` : null, token]);
+
+  return {
+    isLoading: !data && !error,
+    isError: error,
+    notes: data || [],
+    mutate
+  }
+}
 
 export function useStores(token) {
   const { data, error, mutate } = useSWR(['/stores', token]);
@@ -140,7 +183,6 @@ export function useStores(token) {
 }
 
 export function useStore(id, token) {
-  console.log("storeId", id);
   const { data, error, mutate } = useSWR([id ? `/stores/${id}` : null, token]);
 
   return {
@@ -184,17 +226,16 @@ export function useUser(id, token) {
 }
 
 export function useRoles(token) {
-  const { data, error } = useSWR([`/users`, token]);
+  const { data, error } = useSWR([token ? `/roles` : null, token]);
 
   return {
     isLoading: !data && !error,
     isError: error,
-    user: data || []
+    roles: data || []
   }
 }
 
 export function useDecrypt(text) {
-  console.log(text);
   const { NEXT_PUBLIC_PASSWORD_SECRET } = process.env;
   const { decryptString } = new StringCrypto();
   if(text) {
