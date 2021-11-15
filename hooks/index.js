@@ -160,6 +160,7 @@ export function useNotesBySede(id, token) {
     sedeNotes: data || []
   }
 }
+
 export function useNotesByStore(id, token){
   const { data, error, mutate } = useSWR([id ? `/delivery-notes/stores/${id}` : null, token]);
 
@@ -236,10 +237,21 @@ export function useRoles(token) {
 }
 
 export function useDecrypt(text) {
+  console.log("text", text);
   const { NEXT_PUBLIC_PASSWORD_SECRET } = process.env;
   const { decryptString } = new StringCrypto();
   if(text) {
     return decryptString(text, NEXT_PUBLIC_PASSWORD_SECRET);
+  }
+  return '';
+}
+
+export function useEncrypt(text) {
+  const { NEXT_PUBLIC_PASSWORD_SECRET } = process.env;
+  const { encryptString } = new StringCrypto();
+
+  if (text) {
+    return encryptString(text, NEXT_PUBLIC_PASSWORD_SECRET);
   }
   return '';
 }

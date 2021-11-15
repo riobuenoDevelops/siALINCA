@@ -1,17 +1,55 @@
-import { Button, FlexboxGrid, Input, Modal } from 'rsuite';
+import { useRef, useState } from 'react';
+import { Button, FlexboxGrid, Icon, Input, InputGroup, Modal } from 'rsuite';
 import { useForm } from 'react-hook-form';
 
 import AxiosService from '../../services/Axios';
 import Routes from '../../config/routes';
-import { useCurrentUser } from "../../hooks";
+import { useCurrentUser, useDecrypt, useEncrypt, useUser } from '../../hooks';
 
-export default function UserConfigurationModal({ isOpen, onClose, user }) {
-  const { handleSubmit, register } = useForm();
-  const { removeCookie, setCookie } = useCurrentUser();
+export default function UserConfigurationModal({ isOpen, onClose }) {
+  const { handleSubmit, register, errors, watch } = useForm();
+  const [changePassword, setChangePassword] = useState(false);
+  const [actualPassword, setActualPassword] = useState("");
+  const [showContent, setShowContent] = useState(false);
+  const [showRepeatContent, setShowRepeatContent] = useState(false);
+  const [passwordLoadnding, setPasswordLoanding] = useState(false);
+  const [userLoanding, setUserLoanding] = useState(false);
+  const { removeCookie, setCookie, user: currentUser } = useCurrentUser();
+  const { user } = useUser(currentUser?.user?._id, currentUser?.token);
+  const password = useRef({});
+
+  password.current = watch("password", "");
+
+  const onChangePassword = async (data) => {
+    console.log(user);
+    setPasswordLoanding(true);
+    if (useDecrypt(user.password) !== actualPassword) {
+      setPasswordLoanding(false);
+      return;
+    }
+
+    try {
+      await AxiosService.instance.put(`${Routes.getUsers}/${currentUser.user._id}`,
+        { password: data.password }, {
+        headers: {
+          Authorization: currentUser.token
+        }
+      });
+
+      setChangePassword(false);
+    } catch (err) {
+      console.log(err);
+    }
+    setPasswordLoanding(false);
+  }
 
   const onSave = async (data) => {
+    setUserLoanding(true);
 
     const userInfo = {
+      email: data.email,
+      names: data.names,
+      lastNames: data.lastNames,
       config: {
         nivelInventario: data.nivelInventario
       }
@@ -20,7 +58,7 @@ export default function UserConfigurationModal({ isOpen, onClose, user }) {
     try{
       await AxiosService.instance.put(`${Routes.getUsers}/${user.user._id}`, userInfo, {
         headers: {
-          Authorization: user.token
+          Authorization: currentUser.token
         }
       });
 
@@ -32,6 +70,9 @@ export default function UserConfigurationModal({ isOpen, onClose, user }) {
         ...user,
         user: {
           ...user.user,
+          email: data.email,
+          names: data.names,
+          lastNames: data.lastNames,
           userConfig: {
             nivelInventario: data.nivelInventario
           }
@@ -44,6 +85,7 @@ export default function UserConfigurationModal({ isOpen, onClose, user }) {
     } catch (err) {
       console.log(err);
     }
+    setUserLoanding(false);
   };
 
   return (
@@ -58,10 +100,133 @@ export default function UserConfigurationModal({ isOpen, onClose, user }) {
       </Modal.Header>
       <Modal.Body>
         <form className="form">
+          <h4 style={{ marginBottom: '1rem' }}>Información General</h4>
+          <FlexboxGrid justify="space-between">
+            <FlexboxGrid.Item colspan={11}>
+              <span className="input-title">Nombres</span>
+              <Input
+                defaultValue={currentUser?.user?.names}
+                inputRef={register()}
+                name="names"
+              />
+            </FlexboxGrid.Item>
+            <FlexboxGrid.Item colspan={11}>
+              <span className="input-title">Apellidos</span>
+              <Input
+                defaultValue={currentUser?.user?.lastNames}
+                inputRef={register()}
+                name="lastNames"
+              />
+            </FlexboxGrid.Item>
+            <FlexboxGrid.Item colspan={24} className="not-first-row">
+              <span className="input-title">Correo Electrónico</span>
+              <Input
+                defaultValue={currentUser?.user?.email}
+                inputRef={register()}
+                name="email"
+              />
+            </FlexboxGrid.Item>
+            {changePassword &&
+              <>
+                <FlexboxGrid.Item colspan={24} className="not-first-row">
+                  <span className="input-title">Contraseña actual</span>
+                  <Input
+                    type="password"
+                    value={actualPassword}
+                    onChange={setActualPassword}
+                  />
+                </FlexboxGrid.Item>
+                <FlexboxGrid.Item colspan={11} className="not-first-row">
+              <span className="input-title">
+                  Contraseña
+                </span>
+                  <InputGroup inside>
+                    <Input
+                      size="lg"
+                      name="password"
+                      type={!showContent ? "password" : "text"}
+                      inputRef={register()}
+                    />
+                    <InputGroup.Button
+                      style={{
+                        height: "100%",
+                        width: "4em",
+                        justifyContent: "center",
+                      }}
+                      onClick={() => setShowContent(!showContent)}
+                    >
+                      <Icon
+                        style={{ fontSize: "18px" }}
+                        icon={!showContent ? "eye-slash" : "eye"}
+                      />
+                    </InputGroup.Button>
+                  </InputGroup>
+                  <div
+                    style={{
+                      color: "Red",
+                      display:
+                        errors.password?.type === "required" ? "initial" : "none",
+                    }}
+                  >
+                    El campo es requerido
+                  </div>
+                </FlexboxGrid.Item>
+                <FlexboxGrid.Item colspan={11} className="not-first-row">
+              <span className="input-title">
+                  Repita Contraseña
+                </span>
+                  <InputGroup inside>
+                    <Input
+                      size="lg"
+                      name="repeatPassword"
+                      type={!showRepeatContent ? "password" : "text"}
+                      inputRef={register({
+                        validate: (value) =>
+                          value === password.current ||
+                          "Las contraseñas no coinciden",
+                      })}
+                    />
+                    <InputGroup.Button
+                      style={{
+                        height: "100%",
+                        width: "4em",
+                        justifyContent: "center",
+                      }}
+                      onClick={() => setShowRepeatContent(!showRepeatContent)}
+                    >
+                      <Icon
+                        style={{ fontSize: "18px" }}
+                        icon={!showRepeatContent ? "eye-slash" : "eye"}
+                      />
+                    </InputGroup.Button>
+                  </InputGroup>
+                  <div
+                    style={{
+                      color: "Red",
+                      display:
+                        errors.repeatPassword !== undefined ? "initial" : "none",
+                    }}
+                  >
+                    {errors?.repeatPassword?.message}
+                  </div>
+                </FlexboxGrid.Item>
+              </>
+            }
+            <FlexboxGrid.Item colspan={24} style={{ display: 'flex', justifyContent: 'end', marginTop: '1rem' }}>
+              <Button
+                appearance="primary"
+                loading={passwordLoadnding}
+                className="button shadow"
+                onClick={!changePassword ? () => setChangePassword(true) : handleSubmit(onChangePassword)}
+              >
+                {!changePassword ? "Cambiar contraseña" : "Actualizar Contraseña"}
+              </Button>
+            </FlexboxGrid.Item>
+          </FlexboxGrid>
           <span className="input-title">Alerta de Nivel de Inventario</span>
           <Input
-            defaultValue={user?.user?.userConfig?.nivelInventario}
-            inputRef={register(({ required: true, setValueAs: (value) => parseInt(value) }))}
+            defaultValue={currentUser?.user?.userConfig?.nivelInventario}
+            inputRef={register({ setValueAs: (v) => parseInt(v) })}
             name="nivelInventario"
             type="number"
           />
@@ -85,6 +250,7 @@ export default function UserConfigurationModal({ isOpen, onClose, user }) {
               appearance="primary"
               className="button shadow text-medium bg-color-primary text-white"
               onClick={handleSubmit(onSave)}
+              loading={userLoanding}
             >
               Guardar
             </Button>
