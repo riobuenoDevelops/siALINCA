@@ -61,14 +61,10 @@ const StoreActionCell = ({
         break;
       case 2:
         handleSelectedStore(rowData);
-        handleAddingItems(true);
+        handleTransferModalOpen(true);
         break;
       case 3:
         onEnableDisableStore();
-        break;
-      case 4:
-        handleSelectedStore(rowData);
-        handleTransferModalOpen(true);
         break;
     }
   };
@@ -78,9 +74,6 @@ const StoreActionCell = ({
         <Icon icon="edit" /> Editar
       </Dropdown.Item>
       <Dropdown.Item eventKey={2} onSelect={onSelect}>
-        <Icon icon="cubes" /> Agregar items
-      </Dropdown.Item>
-      <Dropdown.Item eventKey={4} onSelect={onSelect}>
         <Icon icon="exchange" /> Transferir items
       </Dropdown.Item>
       <Dropdown.Item divider />
