@@ -14,7 +14,7 @@ const DeleteCell = ({ handleData, data, rowData, dataKey, ...props }) => {
   );
 };
 
-export default function DeliveryNoteItemsTable({ data, handleData }) {
+export default function DeliveryNoteItemsTable({ data, handleData, withoutAction }) {
   const { HeaderCell, Cell, Column } = Table;
 
   return (
@@ -45,12 +45,14 @@ export default function DeliveryNoteItemsTable({ data, handleData }) {
         </HeaderCell>
         <Cell dataKey="quantity" />
       </Column>
-      <Column flexGrow={1} verticalAlign="middle" align="right">
-        <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>
-          <h6 className="text-black text-bold">Acciones</h6>
-        </HeaderCell>
-        <DeleteCell dataKey="itemId" handleData={handleData} data={data} />
-      </Column>
+      {!withoutAction &&
+        <Column flexGrow={1} verticalAlign="middle" align="right">
+          <HeaderCell style={{ backgroundColor: "rgba(0, 191, 228, 0.5)" }}>
+            <h6 className="text-black text-bold">Acciones</h6>
+          </HeaderCell>
+          <DeleteCell dataKey="itemId" handleData={handleData} data={data} />
+        </Column>
+      }
     </Table>
   );
 };
