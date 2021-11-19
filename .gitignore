@@ -33,3 +33,6 @@ renderer/.env
 
 # vercel
 .vercel
+
+#idia
+.idea
