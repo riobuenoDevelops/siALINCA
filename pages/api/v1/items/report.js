@@ -4,17 +4,10 @@ import authenticated from "../../../../utils/middleware/auth/authenticatedWrappe
 import scopeValidator from "../../../../utils/middleware/validationHandlers/scopeValidationMiddleware";
 import ItemService from "../../../../services/Item";
 
-async function getMethodHandler(req, res) {
-  const {
-    query: { quantity, userId, disabled },
-  } = req;
+async function postMethodHandler(req, res) {
   try {
-    const items = await ItemService.getItems({
-      quantity,
-      userId,
-      disabled,
-    });
-    res.status(200).json(items);
+    await ItemService.createInventoryReport({ path: req.body.path });
+    res.status(200).send();
   } catch (err) {
     errorHandler(boom.internal(err), req, res);
   }
@@ -24,13 +17,13 @@ export default authenticated(async function (req, res) {
   const { method } = req;
 
   switch (method) {
-    case "GET":
-      scopeValidator(["read:item"], req, res, getMethodHandler);
+    case "POST":
+      scopeValidator(["read:item"], req, res, postMethodHandler);
       break;
     default:
       errorHandler(
         boom.methodNotAllowed(
-          "This endpoint only accepts GET requests"
+          "This endpoint only accepts POST requests"
         ),
         req,
         res

@@ -175,11 +175,11 @@ class PdfService {
     pdfDoc.end();
   }
 
-  static createInventoryPDF(info, data, path = ".", docName = "Inventario") {
+  static createInventoryPDF(data, path = ".") {
+
     let inventarioDocument = {
       info:{
-        title: 'Inventario al ' + this.formatDate(new Date(Date.now())),
-        author: info.user
+        title: 'Inventario al ' + this.formatDate(new Date(Date.now()))
       },
 
       styles:{
@@ -229,7 +229,7 @@ class PdfService {
     this.insertIntoTable(inventarioDocument, data, 3, true);
 
     let pdfDoc = this.printer.createPdfKitDocument(inventarioDocument);
-    pdfDoc.pipe(fs.createWriteStream(`${path}/${docName}.pdf`));
+    pdfDoc.pipe(fs.createWriteStream(`${path}/Inventario al ${this.formatDate(new Date(Date.now()))} ${this.formatTime(new Date(Date.now()))}.pdf`));
     pdfDoc.end();
   }
 

@@ -6,7 +6,8 @@ const EnamelwareService = require("./Enamelware");
 const PropertyService = require("./Property");
 const StationaryService = require("./Stationary");
 const UserService = require("./User");
-const AblyService = require("./Ably")
+const PDFService = require("./Pdf");
+const i18n = require('i18next');
 
 class ItemService {
   static MongoDB = new MongoLib();
@@ -22,9 +23,6 @@ class ItemService {
     startDate,
     endDate
   }) {
-    if (!AblyService.ablyClient.connection) {
-      AblyService.createClient();
-    }
 
     let itemsWithChild = [];
     let query = {
@@ -116,17 +114,6 @@ class ItemService {
     }
 
     const updatedId = await this.MongoDB.update(this.collection, id, item);
-    console.log("UPDATE ITEM");
-    if(item.quantity <= user[0].config.nivelInventario) {
-      console.log("INITIALIZE ABLY");
-      if(!AblyService.ablyClient) {
-        AblyService.createClient();
-      }
-      AblyService.publish(
-          AblyService.getChannels().NOTIFICATION,
-          user[0].email,
-          `Nnivel de inventario crítico para item "${item.name}"`)
-    }
 
     return updatedId;
   }
@@ -139,6 +126,24 @@ class ItemService {
     }
 
     return await this.updateItem({ id, item: { isDeleted: true } });
+  }
+
+  static async createInventoryReport({ path }) {
+    console.log('Paso 1')
+    const items = await this.getItems({ isDeleted: false });
+
+    console.log('Paso 2')
+    const data = await Promise.all(items.map(async (item) => {
+      const childItem = await this.getItem({ id: item._id, withChild: "true" });
+      let formattedDate = "";
+      if (childItem.expiratedDate) {
+        const date = new Date(childItem.expiratedDate);
+        formattedDate = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
+      }
+
+      return [i18n.t(`categories.${item['type']}`), item['name'], item['quantity'], formattedDate ? formattedDate : "N/A"]
+    }));
+    await PDFService.createInventoryPDF(data, path);
   }
 }
 
