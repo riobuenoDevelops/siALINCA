@@ -51,7 +51,7 @@ export default function ItemActionCell({
         break;
       case "electroDevice":
         router.push({
-          pathname: '/items/new-electro-device',
+          pathname: '/items/new-electronic-device',
           query: {
             id: rowData._id,
             childId: rowData.itemChildId

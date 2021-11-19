@@ -91,7 +91,7 @@ export default function ItemDetailPage({ user, handleLogged }) {
         break;
       case 'electroDevice':
         router.push({
-          pathname: '/items/new-electro-device',
+          pathname: '/items/new-electronic-device',
           query: {
             id: item.itemId,
             childId: item._id
