@@ -169,10 +169,10 @@ export default function StoreDetailPage({ handleLogged, user }) {
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={3} className="responsive-box">
         <BasicActionsButtonGroup
+          withoutDelete
           disabled={store.disabled}
           itemMutate={mutate}
           onEdit={onEdit}
-          onDelete={null}
           token={user?.token}
           route={`/stores/${store._id}`}
         />
@@ -210,7 +210,7 @@ export default function StoreDetailPage({ handleLogged, user }) {
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={24} style={{ marginTop: "2rem" }} className="info-box shadow">
         <FlexboxGrid>
-          <FlexboxGrid.Item colspan={15}>
+          <FlexboxGrid.Item colspan={20}>
             <h4 className="text-color-primary text-bolder">Items en Almacén</h4>
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={{ marginBottom: "1rem" }}>
@@ -225,17 +225,6 @@ export default function StoreDetailPage({ handleLogged, user }) {
             </Button>
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={1}/>
-          <FlexboxGrid.Item colspan={4}>
-            <Button
-              block
-              onClick={onAdd}
-              appearance="primary"
-              className="text-bold"
-              style={{ padding: " 0.7em" }}
-            >
-              Agregar Item
-            </Button>
-          </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={24} style={{ margin: "1rem 0", display: isAdding ? "initial" : "none" }}
                             className="form">
             <FlexboxGrid>
