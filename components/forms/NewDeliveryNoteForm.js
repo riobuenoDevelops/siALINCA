@@ -1,24 +1,42 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useRouter } from "next/router";
 import { Controller } from "react-hook-form";
-import { DatePicker, FlexboxGrid, SelectPicker } from "rsuite";
+import {Checkbox, DatePicker, FlexboxGrid, SelectPicker, Input, Button} from "rsuite";
+import electron from "electron";
 
 import NewDeliveryNoteItemsForm from "./NewDeliveryNotesItemsForm";
 import FormErrorMessage from "../common/FormErrorMessage";
+
+import "../../styles/forms.less";
+
+const ipcRenderer = electron.ipcRenderer || false;
 
 export default function NewDeliveryNoteForm({
   token,
   stores,
   sedes,
   applicants,
+  register,
   errors,
   watch,
   control,
-  selectedStoreItems
+  selectedStoreItems,
+  dirname,
+  setDirname
 }) {
   const router = useRouter();
   const { query: { type } } = router;
   const [applicantType, setApplicantType] = useState("");
+
+  useEffect(() => {
+    ipcRenderer.on("deliveryNoteInside", (event, data) => {
+      setDirname(data);
+    });
+  });
+
+  const openDirDialog = () => {
+    ipcRenderer.send("openDirDialog", { event: 'deliveryNoteInside' });
+  }
 
   return (
     <FlexboxGrid justify="space-between">
@@ -124,7 +142,24 @@ export default function NewDeliveryNoteForm({
         />
         {errors.applicantId && <FormErrorMessage message="El campo es requerido" />}
       </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={7} />
+      <FlexboxGrid.Item colspan={5} className="not-first-row flex-item-align-center">
+        <Checkbox
+          name="generatePDF"
+          defaultValue={false}
+          inputRef={register()}
+        > Generar PDF</Checkbox>
+      </FlexboxGrid.Item>
+      <FlexboxGrid.Item colspan={24} className="not-first-row">
+        <span className="input-title">Ruta de archivo</span>
+        <FlexboxGrid align="middle">
+          <FlexboxGrid.Item colspan={6}>
+            <Button onClick={openDirDialog} block>Seleccione carpeta</Button>
+          </FlexboxGrid.Item>
+          <FlexboxGrid.Item colspan={18}>
+            <span style={{ marginLeft: "0.5rem" }}>{`${dirname.substring(0, 50)}...`}</span>
+          </FlexboxGrid.Item>
+        </FlexboxGrid>
+      </FlexboxGrid.Item>
       <NewDeliveryNoteItemsForm stores={stores} token={token} selectedStoreItems={selectedStoreItems} />
       {errors.storeItems && <FormErrorMessage message={errors.storeItems.message} />}
     </FlexboxGrid>

@@ -1,29 +1,36 @@
-import React from "react";
-import cookiesCutter from "cookie-cutter";
-import { useRouter } from "next/router";
-import { Icon, IconButton, Table, Notification } from "rsuite";
+import { Icon, IconButton, Table } from "rsuite";
+import electron from "electron";
 
 import { CustomWhisper } from "../common/MenuWrapper";
 import CustomDropdownMenu from "../common/CustomDropdownMenu";
 
-import AxiosService from "../../../services/Axios";
-import routes from "../../../config/routes";
+
+const ipcRenderer = electron.ipcRenderer || false;
 
 export default function NoteActionCell({
   mutate,
   tableRef,
   rowData,
+  handleSelectedData,
   rowKey,
+  token,
   ...props
 }) {
-  const router = useRouter();
+
+  const onGeneratePDF = () => {
+    ipcRenderer.send("openDirDialog", { event: 'deliveryNoteOutside' });
+  }
 
   const handleSelectMenu = (eventKey, event) => {
     switch (eventKey) {
       case 1:
-        console.log(rowData);
+
         break;
       case 2:
+        break;
+      case 4:
+        handleSelectedData(rowData);
+        onGeneratePDF();
         break;
     }
   };
@@ -32,7 +39,7 @@ export default function NoteActionCell({
     <Table.Cell {...props}>
       <CustomWhisper
         tableRef={tableRef}
-        menuComponent={<CustomDropdownMenu rowData={rowData} onSelect={handleSelectMenu} />}
+        menuComponent={<CustomDropdownMenu withoutEdit withoutEnable hasPDF rowData={rowData} onSelect={handleSelectMenu} hasDeleted  />}
         menuComponentOnSelect={handleSelectMenu}
       >
         <IconButton

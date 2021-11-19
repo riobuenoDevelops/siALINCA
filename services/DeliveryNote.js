@@ -4,6 +4,7 @@ const ItemService = require("./Item");
 const UserService = require("./User");
 const SedeService = require("./Sede");
 const ApplicantService = require("./Applicant");
+const i18n = require("i18next");
 
 class DeliveryNoteService {
   static MongoDB = new MongoLib();
@@ -38,7 +39,7 @@ class DeliveryNoteService {
       }
     });
 
-    if(startDate) {
+    if (startDate) {
       query = {
         ...query,
         createdAt: {
@@ -61,29 +62,29 @@ class DeliveryNoteService {
     return note;
   }
 
-  static async getDeliveryNotesByItem({ itemId }){
+  static async getDeliveryNotesByItem({ itemId }) {
     const deliveryNotes = await this.getDeliveryNotes({});
     if (!deliveryNotes.length) {
       return [];
     }
 
     return deliveryNotes.filter(note => (
-      note.items.some((item) => ( item.itemId === itemId ))
+      note.items.some((item) => (item.itemId === itemId))
     ))
   }
 
-  static async getDeliveryNotesByStore({ storeId }){
+  static async getDeliveryNotesByStore({ storeId }) {
     const deliveryNotes = await this.getDeliveryNotes({});
     if (!deliveryNotes.length) {
       return [];
     }
 
     return deliveryNotes.filter(note => (
-      note.items.some((item) => ( item.storeId === storeId ))
+      note.items.some((item) => (item.storeId === storeId))
     ))
   }
 
-  static async getDeliveryNotesBySede({ sede }){
+  static async getDeliveryNotesBySede({ sede }) {
     const deliveryNotes = await this.getDeliveryNotes({ applicantType: "sede" });
     if (!deliveryNotes.length) {
       return [];
@@ -94,7 +95,7 @@ class DeliveryNoteService {
     ))
   }
 
-  static async getDeliveryNotesByApplicant({ applicant }){
+  static async getDeliveryNotesByApplicant({ applicant }) {
     const deliveryNotes = await this.getDeliveryNotes({ applicantType: "applicant" });
     if (!deliveryNotes.length) {
       return [];
@@ -106,17 +107,16 @@ class DeliveryNoteService {
   }
 
   static async createDeliveryNote({ deliveryNote }) {
-    console.log(deliveryNote);
-    const noteId =  await this.MongoDB.create(this.collection, {
+    if (deliveryNote.generatePDF) {
+      await this.generatePDF({ deliveryNote });
+    }
+
+    const noteId = await this.MongoDB.create(this.collection, {
       ...deliveryNote,
       disabled: false,
       isDeleted: false,
       createdAt: new Date(Date.now())
     });
-
-   /* if(deliveryNote.generatePDF) {
-      await this.generatePDF({deliveryNote});
-    }*/
 
     return noteId;
   }
@@ -127,19 +127,21 @@ class DeliveryNoteService {
     const applicant = deliveryNote.applicantType === "sede" ? await SedeService.getSede({ id: deliveryNote.applicantId }) : await ApplicantService.getApplicant({ id: deliveryNote.applicantId });
 
     const info = {
-      user,
-      applicant: applicant.names || applicant.name,
-      cedula: applicant.cedula || "",
-      createStamp: new Date(deliveryNote.createStamp).toDateString(),
-      returnStamp: deliveryNote.returnStamp !== undefined ? new Date(deliveryNote.returnStamp).toDateString() : ""
+      user: `${user.names} ${user.lastNames}`,
+      applicant: deliveryNote.applicantType === "sede" ? applicant.name : `${applicant.names} ${applicant.lastNames}`,
+      cedula: applicant.cedula || undefined,
+      address: deliveryNote.address,
+      createStamp: new Date(deliveryNote.createStamp),
+      returnStamp: deliveryNote.returnStamp ? new Date(deliveryNote.returnStamp) : undefined
     }
 
     const data = deliveryNote.items.map((row) => {
-      const wholeItem = items.filter(item => item._id === row.itemId);
+      const wholeItem = items.filter(item => item._id.toString() === row.itemId);
 
-      return [wholeItem['type'], wholeItem['name'], wholeItem['quantity'], '']
+      return [i18n.t(`categories.${wholeItem[0]['type']}`), wholeItem[0]['name'], row.quantity, '']
     });
-    PdfService.createDeliveryNotePDF(info, data, ".", "Nota de Entrega");
+
+    await PdfService.createDeliveryNotePDF(info, data, deliveryNote.path);
   }
 
   static async updateDeliveryNote({ id, deliveryNote }) {

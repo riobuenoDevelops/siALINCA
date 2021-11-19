@@ -52,7 +52,7 @@ const ApplicantCell = ({ rowData, rowKey, applicantData, ...props }) => {
 
 const ipcRenderer = electron.ipcRenderer || false;
 
-export default function NotesTable({ notes, token, readOnly, withoutResponsable, mutate }) {
+export default function NotesTable({ notes, token, readOnly, withoutResponsable, mutate, stores, items }) {
   let tableBody;
   const { applicants = [] } = useApplicants(token);
   const { sedes = [] } = useSedes(token);
@@ -63,7 +63,7 @@ export default function NotesTable({ notes, token, readOnly, withoutResponsable,
   const [selectedData, handleData] = useState({});
 
   useEffect(() => {
-    ipcRenderer.once("openDirDialog", async function (event, eventData) {
+    ipcRenderer.once("deliveryNoteOutside", async function (event, eventData) {
       onGeneratePDF(eventData);
     });
   }, [selectedData]);
@@ -209,6 +209,8 @@ export default function NotesTable({ notes, token, readOnly, withoutResponsable,
         onHide={() => handleOpen(false)}
         isOpen={isOpen}
         noteData={selectedData}
+        stores={stores}
+        items={items}
       />
     </>
   );
