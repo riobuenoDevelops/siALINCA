@@ -33,7 +33,7 @@ export default function BasicActionsButtonGroup({ disabled, onEdit, onDelete, ro
       <IconButton size="md" appearence="primary" circle className="bg-default"
                   icon={<Icon icon={disabled ? 'circle' : 'circle-o'}/>} onClick={onEnableDisable}/>
     </Whisper>
-    {withoutDelete &&
+    {!withoutDelete &&
       <Whisper placement="bottom" trigger="hover" speaker={<Tooltip>Eliminar</Tooltip>}>
         <IconButton size="md" appearence="primary" circle style={{ marginLeft: '0.5rem' }} className="bg-default" icon={<Icon icon="trash"/>}
                     onClick={onDelete}/>
