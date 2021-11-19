@@ -27,29 +27,8 @@ export default function ItemsPage({ handleLogged }) {
 
     handleLogged(true);
 
-    ipcRenderer.on('dirInventoryPDF', async (event, data) => {
-      await onGeneratePDF(data);
-    });
+
   }, []);
-
-  const onGeneratePDF = async (path) => {
-    try {
-      await AxiosService.instance.post('/items/report', { path }, {
-        headers: {
-          Authorization: user.token
-        }
-      });
-
-      Notification.success({
-        title: "Éxito",
-        description: "El PDF se ha generado correctamente",
-        duration: 5000,
-        placement: "bottomStart"
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   if (isLoading) return <LoadingScreen/>;
 

@@ -11,6 +11,7 @@ import i18n from "../utils/i18n/index";
 import LoggedLayout from "../components/layouts/LoggedLayout";
 
 import AxiosService from "../services/Axios";
+import { useCurrentUser } from '../hooks';
 
 import "rsuite/lib/styles/index.less";
 import "../styles/custom-theme.less";
@@ -18,6 +19,8 @@ import "../styles/custom-theme.less";
 const ipcRenderer = electron.ipcRenderer || false;
 
 export default function MyApp({ Component, ...pageProps }) {
+
+  const { user } = useCurrentUser();
 
   useEffect(() => {
     ipcRenderer.on("notify-critical-item", (event, data) => {
@@ -29,10 +32,34 @@ export default function MyApp({ Component, ...pageProps }) {
       });
     });
 
+    ipcRenderer.once('dirInventoryPDF', async (event, data) => {
+      await onGeneratePDF(data);
+    });
+
     return () => {
       ipcRenderer.removeAllListeners("notify-critical-item");
+      ipcRenderer.removeAllListeners("dirInventoryPDF");
     }
   }, []);
+
+  const onGeneratePDF = async (path) => {
+    try {
+      await AxiosService.instance.post('/items/report', { path }, {
+        headers: {
+          Authorization: user.token
+        }
+      });
+
+      Notification.success({
+        title: "Éxito",
+        description: "El PDF se ha generado correctamente",
+        duration: 5000,
+        placement: "bottomStart"
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <>
