@@ -129,10 +129,8 @@ class ItemService {
   }
 
   static async createInventoryReport({ path }) {
-    console.log('Paso 1')
     const items = await this.getItems({ isDeleted: false });
 
-    console.log('Paso 2')
     const data = await Promise.all(items.map(async (item) => {
       const childItem = await this.getItem({ id: item._id, withChild: "true" });
       let formattedDate = "";

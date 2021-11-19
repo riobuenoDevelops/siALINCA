@@ -237,7 +237,6 @@ export function useRoles(token) {
 }
 
 export function useDecrypt(text) {
-  console.log("text", text);
   const { NEXT_PUBLIC_PASSWORD_SECRET } = process.env;
   const { decryptString } = new StringCrypto();
   if(text) {

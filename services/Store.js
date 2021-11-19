@@ -149,9 +149,6 @@ class StoreService {
         })
       }
 
-      console.log(originNewItems);
-      console.log(destinationNewItems);
-
       await this.updateStoreItems({ id: originStoreId, items: originNewItems });
       await this.updateStoreItems({ id: destinationStoreId, items: destinationNewItems })
 
