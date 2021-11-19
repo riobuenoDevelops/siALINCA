@@ -192,7 +192,7 @@ export default function NewMedicinePage({
     <>
       <FlexboxGrid className="form" justify="space-between">
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "3em" }}>
-          <h3>Nuevo Medicamento</h3>
+          <h3 className="text-bolder">{id ? "Actualizar Medicamento" : "Nuevo Medicamento"}</h3>
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewMedicineForm

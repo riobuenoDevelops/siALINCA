@@ -128,7 +128,7 @@ export default function NewMealPage({
           },
         });
 
-        await AxiosService.instance.post(
+        const mealId = await AxiosService.instance.post(
           routes.items + "/meals",
           { ...mealData, itemId: item.data },
           {
@@ -137,6 +137,12 @@ export default function NewMealPage({
             },
           }
         );
+
+        await AxiosService.instance.put(`${routes.items}/${item.data}`, { itemChildId: mealId.data }, {
+          headers: {
+            Authorization: user.token,
+          },
+        });
 
         storeItemData.map(async (store) => {
           await AxiosService.instance.post(
@@ -177,7 +183,7 @@ export default function NewMealPage({
     <>
       <FlexboxGrid justify="start" style={{ marginBottom: '3rem' }}>
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "3em" }}>
-          <h3 className="text-black text-bolder">Nuevo Alimento</h3>
+          <h3 className="text-bolder">{id ? "Actualizar Alimento" : "Nuevo Alimento"}</h3>
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "1em" }}>
           <NewMealForm

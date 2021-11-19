@@ -186,7 +186,7 @@ export default function NewEnamelwarePage({
     <>
       <FlexboxGrid className="form" justify="space-between">
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "3rem" }}>
-          <h3 className="text-bolder">Nuevo Utencilio</h3>
+          <h3 className="text-bolder">{id ? "Actualizar Utencilio" : "Nuevo Utencilio"}</h3>
           <span>Paso 1/1</span>
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>

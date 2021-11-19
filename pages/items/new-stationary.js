@@ -128,7 +128,7 @@ export default function NewStationaryPage({
           },
         });
 
-        await AxiosService.instance.post(
+       const stationaryId = await AxiosService.instance.post(
           routes.items + "/stationary",
           { ...stationaryData, itemId: item.data },
           {
@@ -137,6 +137,12 @@ export default function NewStationaryPage({
             },
           }
         );
+
+        await AxiosService.instance.put(`${routes.items}/${item.data}`, { itemChildId: stationaryId.data }, {
+          headers: {
+            Authorization: user.token,
+          },
+        });
 
         storeItemData.map(async (store) => {
           await AxiosService.instance.post(
@@ -176,7 +182,7 @@ export default function NewStationaryPage({
     <>
       <FlexboxGrid justify="space-between">
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "2em" }}>
-          <h3 className="text-bolder">Nueva Papeleria</h3>
+          <h3 className="text-bolder">{id ? "Actualizar Papelería" : "Nueva Papelería"}</h3>
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewStationaryForm

@@ -26,7 +26,7 @@ export default function NewElectronicDevicePage({
   const [storeItemData, setStoreItemData] = useState([]);
   const [deviceCharacteristics, setDeviceCharacteristics] = useState([]);
   const { isEmpty } = useCurrentUser();
-  const { item, isLoading: itemLoading, itemStores } = useItem(user?.token, id);
+  const { item, isLoading: itemLoading, itemStores } = useItem(user?.token, history.query.id);
   const { stores, isLoading: storesLoading } = useStores(user?.token);
   const { measures, isLoading: measuresLoading, mutate: measuresMutate } = useMeasures(user?.token);
 
@@ -196,13 +196,12 @@ export default function NewElectronicDevicePage({
   };
 
   if (storesLoading || measuresLoading || (id && itemLoading)) return <LoadingScreen />
-  console.log(id, childId);
 
   return (
     <>
       <FlexboxGrid justify="space-between">
         <FlexboxGrid.Item colspan={24} style={{ marginBottom: "2em" }}>
-          <h3 className="text-bolder">Nuevo Dispositivo Electrónico</h3>
+          <h3 className="text-bolder">{id ? "Actualizar Dispositivo Electrónico" : "Nuevo Dispositivo Electrónico"}</h3>
           <span>Paso 1/1</span>
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>

@@ -1,36 +1,36 @@
-import {useEffect, useState} from "react";
-import {useRouter} from "next/router";
-import {useForm} from "react-hook-form";
-import {Button, FlexboxGrid, Notification} from "rsuite";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
+import { Button, FlexboxGrid, Notification } from "rsuite";
 
 import LoadingScreen from "../../components/layouts/LoadingScreen";
 import NewDeliveryNoteForm from "../../components/forms/NewDeliveryNoteForm";
 import CancelConfirmationModal from "../../components/modals/CancelConfirmationModal";
 
+import { useApplicants, useCurrentUser, useSedes, useStores } from "../../hooks";
 import AxiosService from "../../services/Axios";
 import routes from "../../config/routes";
-import {parseCookies} from "../../lib/parseCookies";
-import {useApplicants, useSedes, useStores} from "../../hooks";
 
 import "../../styles/forms.less";
 
-export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) {
+export default function NewDeliveryNotePage({ handleLogged, user }) {
   const history = useRouter();
   const { handleSubmit, errors, control, register, watch, setError } = useForm();
-  const { isLoading: storeLoading, stores } = useStores(user.token);
-  const { isLoading: applicantLoading, applicants } = useApplicants(user.token);
-  const { isLoading: sedeLoading, sedes } = useSedes(user.token);
   const [isLoading, handleLoading] = useState(false);
   const selectedStoreItems = useState([]);
   const [isOpen, handleIsOpen] = useState(false);
+  const [dirname, setDirname] = useState("");
+  const { isEmpty } = useCurrentUser();
+  const { isLoading: storeLoading, stores } = useStores(user?.token);
+  const { isLoading: applicantLoading, applicants } = useApplicants(user?.token);
+  const { isLoading: sedeLoading, sedes } = useSedes(user?.token);
 
   useEffect(() => {
-    if(user) {
-      handleLogged(true);
-      handleUser(user);
-    } else {
-      handleLogged(false);
+    if (isEmpty) {
+      history.push('login');
     }
+
+    handleLogged(true);
   }, []);
 
   const onHide = () => {
@@ -47,7 +47,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
 
   const onSubmit = async (data) => {
     handleLoading(true);
-    if(!selectedStoreItems[0].length){
+    if (!selectedStoreItems[0].length) {
       setError("storeItems",
         {
           type: "empty",
@@ -59,6 +59,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
     }
 
     const noteData = {
+      userId: user.user._id,
       createStamp: data.createStamp,
       returnStamp: data.returnStamp,
       noteType: data.noteType,
@@ -69,7 +70,8 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
         itemId: item.itemId,
         quantity: item.quantity
       })),
-      generatePDF: data.generatePDF
+      generatePDF: data.generatePDF,
+      path: dirname,
     }
 
     try {
@@ -83,14 +85,14 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
         }
       );
 
-      selectedStoreItems[0].map(async (item) => {
+      await Promise.all(selectedStoreItems[0].map(async (item) => {
         const store = stores.filter(store => store._id === item.storeId)[0];
         const savedItemInStore = store.items.filter(savedItem => savedItem.itemId === item.itemId)[0];
 
         await AxiosService.instance.put(
-          `${routes.getStores}/${item.storeId}/items` ,
+          `${routes.getStores}/${item.storeId}/items`,
           store.items.map(savedItem => {
-            if(savedItem.itemId === item.itemId) {
+            if (savedItem.itemId === item.itemId) {
               return {
                 quantity: savedItemInStore.quantity - item.quantity,
                 itemId: item.itemId
@@ -106,7 +108,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
         );
 
         await AxiosService.instance.put(
-          `${routes.items}/${item.itemId}` ,
+          `${routes.items}/${item.itemId}`,
           {
             quantity: savedItemInStore.quantity - item.quantity
           },
@@ -116,7 +118,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
             },
           }
         );
-      })
+      }));
 
       Notification.success({
         title: "Nueva nota de Entrega creada",
@@ -125,10 +127,9 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
       });
       handleLoading(false);
       history.push("/notes");
-    } catch (err){
+    } catch (err) {
       Notification.error({
         title: "Error",
-        description: err?.message,
         placement: "bottomStart",
         duration: 9000,
       });
@@ -136,7 +137,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
     }
   };
 
-  if(storeLoading && applicantLoading && sedeLoading) return <LoadingScreen />;
+  if (storeLoading && applicantLoading && sedeLoading) return <LoadingScreen/>;
 
   return (
     <>
@@ -146,6 +147,8 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={24}>
           <NewDeliveryNoteForm
+            dirname={dirname}
+            setDirname={setDirname}
             applicants={applicants}
             stores={stores}
             sedes={sedes}
@@ -157,7 +160,7 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
             selectedStoreItems={selectedStoreItems}
           />
         </FlexboxGrid.Item>
-        <FlexboxGrid.Item colspan={15} />
+        <FlexboxGrid.Item colspan={15}/>
         <FlexboxGrid.Item
           colspan={4}
           style={{ marginBottom: "2rem", marginTop: "2rem" }}
@@ -194,28 +197,4 @@ export default function NewDeliveryNotePage({ handleLogged, handleUser, user }) 
       />
     </>
   )
-}
-
-export async function getServerSideProps({ req }) {
-  let user = {};
-  const cookies = parseCookies(req);
-
-  if (cookies && cookies.sialincaUser) {
-    user = JSON.parse(cookies.sialincaUser);
-
-    return {
-      props: {
-        user,
-        isError: false,
-      },
-    };
-  }
-
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login",
-    },
-    props: {},
-  };
 }
