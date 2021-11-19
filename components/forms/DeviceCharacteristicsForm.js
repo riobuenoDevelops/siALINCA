@@ -17,7 +17,7 @@ export default function DeviceCharacteristicsForm({
         }
         return item;
       });
-      console.log(newArray);
+
       characteristicsData[1](newArray);
     } else {
       characteristicsData[1]([...characteristicsData[0], { name: data.name, value: data.value }]);

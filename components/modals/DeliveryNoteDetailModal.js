@@ -8,7 +8,6 @@ export default function DeliveryNoteDetailModal({ noteData, applicants, isOpen, 
 
   const getApplicantName = () => {
     const applicant = applicants.filter(applicant => applicant._id === noteData.applicantId)[0];
-    console.log(applicant);
 
     return applicant?.name || applicant?.names;
   };
