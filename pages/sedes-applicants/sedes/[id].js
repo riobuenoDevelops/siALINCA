@@ -4,47 +4,51 @@ import { useRouter } from "next/router";
 import { FlexboxGrid } from "rsuite";
 import Crc from "country-state-city";
 
-import "../../../styles/custom-theme.less";
-import {useNotesBySede, useSede} from "../../../hooks";
 import LoadingScreen from "../../../components/layouts/LoadingScreen";
-import BackButton from "../../../components/common/BackButton";
 import BasicActionsButtonGroup from "../../../components/customComponents/BasicActionsButtonGroup";
+import BackButton from "../../../components/common/BackButton";
 import NotesTable from "../../../components/tables/NotesTable";
 
-export default function SedeDetailPage({isError, user, handleUser, handleLogged}) {
+import routes from "../../../config/routes"
+import { useCurrentUser, useNotesBySede, useSede } from "../../../hooks";
+
+
+export default function SedeDetailPage({ user, handleLogged }) {
   const router = useRouter();
   const { id } = router.query;
-  const { sede, isLoading: sedeLoading } = useSede(user.token, id);
-  const { sedeNotes, isLoading: notesLoading } = useNotesBySede(id, user.token);
-  
+  const { isEmpty } = useCurrentUser();
+  const { sede, isLoading: sedeLoading, mutate: sedeMutate } = useSede(user?.token, id ? id : null);
+  const { sedeNotes, isLoading: notesLoading } = useNotesBySede(id, user?.token);
+
   useEffect(() => {
-    if (isError) {
-      handleLogged(false);
-    } else {
-      handleLogged(true);
-      handleUser(user);
+    if (isEmpty) {
+      router.push('/login')
     }
+
+    handleLogged(true);
   }, []);
 
-  if(sedeLoading || notesLoading) return <LoadingScreen />
-  
+  if (sedeLoading || notesLoading) return <LoadingScreen/>
+
   return (
     <FlexboxGrid>
-      <FlexboxGrid.Item colspan={1} style={{padding: "0.3rem 0"}}>
-        <BackButton route="/sedes-applicants" placeholder="A Sedes y Aplicantes" />
+      <FlexboxGrid.Item colspan={1} style={{ padding: "0.3rem 0" }}>
+        <BackButton route="/sedes-applicants" placeholder="A Sedes y Aplicantes"/>
       </FlexboxGrid.Item>
       <FlexboxGrid.Item colspan={20}>
         <h2 className="text-bolder">{`Sede ${sede?.name}`}</h2>
       </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={3} style={{display: "flex", justifyContent: "flex-end"}}>
+      <FlexboxGrid.Item colspan={3} style={{ display: "flex", justifyContent: "flex-end" }}>
         <BasicActionsButtonGroup
+          route={`${routes.sedes}/${id}`}
+          itemMutate={sedeMutate}
           token={user.token}
           disabled={sede?.disabled}
           onDelete={null}
           onEdit={null}
         />
       </FlexboxGrid.Item>
-      <FlexboxGrid.Item colspan={24} style={{marginTop: "2rem"}}>
+      <FlexboxGrid.Item colspan={24} style={{ marginTop: "2rem" }}>
         <FlexboxGrid>
           <FlexboxGrid.Item colspan={12} className="info-box shadow">
             <h4 className="text-color-primary text-bolder">Información General</h4>
@@ -104,27 +108,3 @@ export default function SedeDetailPage({isError, user, handleUser, handleLogged}
     </FlexboxGrid>
   )
 }
-
-export async function getServerSideProps({req}) {
-  let user;
-  const userCookie = parseCookies(req);
-  if (userCookie && userCookie.sialincaUser) {
-
-      user = JSON.parse(userCookie.sialincaUser);
-      
-      return {
-        props: {
-          user,
-          isError: false,
-        }
-      }
-    }
-  
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/login"
-    },
-    props: {},
-  }
-};
