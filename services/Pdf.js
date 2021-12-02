@@ -108,8 +108,7 @@ class PdfService {
             }
           ],
           margin: [0, 6, 0, 10],
-          alignment: 'left',
-          columnGap: 2
+          alignment: 'center'
         },
         {
           style: 'tablas',
